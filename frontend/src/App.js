@@ -9,6 +9,7 @@ import MoodTracker from './components/MoodTracker';
 import Settings from './components/Settings';
 import Login from './components/Login';
 import Navigation from './components/Navigation';
+import VoiceAssistant from './components/VoiceAssistant';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // Use relative URL for API calls (goes through same origin)
