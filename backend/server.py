@@ -157,7 +157,7 @@ async def create_mood(mood: MoodEntry):
     mood_data["created_at"] = datetime.now(timezone.utc).isoformat()
     result = moods_collection.insert_one(mood_data)
     mood_data["id"] = str(result.inserted_id)
-    del mood_data["_id"] if "_id" in mood_data else None
+    mood_data.pop("_id", None)
     return mood_data
 
 
