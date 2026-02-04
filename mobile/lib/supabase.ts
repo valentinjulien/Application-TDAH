@@ -47,7 +47,7 @@ export interface PomodoroSession {
 }
 
 // Helper functions
-export const getTasks = async (userId: string) => {
+export const getTasks = async (userId: string): Promise<Task[]> => {
   const { data, error } = await supabase
     .from('tasks')
     .select('*')
@@ -55,13 +55,13 @@ export const getTasks = async (userId: string) => {
     .order('created_at', { ascending: false });
   
   if (error) throw error;
-  return data as Task[];
+  return (data || []) as Task[];
 };
 
-export const createTask = async (task: Omit<Task, 'id' | 'created_at'>) => {
+export const createTask = async (task: Omit<Task, 'id' | 'created_at'>): Promise<Task> => {
   const { data, error } = await supabase
     .from('tasks')
-    .insert([task])
+    .insert(task as any)
     .select()
     .single();
   
@@ -69,10 +69,10 @@ export const createTask = async (task: Omit<Task, 'id' | 'created_at'>) => {
   return data as Task;
 };
 
-export const updateTask = async (id: string, updates: Partial<Task>) => {
+export const updateTask = async (id: string, updates: Partial<Task>): Promise<Task> => {
   const { data, error } = await supabase
     .from('tasks')
-    .update(updates)
+    .update(updates as any)
     .eq('id', id)
     .select()
     .single();
@@ -81,7 +81,7 @@ export const updateTask = async (id: string, updates: Partial<Task>) => {
   return data as Task;
 };
 
-export const deleteTask = async (id: string) => {
+export const deleteTask = async (id: string): Promise<void> => {
   const { error } = await supabase
     .from('tasks')
     .delete()
