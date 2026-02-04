@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 
-const API_URL = process.env.REACT_APP_BACKEND_URL || '';
+// Use relative URL for API calls
+const API_URL = '';
 
 export const useTasks = () => {
   const [tasks, setTasks] = useState([]);
