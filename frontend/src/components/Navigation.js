@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTheme } from '../App';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -14,12 +14,14 @@ import {
   Moon,
   Sparkles,
   Menu,
-  X
+  X,
+  Mic
 } from 'lucide-react';
 
 const Navigation = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
   const { darkMode, toggleDarkMode } = useTheme();
 
   const navItems = [
