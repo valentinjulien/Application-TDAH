@@ -172,6 +172,32 @@ export default function QuickCaptureButton({ userId, onTaskCreated }: QuickCaptu
                 </View>
               </View>
 
+              {/* Reminder Section */}
+              <View style={styles.reminderSection}>
+                <View style={styles.reminderToggle}>
+                  <Text style={styles.reminderLabel}>🔔 Me rappeler</Text>
+                  <Switch
+                    value={wantsReminder}
+                    onValueChange={setWantsReminder}
+                    trackColor={{ false: Colors.neutral[700], true: Colors.primary[500] }}
+                    thumbColor={wantsReminder ? Colors.primary[300] : Colors.neutral[400]}
+                  />
+                </View>
+                {wantsReminder && (
+                  <View style={styles.reminderTime}>
+                    <Text style={styles.reminderTimeLabel}>Dans</Text>
+                    <TextInput
+                      style={styles.reminderInput}
+                      value={reminderMinutes}
+                      onChangeText={setReminderMinutes}
+                      keyboardType="number-pad"
+                      maxLength={3}
+                    />
+                    <Text style={styles.reminderTimeLabel}>minutes</Text>
+                  </View>
+                )}
+              </View>
+
               {/* Submit Button */}
               <TouchableOpacity
                 style={[styles.submitButton, loading && styles.buttonDisabled]}
