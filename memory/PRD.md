@@ -14,14 +14,14 @@ Une application bienveillante et non-jugeante qui aide les personnes atteintes d
 ## ✅ Fonctionnalités Implémentées (Février 2026)
 
 ### Core Features
-- ✅ **Authentification** - Google OAuth + Email via Supabase
+- ✅ **Authentification** - Emergent Google OAuth (connexion en 1 clic)
 - ✅ **Dashboard** - Quick Capture avec IA, stats rapides, accès rapide aux fonctionnalités
 - ✅ **Matrice Eisenhower** - 4 quadrants colorés avec décomposition IA des tâches
-- ✅ **Timer Pomodoro** - Sessions focus/pause avec progression visuelle
+- ✅ **Timer Pomodoro** - Sessions focus/pause avec progression visuelle circulaire
 - ✅ **Calendrier** - Vue mensuelle avec événements et tâches à planifier
 - ✅ **Suivi d'humeur** - Tracking quotidien humeur + énergie avec historique
 - ✅ **Communauté** - Feed social avec posts, likes, catégories (astuces, victoires, soutien)
-- ✅ **Paramètres** - Mode sombre, notifications, profil
+- ✅ **Paramètres** - Mode sombre, notifications, profil, déconnexion
 
 ### UX/Design TDAH
 - ✅ Design apaisant avec couleurs douces (palette primary/secondary/accent)
@@ -34,13 +34,15 @@ Une application bienveillante et non-jugeante qui aide les personnes atteintes d
 
 ### Backend API
 - ✅ FastAPI avec MongoDB
+- ✅ Emergent Auth integration (Google OAuth)
 - ✅ CRUD Tasks, Moods, Pomodoro sessions, Community posts
+- ✅ Session management avec cookies httpOnly
 - ✅ Health check endpoint
 
 ## 🔧 Stack Technique
 - **Frontend**: React 18, Tailwind CSS, Framer Motion, Lucide Icons
-- **Backend**: FastAPI, MongoDB
-- **Auth**: Supabase (Google OAuth + Email)
+- **Backend**: FastAPI, MongoDB, httpx
+- **Auth**: Emergent Google OAuth
 - **IA**: OpenRouter API (Gemini pour classification)
 
 ## 📊 Architecture
@@ -48,18 +50,19 @@ Une application bienveillante et non-jugeante qui aide les personnes atteintes d
 ```
 /app
 ├── backend/
-│   ├── server.py          # FastAPI API
+│   ├── server.py          # FastAPI API avec Emergent Auth
 │   ├── requirements.txt
 │   └── .env
 ├── frontend/
 │   ├── src/
-│   │   ├── App.js         # Main app avec routing
+│   │   ├── App.js         # Main app avec routing + AuthCallback
 │   │   ├── components/    # Dashboard, Pomodoro, Community, etc.
 │   │   ├── hooks/         # useTasks, useAI, etc.
-│   │   └── services/      # Supabase client
+│   │   └── services/      # API clients
 │   ├── tailwind.config.js
 │   └── package.json
-└── design_guidelines.json  # UI/UX specs
+├── design_guidelines.json  # UI/UX specs
+└── auth_testing.md         # Auth testing playbook
 ```
 
 ## 🚀 Prochaines Étapes (Backlog)
@@ -69,7 +72,7 @@ Une application bienveillante et non-jugeante qui aide les personnes atteintes d
 - [ ] Notifications push PWA
 
 ### P1 - Important
-- [ ] Gamification (badges, streaks, récompenses)
+- [ ] Gamification (badges, streaks, récompenses visuelles)
 - [ ] Statistiques avancées (graphiques humeur/productivité)
 - [ ] Chat en temps réel dans la communauté
 
@@ -82,7 +85,7 @@ Une application bienveillante et non-jugeante qui aide les personnes atteintes d
 ## 📱 URLs
 - **Frontend**: http://localhost:3000
 - **Backend API**: http://localhost:8001/api
-- **Supabase**: https://rmqkvglixdiwlunqaoue.supabase.co
+- **Auth**: https://auth.emergentagent.com
 
 ---
 *Dernière mise à jour: 4 Février 2026*
