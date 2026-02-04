@@ -1,124 +1,77 @@
-import { useState, useEffect } from 'react';
-import { supabase } from '../services/supabaseClient';
+import { useState, useEffect, useCallback } from 'react';
 
-export const useTasks = (quadrant = null) => {
+const API_URL = process.env.REACT_APP_BACKEND_URL || '';
+
+export const useTasks = () => {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    fetchTasks();
-
-    // Real-time subscription
-    const channel = supabase
-      .channel('tasks_changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'tasks',
-          filter: quadrant ? `quadrant=eq.${quadrant}` : undefined,
-        },
-        (payload) => {
-          console.log('Change received!', payload);
-          fetchTasks(); // Refresh tasks on any change
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [quadrant]);
-
-  const fetchTasks = async () => {
+  const fetchTasks = useCallback(async () => {
     try {
       setLoading(true);
+      const response = await fetch(`${API_URL}/api/tasks`);
+      if (!response.ok) throw new Error('Failed to fetch tasks');
+      const data = await response.json();
+      setTasks(data);
       setError(null);
-
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        setTasks([]);
-        return;
-      }
-
-      let query = supabase
-        .from('tasks')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-
-      if (quadrant) {
-        query = query.eq('quadrant', quadrant);
-      }
-
-      const { data, error } = await query;
-
-      if (error) throw error;
-
-      setTasks(data || []);
     } catch (err) {
       console.error('Error fetching tasks:', err);
-      setError('Petit souci de connexion, on réessaie dans un instant...');
+      setError(err.message);
+      // Fallback to empty array
+      setTasks([]);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchTasks();
+  }, [fetchTasks]);
 
   const addTask = async (taskData) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not authenticated');
-
-      const { data, error } = await supabase
-        .from('tasks')
-        .insert([{ ...taskData, user_id: user.id }])
-        .select();
-
-      if (error) throw error;
-
-      // Tasks will be updated via real-time subscription
-      return data[0];
+      const response = await fetch(`${API_URL}/api/tasks`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(taskData),
+      });
+      if (!response.ok) throw new Error('Failed to add task');
+      const newTask = await response.json();
+      setTasks(prev => [newTask, ...prev]);
+      return newTask;
     } catch (err) {
       console.error('Error adding task:', err);
-      setError('Impossible d\'ajouter la tâche pour le moment.');
       throw err;
     }
   };
 
   const updateTask = async (taskId, updates) => {
     try {
-      const { data, error } = await supabase
-        .from('tasks')
-        .update(updates)
-        .eq('id', taskId)
-        .select();
-
-      if (error) throw error;
-
-      // Tasks will be updated via real-time subscription
-      return data[0];
+      const response = await fetch(`${API_URL}/api/tasks/${taskId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates),
+      });
+      if (!response.ok) throw new Error('Failed to update task');
+      const updatedTask = await response.json();
+      setTasks(prev => prev.map(t => t.id === taskId ? updatedTask : t));
+      return updatedTask;
     } catch (err) {
       console.error('Error updating task:', err);
-      setError('Impossible de modifier la tâche pour le moment.');
       throw err;
     }
   };
 
   const deleteTask = async (taskId) => {
     try {
-      const { error } = await supabase
-        .from('tasks')
-        .delete()
-        .eq('id', taskId);
-
-      if (error) throw error;
-
-      // Tasks will be updated via real-time subscription
+      const response = await fetch(`${API_URL}/api/tasks/${taskId}`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) throw new Error('Failed to delete task');
+      setTasks(prev => prev.filter(t => t.id !== taskId));
     } catch (err) {
       console.error('Error deleting task:', err);
-      setError('Impossible de supprimer la tâche pour le moment.');
       throw err;
     }
   };
@@ -133,3 +86,5 @@ export const useTasks = (quadrant = null) => {
     refetch: fetchTasks,
   };
 };
+
+export default useTasks;
