@@ -248,12 +248,13 @@ async def logout(request: Request, response: Response):
         # Delete session from database
         sessions_collection.delete_one({"user_id": user.user_id})
     
-    # Clear cookie
+    # Clear cookie - detect if running on HTTPS or HTTP
+    is_secure = request.url.scheme == "https" or "emergentagent.com" in str(request.url)
     response.delete_cookie(
         key="session_token",
         path="/",
-        secure=True,
-        samesite="none"
+        secure=is_secure,
+        samesite="none" if is_secure else "lax"
     )
     
     return {"message": "Logged out successfully"}
