@@ -2,6 +2,7 @@
   "name": "tdah-companion-app",
   "version": "1.0.0",
   "private": true,
+  "proxy": "http://localhost:8001",
   "dependencies": {
     "@heroicons/react": "^2.2.0",
     "@reduxjs/toolkit": "^1.9.5",
