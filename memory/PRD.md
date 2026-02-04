@@ -11,74 +11,117 @@ Une application bienveillante et non-jugeante qui aide les personnes atteintes d
 2. **Alex, 16 ans** - Étudiant avec TDAH, besoin de structure pour les devoirs et révisions
 3. **Léa, 35 ans** - Mère de famille TDAH, jongle entre travail et vie personnelle
 
-## ✅ Fonctionnalités Implémentées (Février 2026)
+---
 
-### Core Features
-- ✅ **Authentification** - Emergent Google OAuth (connexion en 1 clic)
-- ✅ **Dashboard** - Quick Capture avec IA, stats rapides, accès rapide aux fonctionnalités
-- ✅ **Matrice Eisenhower** - 4 quadrants colorés avec décomposition IA des tâches
-- ✅ **Timer Pomodoro** - Sessions focus/pause avec progression visuelle circulaire
-- ✅ **Calendrier** - Vue mensuelle avec événements et tâches à planifier
-- ✅ **Suivi d'humeur** - Tracking quotidien humeur + énergie avec historique
-- ✅ **Communauté** - Feed social avec posts, likes, catégories
-- ✅ **Paramètres** - Mode sombre, notifications, profil, déconnexion
+## 📱 APPLICATION MOBILE NATIVE (Expo) - EN COURS
 
-### Assistant Vocal IA (v1.1.0)
-- ✅ **Route /assist** - "Porte d'entrée" pour lancement externe (Siri, raccourcis)
-- ✅ **Intégration GPT-4o** - Réponses intelligentes via Emergent LLM Key
-- ✅ **Création automatique de tâches** - L'IA détecte et classifie les tâches
-- ✅ **Commande vocale "Terminé"** - Dit "Terminé", "Stop", "Fini" pour envoyer
-- ✅ **Auto-envoi après silence** - Envoi automatique après 3s de silence
-- ✅ **Interface Flash** - Design minimaliste (fond noir, onde sonore animée)
-- ✅ **Synthèse vocale** - L'IA répond vocalement
-- ✅ **Guide intégration** - Instructions Siri, Windows, Android dans les paramètres
+### ✅ Actions Prioritaires Complétées (4 Février 2026)
 
-### Notifications Push PWA (v1.1.0)
-- ✅ **Service Worker** - Cache offline, background sync
-- ✅ **Manifest PWA** - Installable sur mobile/desktop
-- ✅ **Shortcuts PWA** - Accès rapide à /assist et /pomodoro
-- ✅ **Hook useNotifications** - Gestion permissions et abonnements
-- ✅ **Notifications locales** - Rappels pour tâches et sessions
+#### 1. Configuration Supabase ✅
+- Client Supabase configuré avec credentials utilisateur
+- URL: `https://fkkjlkliksnujqsujzae.supabase.co`
+- Persistance de session avec `@react-native-async-storage/async-storage`
+- Types et helpers pour les opérations CRUD sur les tâches
 
-## 🔧 Stack Technique
-- **Frontend**: React 18, Tailwind CSS, Framer Motion, Web Speech API
-- **Backend**: FastAPI, MongoDB, emergentintegrations
+#### 2. Navigation Principale (expo-router) ✅
+- Layout racine avec gestion d'authentification automatique
+- Redirection vers login si non authentifié
+- Tab navigation avec 3 onglets: "Maintenant", "Matrice", "Profil"
+- Icons personnalisés pour chaque onglet
+
+#### 3. Écran "Now" (Maintenant) ✅
+- Affichage de la tâche prioritaire unique (Quadrant 1 d'abord)
+- Bouton "Terminé" avec feedback haptique
+- Pull-to-refresh pour actualiser
+- État vide avec message de félicitations
+- Compteur de tâches terminées aujourd'hui
+
+#### 4. Système d'Authentification ✅
+- Écran de connexion avec email/mot de passe
+- Écran d'inscription avec validation
+- Persistance de session automatique
+- Design TDAH-friendly (dark mode, couleurs douces)
+
+### 📂 Structure des Fichiers Mobile
+```
+/app/mobile/
+├── app/
+│   ├── _layout.tsx              # Layout racine + auth
+│   ├── (auth)/
+│   │   ├── _layout.tsx          # Layout auth
+│   │   ├── login.tsx            # Écran connexion
+│   │   └── register.tsx         # Écran inscription
+│   └── (tabs)/
+│       ├── _layout.tsx          # Tab navigator
+│       ├── index.tsx            # Écran "Maintenant"
+│       ├── matrix.tsx           # Matrice Eisenhower
+│       └── profile.tsx          # Profil utilisateur
+├── components/
+│   ├── TaskCard.tsx             # Carte de tâche avec haptics
+│   └── QuickCaptureButton.tsx   # FAB + modal création
+├── constants/
+│   └── theme.ts                 # Design system TDAH-friendly
+├── lib/
+│   ├── supabase.ts              # Client + helpers
+│   └── database.types.ts        # Types Supabase
+└── supabase_schema.sql          # Script création tables
+```
+
+### 🎨 Design System TDAH-Friendly
+- **Palette "Twilight Calm"**: Couleurs basse stimulation
+- **Dark mode par défaut**: Moins fatigant pour les yeux
+- **Touch targets**: Minimum 48px pour faciliter le tap
+- **Feedback haptique**: Vibrations sur actions importantes
+- **Grandes polices lisibles**: Hiérarchie claire
+
+### ⏳ Tâches Restantes Mobile
+
+#### P1 - Fonctionnalités Principales
+- [ ] **Quick Capture Vocale**: Intégrer `expo-speech` dans le FAB
+- [ ] **Push Notifications**: Configurer `expo-notifications`
+- [ ] **Synchronisation temps réel**: Activer Supabase realtime
+
+#### P2 - Polish UX
+- [ ] Animations d'entrée sur les écrans
+- [ ] Transitions entre les tâches
+- [ ] Onboarding pour nouveaux utilisateurs
+
+### 🔑 IMPORTANT - Setup Supabase
+L'utilisateur doit exécuter le script `/app/mobile/supabase_schema.sql` dans son projet Supabase pour créer les tables nécessaires.
+
+---
+
+## 🌐 APPLICATION WEB (Legacy Context)
+
+### ✅ Fonctionnalités Implémentées
+- Authentification Emergent Google OAuth
+- Dashboard avec Quick Capture IA
+- Matrice Eisenhower avec décomposition IA
+- Timer Pomodoro
+- Calendrier
+- Suivi d'humeur
+- Communauté / Feed social
+- Assistant Vocal IA (route /assist)
+- PWA avec notifications
+
+### 🔧 Stack Technique Web
+- **Frontend**: React 18, Tailwind CSS, Framer Motion
+- **Backend**: FastAPI, MongoDB
 - **Auth**: Emergent Google OAuth
 - **IA**: GPT-4o via Emergent LLM Key
-- **Voice**: Web Speech API (STT + TTS)
-- **PWA**: Service Worker, Push API, Background Sync
 
-## 📊 Architecture
+---
 
-```
-/app
-├── backend/
-│   └── server.py          # FastAPI + AI endpoints (/api/ai/chat, /api/ai/classify)
-├── frontend/
-│   ├── public/
-│   │   ├── sw.js          # Service Worker
-│   │   └── manifest.json  # PWA manifest
-│   └── src/
-│       ├── components/
-│       │   └── VoiceAssistant.js  # Assistant vocal IA
-│       └── hooks/
-│           └── useNotifications.js # Notifications push
-```
+## 🚀 Backlog Global
 
-## 🎤 Commandes Vocales Supportées
-- "Terminé" / "Termine" / "Fini" / "Stop" → Envoyer le message
-- "Envoyer" / "Envoie" → Envoyer le message
-- "C'est tout" → Envoyer le message
+### P0 - Mobile App Completion
+- [ ] Test complet de l'authentification Supabase
+- [ ] Test création/complétion de tâches
 
-## 🚀 Prochaines Étapes (Backlog)
-
-### P0 - Critique
+### P1 - Fonctionnalités Additionnelles
 - [ ] Intégration Google Calendar
-
-### P1 - Important
-- [ ] Gamification (badges, streaks, confettis)
-- [ ] Statistiques avancées avec graphiques
-- [ ] Chat communautaire temps réel
+- [ ] Gamification (badges, streaks)
+- [ ] Chat communautaire
 
 ### P2 - Nice to have
 - [ ] Mode hors-ligne complet
@@ -86,4 +129,4 @@ Une application bienveillante et non-jugeante qui aide les personnes atteintes d
 - [ ] Widget iOS/Android
 
 ---
-*Dernière mise à jour: 4 Février 2026 - v1.1.0 AI Voice Assistant + PWA*
+*Dernière mise à jour: 4 Février 2026 - Application Mobile Expo en développement*
