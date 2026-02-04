@@ -11,7 +11,8 @@ import Login from './components/Login';
 import Navigation from './components/Navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const API_URL = process.env.REACT_APP_BACKEND_URL || '';
+// Use relative URL for API calls (goes through same origin)
+const API_URL = '';
 
 // Context pour le thème
 const ThemeContext = createContext();
