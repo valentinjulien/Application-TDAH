@@ -210,13 +210,14 @@ async def create_session(request: Request, response: Response):
         upsert=True
     )
     
-    # Set httpOnly cookie
+    # Set httpOnly cookie - detect if running on HTTPS or HTTP
+    is_secure = request.url.scheme == "https" or "emergentagent.com" in str(request.url)
     response.set_cookie(
         key="session_token",
         value=session_token,
         httponly=True,
-        secure=True,
-        samesite="none",
+        secure=is_secure,
+        samesite="none" if is_secure else "lax",
         path="/",
         max_age=7 * 24 * 60 * 60  # 7 days
     )
