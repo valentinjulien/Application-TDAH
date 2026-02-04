@@ -442,6 +442,179 @@ async def like_post(post_id: str):
         raise HTTPException(status_code=400, detail=str(e))
 
 
+# === AI ASSISTANT ===
+
+# System prompt pour l'assistant TDAH
+TDAH_SYSTEM_PROMPT = """Tu es un assistant bienveillant spécialisé pour les personnes atteintes de TDAH.
+Tu parles en français de manière concise, encourageante et non-jugeante.
+
+Tes capacités :
+1. CRÉER DES TÂCHES : Quand l'utilisateur mentionne quelque chose à faire, tu identifies la tâche et proposes de l'ajouter.
+2. RÉPONDRE AUX QUESTIONS : Tu réponds aux questions sur l'organisation, la productivité, le TDAH.
+3. ENCOURAGER : Tu donnes des encouragements adaptés au TDAH (petites victoires, pas de pression).
+4. CONSEILLER : Tu donnes des astuces pratiques pour le TDAH.
+
+Format de réponse JSON obligatoire :
+{
+    "type": "task" | "response" | "encouragement",
+    "message": "Ta réponse à l'utilisateur",
+    "task": {
+        "text": "Description de la tâche",
+        "priority": "high" | "medium" | "low",
+        "quadrant": 1-4
+    } // Seulement si type="task"
+}
+
+Quadrants Eisenhower :
+1 = Urgent ET Important (faire maintenant)
+2 = Important, pas urgent (planifier)
+3 = Urgent, pas important (déléguer)
+4 = Ni urgent ni important (éliminer ou reporter)
+
+Reste bref et positif. Maximum 2-3 phrases."""
+
+
+class AIRequest(BaseModel):
+    message: str
+    user_id: Optional[str] = None
+    session_id: Optional[str] = None
+    action: Optional[str] = "general"  # task, question, general
+
+
+class AIResponse(BaseModel):
+    type: str
+    message: str
+    task: Optional[dict] = None
+    task_created: bool = False
+
+
+@app.post("/api/ai/chat")
+async def ai_chat(request: AIRequest):
+    """Endpoint principal pour l'assistant IA conversationnel"""
+    if not EMERGENT_LLM_KEY:
+        raise HTTPException(status_code=500, detail="AI service not configured")
+    
+    try:
+        # Créer une session unique si non fournie
+        session_id = request.session_id or f"voice_{request.user_id or 'anon'}_{uuid.uuid4().hex[:8]}"
+        
+        # Adapter le prompt selon l'action demandée
+        context_prompt = TDAH_SYSTEM_PROMPT
+        if request.action == "task":
+            context_prompt += "\n\nL'utilisateur veut créer une tâche. Identifie la tâche et retourne type='task'."
+        elif request.action == "question":
+            context_prompt += "\n\nL'utilisateur pose une question. Réponds de manière utile."
+        
+        # Initialiser le chat LLM
+        chat = LlmChat(
+            api_key=EMERGENT_LLM_KEY,
+            session_id=session_id,
+            system_message=context_prompt
+        ).with_model("openai", "gpt-4o")
+        
+        # Envoyer le message
+        user_message = UserMessage(text=request.message)
+        response_text = await chat.send_message(user_message)
+        
+        # Parser la réponse JSON
+        import json
+        try:
+            # Nettoyer la réponse (enlever les backticks markdown si présents)
+            clean_response = response_text.strip()
+            if clean_response.startswith("```json"):
+                clean_response = clean_response[7:]
+            if clean_response.startswith("```"):
+                clean_response = clean_response[3:]
+            if clean_response.endswith("```"):
+                clean_response = clean_response[:-3]
+            clean_response = clean_response.strip()
+            
+            ai_response = json.loads(clean_response)
+        except json.JSONDecodeError:
+            # Si pas de JSON valide, retourner la réponse brute
+            ai_response = {
+                "type": "response",
+                "message": response_text
+            }
+        
+        # Si c'est une tâche, la créer automatiquement
+        task_created = False
+        if ai_response.get("type") == "task" and ai_response.get("task"):
+            task_data = ai_response["task"]
+            task_data["user_id"] = request.user_id
+            task_data["created_at"] = datetime.now(timezone.utc).isoformat()
+            task_data["completed"] = False
+            task_data["source"] = "voice_assistant"
+            
+            result = tasks_collection.insert_one(task_data)
+            task_data["id"] = str(result.inserted_id)
+            task_data.pop("_id", None)
+            ai_response["task"] = task_data
+            task_created = True
+        
+        # Sauvegarder l'historique
+        chat_history_collection.insert_one({
+            "user_id": request.user_id,
+            "session_id": session_id,
+            "user_message": request.message,
+            "ai_response": ai_response,
+            "created_at": datetime.now(timezone.utc).isoformat()
+        })
+        
+        return {
+            "type": ai_response.get("type", "response"),
+            "message": ai_response.get("message", response_text),
+            "task": ai_response.get("task"),
+            "task_created": task_created
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"AI error: {str(e)}")
+
+
+@app.post("/api/ai/classify")
+async def ai_classify(request: AIRequest):
+    """Classifie rapidement un texte en tâche avec priorité et quadrant"""
+    if not EMERGENT_LLM_KEY:
+        raise HTTPException(status_code=500, detail="AI service not configured")
+    
+    try:
+        classify_prompt = """Tu es un classificateur de tâches pour personnes TDAH.
+Analyse le texte et retourne UNIQUEMENT un JSON valide :
+{
+    "text": "La tâche reformulée clairement",
+    "priority": "high" | "medium" | "low",
+    "quadrant": 1 | 2 | 3 | 4
+}
+
+Quadrants: 1=Urgent+Important, 2=Important, 3=Urgent, 4=Autre"""
+
+        chat = LlmChat(
+            api_key=EMERGENT_LLM_KEY,
+            session_id=f"classify_{uuid.uuid4().hex[:8]}",
+            system_message=classify_prompt
+        ).with_model("openai", "gpt-4o")
+        
+        response_text = await chat.send_message(UserMessage(text=request.message))
+        
+        # Parser
+        import json
+        clean = response_text.strip()
+        if clean.startswith("```"): clean = clean.split("\n", 1)[1] if "\n" in clean else clean[3:]
+        if clean.endswith("```"): clean = clean[:-3]
+        
+        result = json.loads(clean.strip())
+        return result
+        
+    except Exception as e:
+        # Fallback si erreur
+        return {
+            "text": request.message,
+            "priority": "medium",
+            "quadrant": 2
+        }
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8001)
