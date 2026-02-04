@@ -4,7 +4,7 @@
 Application pour structurer la vie quotidienne des personnes TDAH et créer une communauté TDAH. Amélioration d'un projet GitHub existant avec focus sur l'UX et les fonctionnalités adaptées TDAH.
 
 ## 🎯 Vision
-Une application bienveillante et non-jugeante qui aide les personnes atteintes de TDAH à organiser leur quotidien grâce à l'IA, tout en créant une communauté de soutien.
+Une application bienveillante et non-jugeante qui aide les personnes atteintes de TDAH à organiser leur quotidien grâce à l'IA et la voix, tout en créant une communauté de soutien.
 
 ## 👥 User Personas
 1. **Marie, 28 ans** - Diagnostiquée TDAH adulte, travaille en marketing, cherche à mieux gérer ses tâches
@@ -23,47 +23,63 @@ Une application bienveillante et non-jugeante qui aide les personnes atteintes d
 - ✅ **Communauté** - Feed social avec posts, likes, catégories (astuces, victoires, soutien)
 - ✅ **Paramètres** - Mode sombre, notifications, profil, déconnexion
 
+### NEW: Assistant Vocal (v1.1.0)
+- ✅ **Route /assist** - "Porte d'entrée" pour lancement externe
+- ✅ **Paramètres URL** - `/assist?action=task` pour mode création de tâche
+- ✅ **Auto-démarrage micro** - Demande permission et lance l'écoute automatiquement
+- ✅ **Interface Flash** - Design minimaliste (fond noir, onde sonore, texte transcrit)
+- ✅ **Web Speech API** - Reconnaissance vocale en français
+- ✅ **Synthèse vocale** - Feedback audio pour confirmer les actions
+- ✅ **Guide intégration** - Instructions Siri (Mac/iPhone), Windows, Android dans les paramètres
+
 ### UX/Design TDAH
-- ✅ Design apaisant avec couleurs douces (palette primary/secondary/accent)
+- ✅ Design apaisant avec couleurs douces
 - ✅ Mode sombre pour réduire la fatigue visuelle
 - ✅ Animations douces (framer-motion)
-- ✅ Hiérarchie visuelle claire
-- ✅ Feedback immédiat sur les actions
-- ✅ Navigation simplifiée (sidebar desktop, bottom nav mobile)
-- ✅ Astuces TDAH contextuelles sur chaque page
-
-### Backend API
-- ✅ FastAPI avec MongoDB
-- ✅ Emergent Auth integration (Google OAuth)
-- ✅ CRUD Tasks, Moods, Pomodoro sessions, Community posts
-- ✅ Session management avec cookies httpOnly
-- ✅ Health check endpoint
+- ✅ Interface vocale pour capture instantanée
+- ✅ Navigation simplifiée
 
 ## 🔧 Stack Technique
-- **Frontend**: React 18, Tailwind CSS, Framer Motion, Lucide Icons
+- **Frontend**: React 18, Tailwind CSS, Framer Motion, Lucide Icons, Web Speech API
 - **Backend**: FastAPI, MongoDB, httpx
 - **Auth**: Emergent Google OAuth
-- **IA**: OpenRouter API (Gemini pour classification)
+- **Voice**: Web Speech API (reconnaissance + synthèse)
 
 ## 📊 Architecture
 
 ```
 /app
 ├── backend/
-│   ├── server.py          # FastAPI API avec Emergent Auth
-│   ├── requirements.txt
-│   └── .env
+│   └── server.py          # FastAPI API avec Emergent Auth
 ├── frontend/
-│   ├── src/
-│   │   ├── App.js         # Main app avec routing + AuthCallback
-│   │   ├── components/    # Dashboard, Pomodoro, Community, etc.
-│   │   ├── hooks/         # useTasks, useAI, etc.
-│   │   └── services/      # API clients
-│   ├── tailwind.config.js
-│   └── package.json
-├── design_guidelines.json  # UI/UX specs
-└── auth_testing.md         # Auth testing playbook
+│   └── src/
+│       ├── App.js         # Main app + route /assist
+│       └── components/
+│           ├── VoiceAssistant.js  # NEW: Assistant vocal
+│           ├── Dashboard.js
+│           ├── Settings.js        # Guide Siri/raccourcis
+│           └── ...
 ```
+
+## 🎤 Configuration Assistant Vocal
+
+### URLs disponibles
+- `/assist` - Mode général
+- `/assist?action=task` - Mode création de tâche
+- `/assist?action=question` - Mode question
+
+### Intégration Siri (Mac/iPhone)
+1. App Raccourcis → Nouveau → "Assistant TDAH"
+2. Action "Ouvrir l'URL" → coller le lien
+3. Dire "Dis Siri, Assistant TDAH"
+
+### Intégration Windows
+1. Nouveau raccourci Bureau → coller l'URL
+2. Propriétés → Touche de raccourci → Ctrl+Alt+V
+
+### Intégration Android
+1. Google → Paramètres → Routines
+2. Déclencheur vocal + Action "Ouvrir site web"
 
 ## 🚀 Prochaines Étapes (Backlog)
 
@@ -73,19 +89,13 @@ Une application bienveillante et non-jugeante qui aide les personnes atteintes d
 
 ### P1 - Important
 - [ ] Gamification (badges, streaks, récompenses visuelles)
-- [ ] Statistiques avancées (graphiques humeur/productivité)
-- [ ] Chat en temps réel dans la communauté
+- [ ] Statistiques avancées
+- [ ] IA conversationnelle pour l'assistant vocal
 
 ### P2 - Nice to have
-- [ ] Assistant vocal (dictée de tâches)
 - [ ] Mode hors-ligne complet
-- [ ] Export données (PDF, CSV)
+- [ ] Export données
 - [ ] Thèmes personnalisables
 
-## 📱 URLs
-- **Frontend**: http://localhost:3000
-- **Backend API**: http://localhost:8001/api
-- **Auth**: https://auth.emergentagent.com
-
 ---
-*Dernière mise à jour: 4 Février 2026*
+*Dernière mise à jour: 4 Février 2026 - v1.1.0 Voice Assistant*
