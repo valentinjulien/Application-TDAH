@@ -249,7 +249,7 @@ async def create_community_post(post: CommunityPost):
     post_data["replies"] = []
     result = community_collection.insert_one(post_data)
     post_data["id"] = str(result.inserted_id)
-    del post_data["_id"] if "_id" in post_data else None
+    post_data.pop("_id", None)
     return post_data
 
 
