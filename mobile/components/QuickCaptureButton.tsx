@@ -10,9 +10,11 @@ import {
   Platform,
   Alert,
   Pressable,
+  Switch,
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { createTask } from '../lib/supabase';
+import { scheduleTaskReminder } from '../hooks/useNotifications';
 import { Colors, Spacing, BorderRadius, FontSizes, TouchTargets } from '../constants/theme';
 
 interface QuickCaptureButtonProps {
@@ -32,6 +34,8 @@ export default function QuickCaptureButton({ userId, onTaskCreated }: QuickCaptu
   const [taskText, setTaskText] = useState('');
   const [selectedQuadrant, setSelectedQuadrant] = useState<1 | 2 | 3 | 4>(2);
   const [loading, setLoading] = useState(false);
+  const [wantsReminder, setWantsReminder] = useState(false);
+  const [reminderMinutes, setReminderMinutes] = useState('30');
 
   const openModal = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -42,6 +46,8 @@ export default function QuickCaptureButton({ userId, onTaskCreated }: QuickCaptu
     setModalVisible(false);
     setTaskText('');
     setSelectedQuadrant(2);
+    setWantsReminder(false);
+    setReminderMinutes('30');
   };
 
   const handleCreateTask = async () => {
