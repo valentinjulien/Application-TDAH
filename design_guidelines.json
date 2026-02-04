@@ -1,0 +1,161 @@
+{
+  "design_system": {
+    "identity": {
+      "name": "TDAH Companion",
+      "tone": "Calm, Encouraging, Structured, Non-Judgmental",
+      "principles": [
+        "Reduce Cognitive Load: One primary action per screen.",
+        "Immediate Feedback: Visual rewards for every completed task.",
+        "Forgiving UI: Easy undo, no harsh error states.",
+        "Visual Clarity: High contrast for text, soft backgrounds for containers."
+      ]
+    },
+    "typography": {
+      "font_family": {
+        "headings": "Poppins, sans-serif",
+        "body": "Inter, sans-serif"
+      },
+      "scale": {
+        "h1": "text-3xl md:text-4xl font-semibold tracking-tight",
+        "h2": "text-2xl md:text-3xl font-medium",
+        "h3": "text-xl md:text-2xl font-medium",
+        "body_lg": "text-lg leading-relaxed",
+        "body": "text-base leading-relaxed text-neutral-600",
+        "caption": "text-sm text-neutral-500"
+      }
+    },
+    "colors": {
+      "palette": {
+        "primary": {
+          "main": "#0ea5e9",
+          "hover": "#0284c7",
+          "light": "#e0f2fe",
+          "text_on_primary": "#ffffff"
+        },
+        "secondary": {
+          "main": "#eab308",
+          "light": "#fef9c3",
+          "text": "#854d0e"
+        },
+        "success": {
+          "main": "#22c55e",
+          "light": "#dcfce7",
+          "text": "#166534"
+        },
+        "background": {
+          "page": "#fafafa",
+          "card": "#ffffff",
+          "subtle": "#f5f5f5"
+        },
+        "text": {
+          "primary": "#171717",
+          "secondary": "#525252",
+          "muted": "#a3a3a3"
+        }
+      },
+      "usage": {
+        "primary_action": "bg-primary-500 hover:bg-primary-600 text-white",
+        "secondary_action": "bg-white border border-neutral-200 hover:bg-neutral-50 text-neutral-700",
+        "destructive": "bg-red-50 text-red-600 hover:bg-red-100",
+        "focus_ring": "ring-2 ring-primary-500 ring-offset-2"
+      }
+    },
+    "spacing": {
+      "container_padding": "px-4 sm:px-6 lg:px-8",
+      "section_spacing": "py-8 sm:py-12",
+      "card_padding": "p-6",
+      "grid_gap": "gap-6"
+    },
+    "visual_enhancers": {
+      "radius": "rounded-2xl",
+      "shadows": {
+        "card": "shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)]",
+        "hover": "shadow-[0_20px_25px_-5px_rgba(0,0,0,0.1),0_10px_10px_-5px_rgba(0,0,0,0.04)]"
+      },
+      "glassmorphism": "bg-white/80 backdrop-blur-md border border-white/20",
+      "gradients": {
+        "primary": "bg-gradient-to-br from-primary-400 to-primary-600",
+        "calm": "bg-gradient-to-b from-primary-50 to-white"
+      }
+    },
+    "animation": {
+      "micro_interactions": "transition-all duration-200 ease-in-out",
+      "page_transition": "animate-fade-in",
+      "hover_lift": "hover:-translate-y-1 hover:shadow-lg"
+    }
+  },
+  "components": {
+    "buttons": {
+      "primary": "inline-flex items-center justify-center px-6 py-3 text-sm font-medium text-white bg-primary-500 rounded-xl hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all duration-200 shadow-sm hover:shadow-md active:scale-95",
+      "secondary": "inline-flex items-center justify-center px-6 py-3 text-sm font-medium text-neutral-700 bg-white border border-neutral-200 rounded-xl hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all duration-200 shadow-sm active:scale-95",
+      "ghost": "inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-neutral-600 bg-transparent rounded-lg hover:bg-neutral-100 hover:text-neutral-900 transition-colors"
+    },
+    "cards": {
+      "default": "bg-white rounded-2xl border border-neutral-100 shadow-soft p-6 hover:shadow-medium transition-shadow duration-300",
+      "interactive": "cursor-pointer hover:border-primary-200 hover:ring-1 hover:ring-primary-200"
+    },
+    "inputs": {
+      "default": "w-full px-4 py-3 text-sm text-neutral-900 bg-white border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all placeholder:text-neutral-400"
+    },
+    "navigation": {
+      "mobile_bottom": "fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-lg border-t border-neutral-200 pb-safe pt-2 px-6 flex justify-between items-center z-50",
+      "desktop_sidebar": "fixed left-0 top-0 bottom-0 w-64 bg-white border-r border-neutral-200 p-6 flex flex-col"
+    }
+  },
+  "layout_strategies": {
+    "dashboard": {
+      "type": "bento_grid",
+      "grid_cols": "grid-cols-1 md:grid-cols-3 lg:grid-cols-4",
+      "gap": "gap-6",
+      "areas": {
+        "quick_capture": "col-span-full md:col-span-2 lg:col-span-2 row-span-1",
+        "stats": "col-span-1 row-span-1",
+        "calendar": "col-span-full md:col-span-1 lg:col-span-1 row-span-2",
+        "eisenhower": "col-span-full md:col-span-2 lg:col-span-2 row-span-2"
+      }
+    },
+    "eisenhower_matrix": {
+      "grid": "grid grid-cols-1 md:grid-cols-2 gap-4 h-full",
+      "quadrant": "flex flex-col h-full min-h-[300px] rounded-2xl p-4 border-2"
+    }
+  },
+  "assets": {
+    "images": {
+      "login_hero": {
+        "url": "https://images.unsplash.com/photo-1762652345565-e38e420b6f30",
+        "alt": "Calm abstract spheres",
+        "usage": "Background for login page or welcome screen"
+      },
+      "community_banner": {
+        "url": "https://images.unsplash.com/photo-1630068846062-3ffe78aa5049",
+        "alt": "Hands together community",
+        "usage": "Header for the Community/Forum section"
+      },
+      "focus_mode_bg": {
+        "url": "https://images.pexels.com/photos/8378723/pexels-photo-8378723.jpeg",
+        "alt": "Abstract flow state",
+        "usage": "Background for Pomodoro timer/Focus mode"
+      }
+    },
+    "icons": {
+      "library": "lucide-react",
+      "style": "Stroke width 2px, rounded corners"
+    }
+  },
+  "instructions_to_main_agent": [
+    "1. COMPONENT CHECK: The 'src/components/ui' folder is missing. You must either create the necessary UI components (Button, Card, Input) using the specs in 'components' section or install Shadcn UI if the environment permits.",
+    "2. ROUTING: Ensure 'react-router-dom' is used for navigation. Create a layout wrapper that handles the responsive navigation (Sidebar on desktop, Bottom Nav on mobile).",
+    "3. THEME: Implement the 'colors' palette in 'tailwind.config.js' if not fully present. The provided config in Phase 2 is a good start.",
+    "4. ACCESSIBILITY: Ensure all text has sufficient contrast. Use 'data-testid' on all interactive elements.",
+    "5. GAMIFICATION: Implement subtle progress bars and 'streak' counters in the Dashboard using the 'primary' and 'secondary' colors.",
+    "6. QUICK CAPTURE: This is a key feature. Make it prominent (FAB on mobile, large input on desktop dashboard).",
+    "7. EISENHOWER: Use 'react-beautiful-dnd' or similar for drag-and-drop functionality if possible, or simple state management for moving tasks between quadrants."
+  ],
+  "universal_guidelines": [
+    "Do not use gradients for text.",
+    "Avoid pure black (#000000). Use #171717 or #0a0a0a.",
+    "Always add 'transition-all' to interactive elements.",
+    "Use 'gap' for spacing between flex/grid items, not margins.",
+    "Mobile-first: Write classes for mobile first (e.g., 'flex-col'), then md/lg overrides (e.g., 'md:flex-row')."
+  ]
+}
