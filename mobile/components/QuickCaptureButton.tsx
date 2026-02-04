@@ -67,7 +67,7 @@ export default function QuickCaptureButton({ userId, onTaskCreated }: QuickCaptu
     try {
       const priority = selectedQuadrant <= 2 ? 'high' : selectedQuadrant === 3 ? 'medium' : 'low';
       
-      await createTask({
+      const newTask = await createTask({
         user_id: userId,
         text: taskText.trim(),
         priority: priority as 'high' | 'medium' | 'low',
@@ -75,6 +75,18 @@ export default function QuickCaptureButton({ userId, onTaskCreated }: QuickCaptu
         completed: false,
         source: 'mobile_quick_capture',
       });
+
+      // Schedule reminder if requested
+      if (wantsReminder && newTask?.id) {
+        const minutes = parseInt(reminderMinutes, 10) || 30;
+        const reminderDate = new Date(Date.now() + minutes * 60 * 1000);
+        await scheduleTaskReminder(
+          newTask.id,
+          taskText.trim(),
+          reminderDate,
+          selectedQuadrant
+        );
+      }
 
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       closeModal();
