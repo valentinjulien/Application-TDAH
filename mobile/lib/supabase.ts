@@ -1,12 +1,11 @@
 import 'react-native-url-polyfill/dist/setup';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createClient } from '@supabase/supabase-js';
-import { Database } from './database.types';
 
 const supabaseUrl = 'https://fkkjlkliksnujqsujzae.supabase.co';
 const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZra2psa2xpa3NudWpxc3VqemFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3Njc4NTYsImV4cCI6MjA3ODM0Mzg1Nn0.LIGPH9YfFtZ8d0NOxH0DChBBilpqgcjuXffPTIXGx6Q';
 
-export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     storage: AsyncStorage,
     autoRefreshToken: true,
@@ -61,7 +60,7 @@ export const getTasks = async (userId: string): Promise<Task[]> => {
 export const createTask = async (task: Omit<Task, 'id' | 'created_at'>): Promise<Task> => {
   const { data, error } = await supabase
     .from('tasks')
-    .insert(task as any)
+    .insert(task)
     .select()
     .single();
   
@@ -72,7 +71,7 @@ export const createTask = async (task: Omit<Task, 'id' | 'created_at'>): Promise
 export const updateTask = async (id: string, updates: Partial<Task>): Promise<Task> => {
   const { data, error } = await supabase
     .from('tasks')
-    .update(updates as any)
+    .update(updates)
     .eq('id', id)
     .select()
     .single();
