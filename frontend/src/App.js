@@ -186,13 +186,22 @@ const AppContent = () => {
 
   return (
     <>
-      {/* Navigation - only show when user is logged in and not on login page */}
-      {user && location.pathname !== '/login' && <Navigation />}
+      {/* Navigation - only show when user is logged in and not on special pages */}
+      {user && location.pathname !== '/login' && location.pathname !== '/assist' && <Navigation />}
       
-      <main className={user && location.pathname !== '/login' ? 'pb-20 md:pb-0 md:ml-64' : ''}>
+      <main className={user && location.pathname !== '/login' && location.pathname !== '/assist' ? 'pb-20 md:pb-0 md:ml-64' : ''}>
         <AnimatePresence mode="wait">
           <Routes>
             <Route path="/login" element={<Login />} />
+            {/* Voice Assistant Route - "Porte d'entrée" pour Siri/raccourcis */}
+            <Route
+              path="/assist"
+              element={
+                <ProtectedRoute>
+                  <VoiceAssistant />
+                </ProtectedRoute>
+              }
+            />
             <Route
               path="/"
               element={
