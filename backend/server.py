@@ -1,22 +1,24 @@
 """
 TDAH Companion - Backend API
-FastAPI backend pour l'application de gestion TDAH
+FastAPI backend pour l'application de gestion TDAH avec Emergent Auth
 """
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request, Response, Cookie
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from typing import Optional, List
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from pymongo import MongoClient
 from bson import ObjectId
 import os
+import uuid
+import httpx
 from dotenv import load_dotenv
 
 load_dotenv()
 
 app = FastAPI(title="TDAH Companion API", version="1.0.0")
 
-# CORS
+# CORS - Important pour les cookies
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -37,9 +39,19 @@ tasks_collection = db["tasks"]
 moods_collection = db["moods"]
 pomodoro_collection = db["pomodoro_sessions"]
 community_collection = db["community_posts"]
+users_collection = db["users"]
+sessions_collection = db["user_sessions"]
 
 
-# === MODELS ===
+# === AUTH MODELS ===
+class User(BaseModel):
+    user_id: str
+    email: str
+    name: str
+    picture: Optional[str] = None
+
+
+# === TASK MODELS ===
 class TaskCreate(BaseModel):
     text: str
     priority: str = "medium"
@@ -85,7 +97,168 @@ def serialize_doc(doc):
     return doc
 
 
-# === ROUTES ===
+async def get_current_user(request: Request) -> Optional[User]:
+    """Get current user from session cookie or Authorization header"""
+    session_token = request.cookies.get("session_token")
+    
+    if not session_token:
+        auth_header = request.headers.get("Authorization")
+        if auth_header and auth_header.startswith("Bearer "):
+            session_token = auth_header.split(" ")[1]
+    
+    if not session_token:
+        return None
+    
+    # Find session
+    session_doc = sessions_collection.find_one(
+        {"session_token": session_token},
+        {"_id": 0}
+    )
+    
+    if not session_doc:
+        return None
+    
+    # Check expiry
+    expires_at = session_doc.get("expires_at")
+    if isinstance(expires_at, str):
+        expires_at = datetime.fromisoformat(expires_at.replace("Z", "+00:00"))
+    if expires_at.tzinfo is None:
+        expires_at = expires_at.replace(tzinfo=timezone.utc)
+    if expires_at < datetime.now(timezone.utc):
+        return None
+    
+    # Get user
+    user_doc = users_collection.find_one(
+        {"user_id": session_doc["user_id"]},
+        {"_id": 0}
+    )
+    
+    if not user_doc:
+        return None
+    
+    return User(**user_doc)
+
+
+# === AUTH ROUTES ===
+
+@app.post("/api/auth/session")
+async def create_session(request: Request, response: Response):
+    """Exchange session_id for session_token via Emergent Auth"""
+    body = await request.json()
+    session_id = body.get("session_id")
+    
+    if not session_id:
+        raise HTTPException(status_code=400, detail="session_id required")
+    
+    # Call Emergent Auth to get user data
+    async with httpx.AsyncClient() as client:
+        try:
+            auth_response = await client.get(
+                "https://demobackend.emergentagent.com/auth/v1/env/oauth/session-data",
+                headers={"X-Session-ID": session_id},
+                timeout=10.0
+            )
+            
+            if auth_response.status_code != 200:
+                raise HTTPException(status_code=401, detail="Invalid session_id")
+            
+            auth_data = auth_response.json()
+        except httpx.RequestError as e:
+            raise HTTPException(status_code=500, detail=f"Auth service error: {str(e)}")
+    
+    # Extract user data
+    email = auth_data.get("email")
+    name = auth_data.get("name", email.split("@")[0] if email else "User")
+    picture = auth_data.get("picture")
+    session_token = auth_data.get("session_token")
+    
+    if not email or not session_token:
+        raise HTTPException(status_code=400, detail="Invalid auth response")
+    
+    # Find or create user
+    existing_user = users_collection.find_one({"email": email}, {"_id": 0})
+    
+    if existing_user:
+        user_id = existing_user["user_id"]
+        # Update user info
+        users_collection.update_one(
+            {"email": email},
+            {"$set": {"name": name, "picture": picture}}
+        )
+    else:
+        # Create new user
+        user_id = f"user_{uuid.uuid4().hex[:12]}"
+        users_collection.insert_one({
+            "user_id": user_id,
+            "email": email,
+            "name": name,
+            "picture": picture,
+            "created_at": datetime.now(timezone.utc).isoformat()
+        })
+    
+    # Store session
+    expires_at = datetime.now(timezone.utc) + timedelta(days=7)
+    sessions_collection.update_one(
+        {"user_id": user_id},
+        {
+            "$set": {
+                "session_token": session_token,
+                "expires_at": expires_at.isoformat(),
+                "created_at": datetime.now(timezone.utc).isoformat()
+            }
+        },
+        upsert=True
+    )
+    
+    # Set httpOnly cookie
+    response.set_cookie(
+        key="session_token",
+        value=session_token,
+        httponly=True,
+        secure=True,
+        samesite="none",
+        path="/",
+        max_age=7 * 24 * 60 * 60  # 7 days
+    )
+    
+    return {
+        "user_id": user_id,
+        "email": email,
+        "name": name,
+        "picture": picture
+    }
+
+
+@app.get("/api/auth/me")
+async def get_me(request: Request):
+    """Get current authenticated user"""
+    user = await get_current_user(request)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    return user.model_dump()
+
+
+@app.post("/api/auth/logout")
+async def logout(request: Request, response: Response):
+    """Logout user and clear session"""
+    user = await get_current_user(request)
+    
+    if user:
+        # Delete session from database
+        sessions_collection.delete_one({"user_id": user.user_id})
+    
+    # Clear cookie
+    response.delete_cookie(
+        key="session_token",
+        path="/",
+        secure=True,
+        samesite="none"
+    )
+    
+    return {"message": "Logged out successfully"}
+
+
+# === GENERAL ROUTES ===
 
 @app.get("/api/health")
 async def health_check():
@@ -166,20 +339,17 @@ async def create_mood(mood: MoodEntry):
 async def get_pomodoro_stats(user_id: str):
     today_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
     
-    # Sessions d'aujourd'hui
     today_sessions = list(pomodoro_collection.find({
         "user_id": user_id,
         "completed": True,
         "created_at": {"$gte": today_start.isoformat()}
     }))
     
-    # Total des sessions
     total_sessions = pomodoro_collection.count_documents({
         "user_id": user_id,
         "completed": True
     })
     
-    # Calcul du temps total aujourd'hui
     today_minutes = sum(s.get("duration_minutes", 25) for s in today_sessions)
     
     return {
@@ -192,7 +362,6 @@ async def get_pomodoro_stats(user_id: str):
 
 def calculate_streak(user_id: str) -> int:
     """Calcule le nombre de jours consécutifs avec au moins une session"""
-    from datetime import timedelta
     streak = 0
     current_date = datetime.now(timezone.utc).date()
     
@@ -215,7 +384,7 @@ def calculate_streak(user_id: str) -> int:
         else:
             break
         
-        if streak > 365:  # Safety limit
+        if streak > 365:
             break
     
     return streak
