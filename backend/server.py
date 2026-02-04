@@ -1,6 +1,6 @@
 """
 TDAH Companion - Backend API
-FastAPI backend pour l'application de gestion TDAH avec Emergent Auth
+FastAPI backend pour l'application de gestion TDAH avec Emergent Auth et IA
 """
 from fastapi import FastAPI, HTTPException, Request, Response, Cookie
 from fastapi.middleware.cors import CORSMiddleware
@@ -12,11 +12,13 @@ from bson import ObjectId
 import os
 import uuid
 import httpx
+import asyncio
 from dotenv import load_dotenv
+from emergentintegrations.llm.chat import LlmChat, UserMessage
 
 load_dotenv()
 
-app = FastAPI(title="TDAH Companion API", version="1.0.0")
+app = FastAPI(title="TDAH Companion API", version="1.1.0")
 
 # CORS - Important pour les cookies
 app.add_middleware(
@@ -30,6 +32,7 @@ app.add_middleware(
 # MongoDB
 MONGO_URL = os.environ.get("MONGO_URL", "mongodb://localhost:27017")
 DB_NAME = os.environ.get("DB_NAME", "tdah_companion")
+EMERGENT_LLM_KEY = os.environ.get("EMERGENT_LLM_KEY")
 
 client = MongoClient(MONGO_URL)
 db = client[DB_NAME]
@@ -41,6 +44,7 @@ pomodoro_collection = db["pomodoro_sessions"]
 community_collection = db["community_posts"]
 users_collection = db["users"]
 sessions_collection = db["user_sessions"]
+chat_history_collection = db["chat_history"]
 
 
 # === AUTH MODELS ===
