@@ -20,82 +20,70 @@ Une application bienveillante et non-jugeante qui aide les personnes atteintes d
 - ✅ **Timer Pomodoro** - Sessions focus/pause avec progression visuelle circulaire
 - ✅ **Calendrier** - Vue mensuelle avec événements et tâches à planifier
 - ✅ **Suivi d'humeur** - Tracking quotidien humeur + énergie avec historique
-- ✅ **Communauté** - Feed social avec posts, likes, catégories (astuces, victoires, soutien)
+- ✅ **Communauté** - Feed social avec posts, likes, catégories
 - ✅ **Paramètres** - Mode sombre, notifications, profil, déconnexion
 
-### NEW: Assistant Vocal (v1.1.0)
-- ✅ **Route /assist** - "Porte d'entrée" pour lancement externe
-- ✅ **Paramètres URL** - `/assist?action=task` pour mode création de tâche
-- ✅ **Auto-démarrage micro** - Demande permission et lance l'écoute automatiquement
-- ✅ **Interface Flash** - Design minimaliste (fond noir, onde sonore, texte transcrit)
-- ✅ **Web Speech API** - Reconnaissance vocale en français
-- ✅ **Synthèse vocale** - Feedback audio pour confirmer les actions
-- ✅ **Guide intégration** - Instructions Siri (Mac/iPhone), Windows, Android dans les paramètres
+### Assistant Vocal IA (v1.1.0)
+- ✅ **Route /assist** - "Porte d'entrée" pour lancement externe (Siri, raccourcis)
+- ✅ **Intégration GPT-4o** - Réponses intelligentes via Emergent LLM Key
+- ✅ **Création automatique de tâches** - L'IA détecte et classifie les tâches
+- ✅ **Commande vocale "Terminé"** - Dit "Terminé", "Stop", "Fini" pour envoyer
+- ✅ **Auto-envoi après silence** - Envoi automatique après 3s de silence
+- ✅ **Interface Flash** - Design minimaliste (fond noir, onde sonore animée)
+- ✅ **Synthèse vocale** - L'IA répond vocalement
+- ✅ **Guide intégration** - Instructions Siri, Windows, Android dans les paramètres
 
-### UX/Design TDAH
-- ✅ Design apaisant avec couleurs douces
-- ✅ Mode sombre pour réduire la fatigue visuelle
-- ✅ Animations douces (framer-motion)
-- ✅ Interface vocale pour capture instantanée
-- ✅ Navigation simplifiée
+### Notifications Push PWA (v1.1.0)
+- ✅ **Service Worker** - Cache offline, background sync
+- ✅ **Manifest PWA** - Installable sur mobile/desktop
+- ✅ **Shortcuts PWA** - Accès rapide à /assist et /pomodoro
+- ✅ **Hook useNotifications** - Gestion permissions et abonnements
+- ✅ **Notifications locales** - Rappels pour tâches et sessions
 
 ## 🔧 Stack Technique
-- **Frontend**: React 18, Tailwind CSS, Framer Motion, Lucide Icons, Web Speech API
-- **Backend**: FastAPI, MongoDB, httpx
+- **Frontend**: React 18, Tailwind CSS, Framer Motion, Web Speech API
+- **Backend**: FastAPI, MongoDB, emergentintegrations
 - **Auth**: Emergent Google OAuth
-- **Voice**: Web Speech API (reconnaissance + synthèse)
+- **IA**: GPT-4o via Emergent LLM Key
+- **Voice**: Web Speech API (STT + TTS)
+- **PWA**: Service Worker, Push API, Background Sync
 
 ## 📊 Architecture
 
 ```
 /app
 ├── backend/
-│   └── server.py          # FastAPI API avec Emergent Auth
+│   └── server.py          # FastAPI + AI endpoints (/api/ai/chat, /api/ai/classify)
 ├── frontend/
+│   ├── public/
+│   │   ├── sw.js          # Service Worker
+│   │   └── manifest.json  # PWA manifest
 │   └── src/
-│       ├── App.js         # Main app + route /assist
-│       └── components/
-│           ├── VoiceAssistant.js  # NEW: Assistant vocal
-│           ├── Dashboard.js
-│           ├── Settings.js        # Guide Siri/raccourcis
-│           └── ...
+│       ├── components/
+│       │   └── VoiceAssistant.js  # Assistant vocal IA
+│       └── hooks/
+│           └── useNotifications.js # Notifications push
 ```
 
-## 🎤 Configuration Assistant Vocal
-
-### URLs disponibles
-- `/assist` - Mode général
-- `/assist?action=task` - Mode création de tâche
-- `/assist?action=question` - Mode question
-
-### Intégration Siri (Mac/iPhone)
-1. App Raccourcis → Nouveau → "Assistant TDAH"
-2. Action "Ouvrir l'URL" → coller le lien
-3. Dire "Dis Siri, Assistant TDAH"
-
-### Intégration Windows
-1. Nouveau raccourci Bureau → coller l'URL
-2. Propriétés → Touche de raccourci → Ctrl+Alt+V
-
-### Intégration Android
-1. Google → Paramètres → Routines
-2. Déclencheur vocal + Action "Ouvrir site web"
+## 🎤 Commandes Vocales Supportées
+- "Terminé" / "Termine" / "Fini" / "Stop" → Envoyer le message
+- "Envoyer" / "Envoie" → Envoyer le message
+- "C'est tout" → Envoyer le message
 
 ## 🚀 Prochaines Étapes (Backlog)
 
 ### P0 - Critique
-- [ ] Intégration complète Google Calendar
-- [ ] Notifications push PWA
+- [ ] Intégration Google Calendar
 
 ### P1 - Important
-- [ ] Gamification (badges, streaks, récompenses visuelles)
-- [ ] Statistiques avancées
-- [ ] IA conversationnelle pour l'assistant vocal
+- [ ] Gamification (badges, streaks, confettis)
+- [ ] Statistiques avancées avec graphiques
+- [ ] Chat communautaire temps réel
 
 ### P2 - Nice to have
 - [ ] Mode hors-ligne complet
 - [ ] Export données
-- [ ] Thèmes personnalisables
+- [ ] Widget iOS/Android
 
 ---
-*Dernière mise à jour: 4 Février 2026 - v1.1.0 Voice Assistant*
+*Dernière mise à jour: 4 Février 2026 - v1.1.0 AI Voice Assistant + PWA*
