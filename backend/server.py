@@ -109,7 +109,7 @@ async def create_task(task: TaskCreate):
     task_data["completed"] = False
     result = tasks_collection.insert_one(task_data)
     task_data["id"] = str(result.inserted_id)
-    del task_data["_id"] if "_id" in task_data else None
+    task_data.pop("_id", None)
     return task_data
 
 
