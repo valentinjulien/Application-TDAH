@@ -364,13 +364,48 @@ const Settings = () => {
             <h3 className="font-semibold text-neutral-900 dark:text-white">Notifications</h3>
           </div>
           <div className="divide-y divide-neutral-100 dark:divide-neutral-800">
-            <ToggleItem
-              icon={Bell}
-              label="Notifications push"
-              description="Rappels pour les tâches et sessions"
-              value={notifications}
-              onChange={() => setNotifications(!notifications)}
-            />
+            {notifSupported ? (
+              <div className="flex items-center gap-4 p-4">
+                <div className="w-10 h-10 rounded-xl bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center">
+                  {isSubscribed ? (
+                    <Bell className="w-5 h-5 text-primary-500" />
+                  ) : (
+                    <BellOff className="w-5 h-5 text-neutral-400" />
+                  )}
+                </div>
+                <div className="flex-1">
+                  <p className="font-medium text-neutral-900 dark:text-white">Notifications push</p>
+                  <p className="text-sm text-neutral-500">
+                    {notifPermission === 'denied' 
+                      ? 'Bloquées par le navigateur' 
+                      : isSubscribed 
+                        ? 'Activées - tu recevras des rappels' 
+                        : 'Rappels pour les tâches et sessions'}
+                  </p>
+                </div>
+                <button
+                  onClick={handleToggleNotifications}
+                  disabled={notifLoading || notifPermission === 'denied'}
+                  className={`w-12 h-7 rounded-full transition-all flex items-center justify-center ${
+                    isSubscribed ? 'bg-primary-500' : 'bg-neutral-300 dark:bg-neutral-600'
+                  } ${notifPermission === 'denied' ? 'opacity-50 cursor-not-allowed' : ''}`}
+                >
+                  {notifLoading ? (
+                    <Loader2 className="w-4 h-4 text-white animate-spin" />
+                  ) : (
+                    <motion.div
+                      animate={{ x: isSubscribed ? 10 : -10 }}
+                      className="w-5 h-5 rounded-full bg-white shadow-sm"
+                    />
+                  )}
+                </button>
+              </div>
+            ) : (
+              <div className="p-4 text-center text-neutral-500">
+                <BellOff className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                <p className="text-sm">Notifications non supportées par ce navigateur</p>
+              </div>
+            )}
           </div>
         </div>
 
