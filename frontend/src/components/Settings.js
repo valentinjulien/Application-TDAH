@@ -1,20 +1,24 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useUser, useTheme } from '../App';
 import { useNavigate } from 'react-router-dom';
 import {
-  User,
   Moon,
   Sun,
   Bell,
-  Shield,
   LogOut,
   ChevronRight,
-  ExternalLink,
+  ChevronDown,
   Heart,
   Coffee,
   Sparkles,
-  Check
+  Check,
+  Mic,
+  Smartphone,
+  Monitor,
+  Apple,
+  Copy,
+  ExternalLink
 } from 'lucide-react';
 
 // Use relative URL for API calls
@@ -26,6 +30,12 @@ const Settings = () => {
   const { darkMode, toggleDarkMode } = useTheme();
   const [notifications, setNotifications] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [showVoiceGuide, setShowVoiceGuide] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  // URL de l'assistant vocal
+  const assistUrl = `${window.location.origin}/assist`;
+  const assistTaskUrl = `${window.location.origin}/assist?action=task`;
 
   const handleLogout = async () => {
     setLoading(true);
@@ -41,6 +51,12 @@ const Settings = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   const SettingItem = ({ icon: Icon, label, description, action, danger = false }) => (
@@ -106,7 +122,7 @@ const Settings = () => {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-display font-bold text-neutral-900 dark:text-white mb-2">
-            Paramètres ⚙️
+            Paramètres
           </h1>
           <p className="text-neutral-500">Personnalise ton expérience</p>
         </div>
@@ -115,11 +131,11 @@ const Settings = () => {
         <div className="card p-6 mb-6">
           <div className="flex items-center gap-4">
             <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary-400 to-purple-500 flex items-center justify-center text-white text-2xl font-bold">
-              {user?.email?.[0]?.toUpperCase() || 'U'}
+              {user?.name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || 'U'}
             </div>
             <div className="flex-1">
               <h2 className="font-semibold text-lg text-neutral-900 dark:text-white">
-                {user?.email?.split('@')[0] || 'Utilisateur'}
+                {user?.name || user?.email?.split('@')[0] || 'Utilisateur'}
               </h2>
               <p className="text-sm text-neutral-500">{user?.email}</p>
               <div className="flex items-center gap-2 mt-2">
@@ -130,6 +146,164 @@ const Settings = () => {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Voice Assistant Section */}
+        <div className="card mb-6">
+          <button
+            onClick={() => setShowVoiceGuide(!showVoiceGuide)}
+            className="w-full px-6 py-4 flex items-center justify-between"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-400 to-purple-500 flex items-center justify-center">
+                <Mic className="w-5 h-5 text-white" />
+              </div>
+              <div className="text-left">
+                <h3 className="font-semibold text-neutral-900 dark:text-white">Assistant Vocal</h3>
+                <p className="text-sm text-neutral-500">Configurer Siri ou raccourcis</p>
+              </div>
+            </div>
+            <motion.div
+              animate={{ rotate: showVoiceGuide ? 180 : 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              <ChevronDown className="w-5 h-5 text-neutral-400" />
+            </motion.div>
+          </button>
+
+          <AnimatePresence>
+            {showVoiceGuide && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                className="overflow-hidden"
+              >
+                <div className="px-6 pb-6 space-y-6">
+                  {/* URL Links */}
+                  <div className="bg-neutral-50 dark:bg-neutral-800 rounded-xl p-4">
+                    <p className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-3">
+                      Liens à utiliser :
+                    </p>
+                    
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2">
+                        <code className="flex-1 text-xs bg-neutral-200 dark:bg-neutral-700 px-3 py-2 rounded-lg text-primary-600 dark:text-primary-400 overflow-x-auto">
+                          {assistUrl}
+                        </code>
+                        <button
+                          onClick={() => copyToClipboard(assistUrl)}
+                          className="p-2 hover:bg-neutral-200 dark:hover:bg-neutral-700 rounded-lg"
+                          title="Copier"
+                        >
+                          <Copy className="w-4 h-4 text-neutral-500" />
+                        </button>
+                      </div>
+                      <p className="text-xs text-neutral-500">Mode général</p>
+                      
+                      <div className="flex items-center gap-2">
+                        <code className="flex-1 text-xs bg-neutral-200 dark:bg-neutral-700 px-3 py-2 rounded-lg text-primary-600 dark:text-primary-400 overflow-x-auto">
+                          {assistTaskUrl}
+                        </code>
+                        <button
+                          onClick={() => copyToClipboard(assistTaskUrl)}
+                          className="p-2 hover:bg-neutral-200 dark:hover:bg-neutral-700 rounded-lg"
+                          title="Copier"
+                        >
+                          <Copy className="w-4 h-4 text-neutral-500" />
+                        </button>
+                      </div>
+                      <p className="text-xs text-neutral-500">Mode création de tâche</p>
+                    </div>
+
+                    {copied && (
+                      <motion.p
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="text-accent-500 text-sm mt-2"
+                      >
+                        Copié !
+                      </motion.p>
+                    )}
+                  </div>
+
+                  {/* Mac/iOS Instructions */}
+                  <div className="border border-neutral-200 dark:border-neutral-700 rounded-xl p-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Apple className="w-5 h-5 text-neutral-600 dark:text-neutral-400" />
+                      <h4 className="font-semibold text-neutral-900 dark:text-white">
+                        Mac / iPhone (Siri)
+                      </h4>
+                    </div>
+                    <ol className="text-sm text-neutral-600 dark:text-neutral-400 space-y-2 list-decimal list-inside">
+                      <li>Ouvre l'app <strong>Raccourcis</strong> (Shortcuts)</li>
+                      <li>Crée un nouveau raccourci nommé <strong>"Assistant TDAH"</strong></li>
+                      <li>Ajoute l'action <strong>"Ouvrir l'URL"</strong></li>
+                      <li>Colle le lien ci-dessus</li>
+                      <li>Sauvegarde le raccourci</li>
+                    </ol>
+                    <div className="mt-3 p-3 bg-primary-50 dark:bg-primary-900/20 rounded-lg">
+                      <p className="text-sm text-primary-700 dark:text-primary-300">
+                        <strong>Usage :</strong> Dis "Dis Siri, Assistant TDAH" pour lancer l'assistant vocal instantanément !
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Windows Instructions */}
+                  <div className="border border-neutral-200 dark:border-neutral-700 rounded-xl p-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Monitor className="w-5 h-5 text-neutral-600 dark:text-neutral-400" />
+                      <h4 className="font-semibold text-neutral-900 dark:text-white">
+                        Windows (Raccourci clavier)
+                      </h4>
+                    </div>
+                    <ol className="text-sm text-neutral-600 dark:text-neutral-400 space-y-2 list-decimal list-inside">
+                      <li>Fais un clic droit sur le Bureau → <strong>Nouveau</strong> → <strong>Raccourci</strong></li>
+                      <li>Colle le lien de l'assistant</li>
+                      <li>Nomme-le <strong>"Assistant TDAH"</strong></li>
+                      <li>Clic droit sur le raccourci → <strong>Propriétés</strong></li>
+                      <li>Dans "Touche de raccourci", appuie sur <strong>Ctrl + Alt + V</strong></li>
+                    </ol>
+                    <div className="mt-3 p-3 bg-primary-50 dark:bg-primary-900/20 rounded-lg">
+                      <p className="text-sm text-primary-700 dark:text-primary-300">
+                        <strong>Usage :</strong> Appuie sur <kbd className="px-2 py-1 bg-neutral-200 dark:bg-neutral-700 rounded">Ctrl</kbd> + <kbd className="px-2 py-1 bg-neutral-200 dark:bg-neutral-700 rounded">Alt</kbd> + <kbd className="px-2 py-1 bg-neutral-200 dark:bg-neutral-700 rounded">V</kbd> pour lancer l'assistant !
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Android Instructions */}
+                  <div className="border border-neutral-200 dark:border-neutral-700 rounded-xl p-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Smartphone className="w-5 h-5 text-neutral-600 dark:text-neutral-400" />
+                      <h4 className="font-semibold text-neutral-900 dark:text-white">
+                        Android (Google Assistant)
+                      </h4>
+                    </div>
+                    <ol className="text-sm text-neutral-600 dark:text-neutral-400 space-y-2 list-decimal list-inside">
+                      <li>Ouvre l'app <strong>Google</strong> → Paramètres → <strong>Routines</strong></li>
+                      <li>Crée une nouvelle routine</li>
+                      <li>Déclencheur : dis <strong>"Assistant TDAH"</strong></li>
+                      <li>Action : <strong>Ouvrir un site web</strong> → colle le lien</li>
+                    </ol>
+                    <div className="mt-3 p-3 bg-primary-50 dark:bg-primary-900/20 rounded-lg">
+                      <p className="text-sm text-primary-700 dark:text-primary-300">
+                        <strong>Usage :</strong> Dis "Hey Google, Assistant TDAH" !
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Test Button */}
+                  <button
+                    onClick={() => navigate('/assist')}
+                    className="w-full btn-primary gap-2"
+                  >
+                    <Mic className="w-5 h-5" />
+                    Tester l'Assistant Vocal
+                  </button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         {/* Appearance */}
@@ -173,7 +347,7 @@ const Settings = () => {
             <SettingItem
               icon={Sparkles}
               label="TDAH Companion"
-              description="Version 1.0.0"
+              description="Version 1.1.0 - Voice Assistant"
               action={() => {}}
             />
             <SettingItem
@@ -196,7 +370,7 @@ const Settings = () => {
           <SettingItem
             icon={LogOut}
             label="Se déconnecter"
-            description="À bientôt ! 👋"
+            description="À bientôt !"
             action={handleLogout}
             danger
           />
@@ -204,10 +378,10 @@ const Settings = () => {
 
         {/* Tips */}
         <div className="card p-4 mb-20 md:mb-0">
-          <h3 className="font-semibold text-neutral-900 dark:text-white mb-2">💡 Astuce TDAH</h3>
+          <h3 className="font-semibold text-neutral-900 dark:text-white mb-2">Astuce TDAH</h3>
           <p className="text-sm text-neutral-500">
-            Le mode sombre peut aider à réduire les distractions visuelles et la fatigue oculaire,
-            surtout en fin de journée. Essaie-le !
+            L'assistant vocal te permet de capturer tes idées instantanément sans ouvrir l'app.
+            Configure un raccourci Siri ou clavier pour une productivité maximale !
           </p>
         </div>
       </div>
