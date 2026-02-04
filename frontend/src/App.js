@@ -39,12 +39,10 @@ const LoadingScreen = () => (
   </div>
 );
 
-// Route protégée (bypass temporaire pour démo)
+// Route protégée
 const ProtectedRoute = ({ user, loading, children }) => {
   if (loading) return <LoadingScreen />;
-  // Bypass auth for demo - remove in production
-  return children;
-  // return user ? children : <Navigate to="/login" replace />;
+  return user ? children : <Navigate to="/login" replace />;
 };
 
 function App() {
