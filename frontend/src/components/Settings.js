@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useUser, useTheme } from '../App';
 import { useNavigate } from 'react-router-dom';
+import { useNotifications } from '../hooks/useNotifications';
 import {
   Moon,
   Sun,
   Bell,
+  BellOff,
   LogOut,
   ChevronRight,
   ChevronDown,
@@ -18,7 +20,7 @@ import {
   Monitor,
   Apple,
   Copy,
-  ExternalLink
+  Loader2
 } from 'lucide-react';
 
 // Use relative URL for API calls
@@ -28,14 +30,48 @@ const Settings = () => {
   const navigate = useNavigate();
   const { user, setUser } = useUser();
   const { darkMode, toggleDarkMode } = useTheme();
-  const [notifications, setNotifications] = useState(true);
   const [loading, setLoading] = useState(false);
   const [showVoiceGuide, setShowVoiceGuide] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [notifLoading, setNotifLoading] = useState(false);
+  
+  // Hook notifications
+  const {
+    isSupported: notifSupported,
+    permission: notifPermission,
+    isSubscribed,
+    subscribe,
+    unsubscribe,
+    showNotification
+  } = useNotifications();
 
   // URL de l'assistant vocal
   const assistUrl = `${window.location.origin}/assist`;
   const assistTaskUrl = `${window.location.origin}/assist?action=task`;
+
+  // Gérer les notifications
+  const handleToggleNotifications = async () => {
+    setNotifLoading(true);
+    try {
+      if (isSubscribed) {
+        await unsubscribe();
+      } else {
+        const sub = await subscribe();
+        if (sub) {
+          // Notification de test
+          setTimeout(() => {
+            showNotification('Notifications activées !', {
+              body: 'Tu recevras des rappels pour tes tâches.'
+            });
+          }, 1000);
+        }
+      }
+    } catch (error) {
+      console.error('Notification toggle error:', error);
+    } finally {
+      setNotifLoading(false);
+    }
+  };
 
   const handleLogout = async () => {
     setLoading(true);
