@@ -5,12 +5,16 @@ import { View, ActivityIndicator } from 'react-native';
 import { supabase } from '../lib/supabase';
 import { Session } from '@supabase/supabase-js';
 import { Colors } from '../constants/theme';
+import useNotifications from '../hooks/useNotifications';
 
 export default function RootLayout() {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const segments = useSegments();
   const router = useRouter();
+  
+  // Initialize notifications
+  const { expoPushToken } = useNotifications();
 
   useEffect(() => {
     // Check for existing session
