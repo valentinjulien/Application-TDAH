@@ -6,11 +6,18 @@ import {
   TouchableOpacity,
   Alert,
   ScrollView,
+  Switch,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { supabase, Task, getTasks } from '../../lib/supabase';
+import useNotifications, {
+  scheduleDailyMotivation,
+  sendImmediateNotification,
+  cancelAllNotifications,
+  getScheduledNotifications,
+} from '../../hooks/useNotifications';
 import { Colors, Spacing, BorderRadius, FontSizes, TouchTargets } from '../../constants/theme';
 
 export default function ProfileScreen() {
@@ -20,11 +27,23 @@ export default function ProfileScreen() {
     completed: 0,
     streak: 0,
   });
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+  const [dailyReminderEnabled, setDailyReminderEnabled] = useState(false);
+  const [scheduledCount, setScheduledCount] = useState(0);
+  
   const router = useRouter();
+  const { expoPushToken, error: notificationError } = useNotifications();
 
   useEffect(() => {
     fetchUserData();
+    checkNotificationStatus();
   }, []);
+
+  useEffect(() => {
+    if (expoPushToken) {
+      setNotificationsEnabled(true);
+    }
+  }, [expoPushToken]);
 
   const fetchUserData = async () => {
     try {
@@ -36,8 +55,6 @@ export default function ProfileScreen() {
       // Fetch tasks for stats
       const tasks = await getTasks(user.id);
       const completed = tasks.filter(t => t.completed).length;
-
-      // Calculate streak (consecutive days with completed tasks)
       const streak = calculateStreak(tasks);
 
       setStats({
@@ -48,6 +65,17 @@ export default function ProfileScreen() {
     } catch (error) {
       console.error('Error fetching user data:', error);
     }
+  };
+
+  const checkNotificationStatus = async () => {
+    const scheduled = await getScheduledNotifications();
+    setScheduledCount(scheduled.length);
+    
+    // Check if daily motivation is scheduled
+    const hasDailyReminder = scheduled.some(n => 
+      n.content.data?.action === 'daily_motivation'
+    );
+    setDailyReminderEnabled(hasDailyReminder);
   };
 
   const calculateStreak = (tasks: Task[]): number => {
@@ -67,12 +95,10 @@ export default function ProfileScreen() {
     const today = new Date().toDateString();
     const yesterday = new Date(Date.now() - 86400000).toDateString();
 
-    // Check if streak is active (today or yesterday)
     if (uniqueDates[0] !== today && uniqueDates[0] !== yesterday) {
       return 0;
     }
 
-    // Count consecutive days
     for (let i = 0; i < uniqueDates.length; i++) {
       const currentDate = new Date(uniqueDates[i]);
       const expectedDate = new Date(Date.now() - (i * 86400000));
@@ -85,6 +111,38 @@ export default function ProfileScreen() {
     }
 
     return streak;
+  };
+
+  const handleToggleDailyReminder = async (value: boolean) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    
+    if (value) {
+      try {
+        await scheduleDailyMotivation(9, 0); // 9:00 AM
+        setDailyReminderEnabled(true);
+        Alert.alert('✅ Activé', 'Vous recevrez un message de motivation chaque matin à 9h !');
+      } catch (error) {
+        Alert.alert('Erreur', 'Impossible d\'activer les rappels quotidiens');
+      }
+    } else {
+      await cancelAllNotifications();
+      setDailyReminderEnabled(false);
+      checkNotificationStatus();
+    }
+  };
+
+  const handleTestNotification = async () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    
+    try {
+      await sendImmediateNotification(
+        '🎉 Test réussi !',
+        'Les notifications fonctionnent parfaitement.',
+        { action: 'test' }
+      );
+    } catch (error) {
+      Alert.alert('Erreur', 'Impossible d\'envoyer la notification test');
+    }
   };
 
   const handleLogout = async () => {
@@ -150,6 +208,46 @@ export default function ProfileScreen() {
           </View>
         </View>
 
+        {/* Notifications Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>🔔 Notifications</Text>
+
+          <View style={styles.notificationStatus}>
+            <Text style={[
+              styles.statusText,
+              { color: notificationsEnabled ? Colors.accent[500] : Colors.danger[500] }
+            ]}>
+              {notificationsEnabled ? '✅ Notifications activées' : '❌ Notifications désactivées'}
+            </Text>
+            {notificationError && (
+              <Text style={styles.errorText}>{notificationError}</Text>
+            )}
+            {scheduledCount > 0 && (
+              <Text style={styles.scheduledText}>
+                {scheduledCount} notification{scheduledCount > 1 ? 's' : ''} programmée{scheduledCount > 1 ? 's' : ''}
+              </Text>
+            )}
+          </View>
+
+          <View style={styles.menuItem}>
+            <Text style={styles.menuText}>☀️  Rappel motivation quotidien</Text>
+            <Switch
+              value={dailyReminderEnabled}
+              onValueChange={handleToggleDailyReminder}
+              trackColor={{ false: Colors.neutral[700], true: Colors.primary[500] }}
+              thumbColor={dailyReminderEnabled ? Colors.primary[300] : Colors.neutral[400]}
+            />
+          </View>
+
+          <TouchableOpacity
+            style={styles.testButton}
+            onPress={handleTestNotification}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.testButtonText}>🧪  Tester les notifications</Text>
+          </TouchableOpacity>
+        </View>
+
         {/* Settings Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Paramètres</Text>
@@ -159,19 +257,7 @@ export default function ProfileScreen() {
             activeOpacity={0.7}
             onPress={() => {
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-              Alert.alert('Bientôt disponible', 'Les notifications seront disponibles dans une prochaine mise à jour.');
-            }}
-          >
-            <Text style={styles.menuText}>🔔  Notifications</Text>
-            <Text style={styles.menuArrow}>›</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.menuItem}
-            activeOpacity={0.7}
-            onPress={() => {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-              Alert.alert('Bientôt disponible', 'Le mode sombre est déjà activé par défaut pour le TDAH.');
+              Alert.alert('Mode sombre', 'Le mode sombre est activé par défaut pour le confort visuel TDAH.');
             }}
           >
             <Text style={styles.menuText}>🌙  Apparence</Text>
@@ -278,6 +364,28 @@ const styles = StyleSheet.create({
     color: Colors.text.dark,
     marginBottom: Spacing.md,
   },
+  notificationStatus: {
+    backgroundColor: Colors.surface.dark,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.md,
+    marginBottom: Spacing.md,
+    borderWidth: 1,
+    borderColor: Colors.neutral[800],
+  },
+  statusText: {
+    fontSize: FontSizes.md,
+    fontWeight: '600',
+  },
+  errorText: {
+    fontSize: FontSizes.sm,
+    color: Colors.danger[400],
+    marginTop: Spacing.xs,
+  },
+  scheduledText: {
+    fontSize: FontSizes.sm,
+    color: Colors.neutral[400],
+    marginTop: Spacing.xs,
+  },
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -295,6 +403,18 @@ const styles = StyleSheet.create({
   menuArrow: {
     fontSize: FontSizes.xl,
     color: Colors.neutral[500],
+  },
+  testButton: {
+    backgroundColor: Colors.primary[600],
+    borderRadius: BorderRadius.md,
+    padding: Spacing.md,
+    alignItems: 'center',
+    marginTop: Spacing.sm,
+  },
+  testButtonText: {
+    fontSize: FontSizes.md,
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
   logoutButton: {
     backgroundColor: Colors.danger[600],
