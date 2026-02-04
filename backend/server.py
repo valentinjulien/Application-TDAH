@@ -227,7 +227,7 @@ async def create_pomodoro_session(session: PomodoroSession):
     session_data["created_at"] = datetime.now(timezone.utc).isoformat()
     result = pomodoro_collection.insert_one(session_data)
     session_data["id"] = str(result.inserted_id)
-    del session_data["_id"] if "_id" in session_data else None
+    session_data.pop("_id", None)
     return session_data
 
 
