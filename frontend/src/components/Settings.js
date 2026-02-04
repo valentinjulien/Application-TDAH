@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useUser, useTheme } from '../App';
-import { signOut } from '../services/supabaseClient';
 import { useNavigate } from 'react-router-dom';
 import {
   User,
@@ -18,9 +17,11 @@ import {
   Check
 } from 'lucide-react';
 
+const API_URL = process.env.REACT_APP_BACKEND_URL || '';
+
 const Settings = () => {
   const navigate = useNavigate();
-  const { user } = useUser();
+  const { user, setUser } = useUser();
   const { darkMode, toggleDarkMode } = useTheme();
   const [notifications, setNotifications] = useState(true);
   const [loading, setLoading] = useState(false);
@@ -28,8 +29,12 @@ const Settings = () => {
   const handleLogout = async () => {
     setLoading(true);
     try {
-      await signOut();
-      navigate('/login');
+      await fetch(`${API_URL}/api/auth/logout`, {
+        method: 'POST',
+        credentials: 'include'
+      });
+      setUser(null);
+      navigate('/login', { replace: true });
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
