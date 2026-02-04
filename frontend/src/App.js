@@ -1,5 +1,5 @@
 import React, { useState, useEffect, createContext, useContext, useRef } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import Dashboard from './components/Dashboard';
 import EisenhowerMatrix from './components/EisenhowerMatrix';
 import Calendar from './components/Calendar';
@@ -22,7 +22,7 @@ const UserContext = createContext();
 export const useUser = () => useContext(UserContext);
 
 // Composant de chargement adapté TDAH (calme et non stressant)
-const LoadingScreen = () => (
+const LoadingScreen = ({ message }) => (
   <div className="flex items-center justify-center min-h-screen bg-gradient-calm dark:bg-neutral-950">
     <motion.div
       initial={{ opacity: 0, scale: 0.9 }}
@@ -34,18 +34,16 @@ const LoadingScreen = () => (
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
         </svg>
       </div>
-      <p className="text-neutral-600 dark:text-neutral-400 font-medium">Chargement en douceur...</p>
+      <p className="text-neutral-600 dark:text-neutral-400 font-medium">{message || 'Chargement en douceur...'}</p>
       <p className="text-sm text-neutral-400 mt-1">Prenez une grande respiration 😌</p>
     </motion.div>
   </div>
 );
 
 // Auth Callback Component - Handles Emergent OAuth redirect
-const AuthCallback = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
+const AuthCallback = ({ onSuccess, onError }) => {
   const hasProcessed = useRef(false);
-  const { setUser } = useUser();
+  const [status, setStatus] = useState('processing');
 
   useEffect(() => {
     // Prevent double processing in StrictMode
@@ -53,17 +51,21 @@ const AuthCallback = () => {
     hasProcessed.current = true;
 
     const processAuth = async () => {
-      // Extract session_id from URL hash
-      const hash = location.hash;
+      // Extract session_id from URL hash (window.location for reliability)
+      const hash = window.location.hash;
+      console.log('Processing auth callback, hash:', hash);
+      
       const sessionIdMatch = hash.match(/session_id=([^&]+)/);
       
       if (!sessionIdMatch) {
-        console.error('No session_id found in URL');
-        navigate('/login', { replace: true });
+        console.error('No session_id found in URL hash');
+        setStatus('error');
+        onError('No session_id found');
         return;
       }
 
       const sessionId = sessionIdMatch[1];
+      console.log('Found session_id:', sessionId.substring(0, 10) + '...');
 
       try {
         // Exchange session_id for session_token
@@ -74,25 +76,33 @@ const AuthCallback = () => {
           body: JSON.stringify({ session_id: sessionId })
         });
 
+        console.log('Auth response status:', response.status);
+
         if (!response.ok) {
+          const errorData = await response.text();
+          console.error('Auth failed:', errorData);
           throw new Error('Failed to authenticate');
         }
 
         const userData = await response.json();
-        setUser(userData);
+        console.log('Auth successful, user:', userData.email);
         
-        // Navigate to dashboard with user data
-        navigate('/', { replace: true, state: { user: userData } });
+        // Clear the hash from URL
+        window.history.replaceState(null, '', window.location.pathname);
+        
+        setStatus('success');
+        onSuccess(userData);
       } catch (error) {
         console.error('Auth error:', error);
-        navigate('/login', { replace: true });
+        setStatus('error');
+        onError(error.message);
       }
     };
 
     processAuth();
-  }, [location, navigate, setUser]);
+  }, [onSuccess, onError]);
 
-  return <LoadingScreen />;
+  return <LoadingScreen message={status === 'processing' ? 'Connexion en cours...' : 'Redirection...'} />;
 };
 
 // Protected Route with server-side verification
@@ -100,20 +110,23 @@ const ProtectedRoute = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, setUser } = useUser();
-  const [isAuthenticated, setIsAuthenticated] = useState(
-    location.state?.user ? true : null
-  );
+  const [authState, setAuthState] = useState(user ? 'authenticated' : 'checking');
+  const hasChecked = useRef(false);
 
   useEffect(() => {
-    // Skip if user was passed from AuthCallback
-    if (location.state?.user) {
-      setUser(location.state.user);
-      setIsAuthenticated(true);
+    // Skip if already have user
+    if (user) {
+      setAuthState('authenticated');
       return;
     }
 
+    // Prevent double checking
+    if (hasChecked.current) return;
+    hasChecked.current = true;
+
     const checkAuth = async () => {
       try {
+        console.log('Checking auth status...');
         const response = await fetch(`${API_URL}/api/auth/me`, {
           credentials: 'include'
         });
@@ -123,108 +136,122 @@ const ProtectedRoute = ({ children }) => {
         }
 
         const userData = await response.json();
+        console.log('User authenticated:', userData.email);
         setUser(userData);
-        setIsAuthenticated(true);
+        setAuthState('authenticated');
       } catch (error) {
-        setIsAuthenticated(false);
+        console.log('Not authenticated, redirecting to login');
+        setAuthState('unauthenticated');
         navigate('/login', { replace: true });
       }
     };
 
     checkAuth();
-  }, [location.state, navigate, setUser]);
+  }, [user, navigate, setUser]);
 
-  if (isAuthenticated === null) {
-    return <LoadingScreen />;
+  if (authState === 'checking') {
+    return <LoadingScreen message="Vérification..." />;
   }
 
-  return isAuthenticated ? children : null;
+  return authState === 'authenticated' ? children : null;
 };
 
-// Main App Router - Detects session_id BEFORE rendering routes
-const AppRouter = () => {
+// Main App Content - Inside Router
+const AppContent = () => {
   const location = useLocation();
-
-  // CRITICAL: Check for session_id synchronously during render
+  const navigate = useNavigate();
+  const { user, setUser } = useUser();
+  
+  // CRITICAL: Check for session_id in hash FIRST (before any routing)
   // REMINDER: DO NOT HARDCODE THE URL, OR ADD ANY FALLBACKS OR REDIRECT URLS, THIS BREAKS THE AUTH
-  if (location.hash?.includes('session_id=')) {
-    return <AuthCallback />;
+  const hash = window.location.hash;
+  const hasSessionId = hash.includes('session_id=');
+
+  if (hasSessionId) {
+    return (
+      <AuthCallback 
+        onSuccess={(userData) => {
+          setUser(userData);
+          navigate('/', { replace: true });
+        }}
+        onError={(error) => {
+          console.error('Auth callback error:', error);
+          navigate('/login', { replace: true });
+        }}
+      />
+    );
   }
 
   return (
-    <Routes>
-      <Route path="/login" element={<Login />} />
-      <Route
-        path="/"
-        element={
-          <ProtectedRoute>
-            <Dashboard />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/matrix"
-        element={
-          <ProtectedRoute>
-            <EisenhowerMatrix />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/calendar"
-        element={
-          <ProtectedRoute>
-            <Calendar />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/pomodoro"
-        element={
-          <ProtectedRoute>
-            <Pomodoro />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/community"
-        element={
-          <ProtectedRoute>
-            <Community />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/mood"
-        element={
-          <ProtectedRoute>
-            <MoodTracker />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/settings"
-        element={
-          <ProtectedRoute>
-            <Settings />
-          </ProtectedRoute>
-        }
-      />
-    </Routes>
+    <>
+      {/* Navigation - only show when user is logged in and not on login page */}
+      {user && location.pathname !== '/login' && <Navigation />}
+      
+      <main className={user && location.pathname !== '/login' ? 'pb-20 md:pb-0 md:ml-64' : ''}>
+        <AnimatePresence mode="wait">
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route
+              path="/"
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/matrix"
+              element={
+                <ProtectedRoute>
+                  <EisenhowerMatrix />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/calendar"
+              element={
+                <ProtectedRoute>
+                  <Calendar />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/pomodoro"
+              element={
+                <ProtectedRoute>
+                  <Pomodoro />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/community"
+              element={
+                <ProtectedRoute>
+                  <Community />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/mood"
+              element={
+                <ProtectedRoute>
+                  <MoodTracker />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/settings"
+              element={
+                <ProtectedRoute>
+                  <Settings />
+                </ProtectedRoute>
+              }
+            />
+          </Routes>
+        </AnimatePresence>
+      </main>
+    </>
   );
-};
-
-// Navigation Wrapper - Only shows nav when authenticated
-const NavigationWrapper = () => {
-  const location = useLocation();
-  const { user } = useUser();
-  
-  // Don't show nav on login page or during auth callback
-  if (location.pathname === '/login' || location.hash?.includes('session_id=')) {
-    return null;
-  }
-
-  return user ? <Navigation /> : null;
 };
 
 function App() {
@@ -250,13 +277,7 @@ function App() {
       <UserContext.Provider value={{ user, setUser }}>
         <Router>
           <div className={`min-h-screen transition-colors duration-300 ${darkMode ? 'dark bg-neutral-950' : 'bg-neutral-50'}`}>
-            <NavigationWrapper />
-            
-            <main className={user ? 'pb-20 md:pb-0 md:ml-64' : ''}>
-              <AnimatePresence mode="wait">
-                <AppRouter />
-              </AnimatePresence>
-            </main>
+            <AppContent />
           </div>
         </Router>
       </UserContext.Provider>
