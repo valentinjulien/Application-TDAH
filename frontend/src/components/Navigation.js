@@ -1,95 +1,234 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { useTheme } from '../App';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
-  HomeIcon,
-  ChartBarIcon,
-  CalendarIcon,
-  UserGroupIcon,
-  Cog6ToothIcon,
-  Bars3Icon,
-  XMarkIcon,
-  SparklesIcon
-} from '@heroicons/react/24/outline';
+  Home,
+  LayoutGrid,
+  Calendar,
+  Timer,
+  Users,
+  Heart,
+  Settings,
+  Sun,
+  Moon,
+  Sparkles,
+  Menu,
+  X
+} from 'lucide-react';
 
 const Navigation = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
+  const { darkMode, toggleDarkMode } = useTheme();
 
-  const navigationItems = [
-    { to: '/', label: 'Dashboard', icon: HomeIcon },
-    { to: '/matrix', label: 'Matrice', icon: ChartBarIcon },
-    { to: '/calendar', label: 'Calendrier', icon: CalendarIcon },
-    { to: '/meeting', label: 'Réunion', icon: UserGroupIcon },
-    { to: '/settings', label: 'Paramètres', icon: Cog6ToothIcon },
+  const navItems = [
+    { to: '/', label: 'Accueil', icon: Home, color: 'text-primary-500' },
+    { to: '/matrix', label: 'Matrice', icon: LayoutGrid, color: 'text-amber-500' },
+    { to: '/calendar', label: 'Calendrier', icon: Calendar, color: 'text-blue-500' },
+    { to: '/pomodoro', label: 'Focus', icon: Timer, color: 'text-red-500' },
+    { to: '/community', label: 'Communauté', icon: Users, color: 'text-purple-500' },
+    { to: '/mood', label: 'Humeur', icon: Heart, color: 'text-pink-500' },
+    { to: '/settings', label: 'Paramètres', icon: Settings, color: 'text-neutral-500' },
   ];
 
   const isActive = (path) => location.pathname === path;
 
+  // Navigation mobile (bottom nav)
+  const mobileNavItems = navItems.slice(0, 5);
+
   return (
-    <nav className="bg-white border-b border-neutral-200 shadow-soft sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2 group">
-            <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center group-hover:scale-105 transition-transform duration-200">
-              <SparklesIcon className="w-5 h-5 text-white" />
+    <>
+      {/* Desktop Sidebar */}
+      <motion.aside
+        initial={{ x: -100, opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        className="hidden md:flex fixed left-0 top-0 bottom-0 w-64 bg-white dark:bg-neutral-900 border-r border-neutral-200 dark:border-neutral-800 flex-col z-40"
+      >
+        {/* Logo */}
+        <div className="p-6 border-b border-neutral-100 dark:border-neutral-800">
+          <Link to="/" className="flex items-center gap-3 group">
+            <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center shadow-soft group-hover:shadow-glow transition-shadow duration-300">
+              <Sparkles className="w-5 h-5 text-white" />
             </div>
-            <span className="text-xl font-display font-bold text-neutral-900 group-hover:text-primary-600 transition-colors">
-              TDAH Companion
-            </span>
+            <div>
+              <h1 className="font-display font-bold text-neutral-900 dark:text-white">
+                TDAH
+              </h1>
+              <p className="text-xs text-neutral-500">Companion</p>
+            </div>
           </Link>
+        </div>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-1">
-            {navigationItems.map(({ to, label, icon: Icon }) => (
+        {/* Navigation */}
+        <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const active = isActive(item.to);
+            return (
               <Link
-                key={to}
-                to={to}
-                className={`nav-link ${isActive(to) ? 'active' : ''}`}
+                key={item.to}
+                to={item.to}
+                className={`nav-item ${active ? 'nav-item-active' : ''}`}
+                data-testid={`nav-${item.label.toLowerCase()}`}
               >
-                <Icon className="w-4 h-4 mr-2" />
-                {label}
+                <Icon className={`w-5 h-5 ${active ? item.color : ''}`} />
+                <span>{item.label}</span>
+                {active && (
+                  <motion.div
+                    layoutId="nav-indicator"
+                    className="absolute right-2 w-1.5 h-1.5 rounded-full bg-primary-500"
+                  />
+                )}
               </Link>
-            ))}
-          </div>
+            );
+          })}
+        </nav>
 
-          {/* Mobile menu button */}
+        {/* Dark Mode Toggle */}
+        <div className="p-4 border-t border-neutral-100 dark:border-neutral-800">
           <button
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="md:hidden p-2 rounded-lg text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 transition-colors"
+            onClick={toggleDarkMode}
+            className="w-full flex items-center justify-between px-4 py-3 rounded-xl bg-neutral-50 dark:bg-neutral-800 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors"
+            data-testid="dark-mode-toggle"
           >
-            {isMobileMenuOpen ? (
-              <XMarkIcon className="w-6 h-6" />
+            <span className="text-sm font-medium text-neutral-600 dark:text-neutral-300">
+              {darkMode ? 'Mode clair' : 'Mode sombre'}
+            </span>
+            {darkMode ? (
+              <Sun className="w-5 h-5 text-amber-500" />
             ) : (
-              <Bars3Icon className="w-6 h-6" />
+              <Moon className="w-5 h-5 text-primary-500" />
             )}
           </button>
         </div>
+      </motion.aside>
 
-        {/* Mobile Navigation */}
-        {isMobileMenuOpen && (
-          <div className="md:hidden border-t border-neutral-200 bg-white animate-slide-up">
-            <div className="px-2 pt-2 pb-3 space-y-1">
-              {navigationItems.map(({ to, label, icon: Icon }) => (
-                <Link
-                  key={to}
-                  to={to}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className={`flex items-center px-3 py-2 text-base font-medium rounded-lg transition-colors ${
-                    isActive(to)
-                      ? 'text-primary-600 bg-primary-50'
-                      : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50'
-                  }`}
-                >
-                  <Icon className="w-5 h-5 mr-3" />
-                  {label}
-                </Link>
-              ))}
+      {/* Mobile Bottom Navigation */}
+      <motion.nav
+        initial={{ y: 100 }}
+        animate={{ y: 0 }}
+        className="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-neutral-900/95 backdrop-blur-xl border-t border-neutral-200 dark:border-neutral-800 pb-safe z-50"
+      >
+        <div className="flex justify-around items-center py-2">
+          {mobileNavItems.map((item) => {
+            const Icon = item.icon;
+            const active = isActive(item.to);
+            return (
+              <Link
+                key={item.to}
+                to={item.to}
+                className="flex flex-col items-center py-2 px-3 relative"
+                data-testid={`mobile-nav-${item.label.toLowerCase()}`}
+              >
+                <div className={`p-2 rounded-xl transition-all duration-200 ${
+                  active ? 'bg-primary-50 dark:bg-primary-900/30' : ''
+                }`}>
+                  <Icon className={`w-5 h-5 ${
+                    active ? item.color : 'text-neutral-400'
+                  }`} />
+                </div>
+                <span className={`text-xs mt-1 ${
+                  active ? 'text-primary-600 dark:text-primary-400 font-medium' : 'text-neutral-500'
+                }`}>
+                  {item.label}
+                </span>
+                {active && (
+                  <motion.div
+                    layoutId="mobile-nav-indicator"
+                    className="absolute -top-0.5 w-1 h-1 rounded-full bg-primary-500"
+                  />
+                )}
+              </Link>
+            );
+          })}
+          
+          {/* More button */}
+          <button
+            onClick={() => setIsMobileMenuOpen(true)}
+            className="flex flex-col items-center py-2 px-3"
+            data-testid="mobile-nav-more"
+          >
+            <div className="p-2 rounded-xl">
+              <Menu className="w-5 h-5 text-neutral-400" />
             </div>
-          </div>
+            <span className="text-xs mt-1 text-neutral-500">Plus</span>
+          </button>
+        </div>
+      </motion.nav>
+
+      {/* Mobile More Menu */}
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="md:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
+              onClick={() => setIsMobileMenuOpen(false)}
+            />
+            <motion.div
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 25 }}
+              className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-neutral-900 rounded-t-3xl z-50 pb-safe"
+            >
+              <div className="p-4">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-display font-semibold text-neutral-900 dark:text-white">
+                    Menu
+                  </h3>
+                  <button
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="p-2 rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                  >
+                    <X className="w-5 h-5 text-neutral-500" />
+                  </button>
+                </div>
+                
+                <div className="space-y-2">
+                  {navItems.slice(5).map((item) => {
+                    const Icon = item.icon;
+                    return (
+                      <Link
+                        key={item.to}
+                        to={item.to}
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-neutral-50 dark:hover:bg-neutral-800"
+                      >
+                        <Icon className={`w-5 h-5 ${item.color}`} />
+                        <span className="font-medium text-neutral-700 dark:text-neutral-200">
+                          {item.label}
+                        </span>
+                      </Link>
+                    );
+                  })}
+                </div>
+
+                {/* Dark mode toggle in mobile menu */}
+                <div className="mt-4 pt-4 border-t border-neutral-100 dark:border-neutral-800">
+                  <button
+                    onClick={toggleDarkMode}
+                    className="w-full flex items-center justify-between px-4 py-3 rounded-xl bg-neutral-50 dark:bg-neutral-800"
+                  >
+                    <span className="font-medium text-neutral-700 dark:text-neutral-200">
+                      {darkMode ? 'Mode clair' : 'Mode sombre'}
+                    </span>
+                    {darkMode ? (
+                      <Sun className="w-5 h-5 text-amber-500" />
+                    ) : (
+                      <Moon className="w-5 h-5 text-primary-500" />
+                    )}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </>
         )}
-      </div>
-    </nav>
+      </AnimatePresence>
+    </>
   );
 };
 
