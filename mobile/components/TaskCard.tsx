@@ -222,6 +222,19 @@ export default function TaskCard({ task, onComplete, onUpdate, isHighlighted = f
       {/* Action Buttons */}
       {!task.completed && (
         <View style={styles.actions}>
+          {/* Time-Blocking Button */}
+          {!isScheduled && (
+            <TouchableOpacity
+              style={styles.timeBlockButton}
+              onPress={handleOpenTimeBlocking}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.timeBlockButtonText}>
+                📅 Planifier
+              </Text>
+            </TouchableOpacity>
+          )}
+
           {/* Breakdown Button */}
           <TouchableOpacity
             style={[styles.breakdownButton, hasSteps && styles.breakdownButtonActive]}
@@ -252,6 +265,14 @@ export default function TaskCard({ task, onComplete, onUpdate, isHighlighted = f
           )}
         </View>
       )}
+
+      {/* Time-Blocking Modal */}
+      <TimeBlockingModal
+        visible={showTimeBlocking}
+        task={task}
+        onClose={() => setShowTimeBlocking(false)}
+        onScheduled={handleTaskScheduled}
+      />
     </View>
   );
 }
