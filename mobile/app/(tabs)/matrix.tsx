@@ -283,11 +283,15 @@ export default function MatrixScreen() {
       {/* Quick Capture FAB */}
       <QuickCaptureButton userId={userId} onTaskCreated={fetchTasks} />
 
-      {/* Pomodoro Timer Modal */}
-      <PomodoroTimer
-        visible={showPomodoro}
-        onClose={() => setShowPomodoro(false)}
+      {/* Deep Focus Modal */}
+      <DeepFocus
+        visible={showDeepFocus}
+        onClose={() => {
+          setShowDeepFocus(false);
+          setFocusTask(null);
+        }}
         userId={userId}
+        currentTaskText={focusTask?.text}
       />
     </SafeAreaView>
   );
