@@ -171,14 +171,16 @@ Un sanctuaire numérique bienveillant qui protège l'attention des personnes TDA
 │       └── profile.tsx          # Settings + Rituels
 ├── components/
 │   ├── ConfettiCannon.tsx       # Célébration native
-│   ├── DeepFocus.tsx            # Système immersion totale
+│   ├── DeepFocus.tsx            # Système immersion + anti-distraction
+│   ├── EnergyIndicator.tsx      # 🆕 Visualisation niveau d'énergie
 │   ├── EveningReview.tsx        # Revue du soir
+│   ├── FocusStatsBanner.tsx     # 🆕 Bannière stats focus
 │   ├── MorningGazette.tsx       # Gazette du matin
 │   ├── PomodoroTimer.tsx        # Timer simple (legacy)
 │   ├── QuickCaptureButton.tsx   # FAB + Voice + AI
 │   ├── TaskBreakdown.tsx        # Micro-étapes
-│   ├── TaskCard.tsx             # Carte tâche + Time-Blocking
-│   └── TimeBlockingModal.tsx    # 🆕 Planification intelligente
+│   ├── TaskCard.tsx             # Carte tâche (améliorée)
+│   └── TimeBlockingModal.tsx    # Planification intelligente
 ├── hooks/
 │   ├── useDailyTriggers.ts      # Détection horaire
 │   ├── useGoogleCalendar.ts     # 🆕 Google Calendar hook
