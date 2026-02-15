@@ -211,27 +211,18 @@ const AppContent = () => {
       </AnimatePresence>
 
       {/* Navigation - only show when user is logged in and not on special pages */}
-      {user && location.pathname !== '/login' && location.pathname !== '/assist' && location.pathname !== '/capture' && <Navigation />}
+      {user && location.pathname !== '/login' && location.pathname !== '/capture' && <Navigation />}
       
-      <main className={user && location.pathname !== '/login' && location.pathname !== '/assist' && location.pathname !== '/capture' ? 'pb-20 md:pb-0 md:ml-64' : ''}>
+      <main className={user && location.pathname !== '/login' && location.pathname !== '/capture' ? 'pb-20 md:pb-0 md:ml-64' : ''}>
         <AnimatePresence mode="wait">
           <Routes>
             <Route path="/login" element={<Login />} />
-            {/* Ghost Capture Route - Quick frictionless capture */}
+            {/* Unified Capture Route - Text + Voice with wake word */}
             <Route
               path="/capture"
               element={
                 <ProtectedRoute>
-                  <GhostCapture />
-                </ProtectedRoute>
-              }
-            />
-            {/* Voice Assistant Route - "Porte d'entrée" pour Siri/raccourcis */}
-            <Route
-              path="/assist"
-              element={
-                <ProtectedRoute>
-                  <VoiceAssistant />
+                  <UnifiedCapture />
                 </ProtectedRoute>
               }
             />
