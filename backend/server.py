@@ -741,6 +741,30 @@ async def get_porcupine_access_key():
     return {"accessKey": PICOVOICE_ACCESS_KEY}
 
 
+@app.get("/api/porcupine/{filename}")
+async def get_porcupine_file(filename: str):
+    """Sert les fichiers Porcupine (.ppn et .pv)"""
+    # Sécurité: n'autoriser que certaines extensions
+    if not filename.endswith(('.ppn', '.pv')):
+        raise HTTPException(status_code=400, detail="Invalid file type")
+    
+    file_path = f"static/porcupine/{filename}"
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail="File not found")
+    
+    # Déterminer le type MIME
+    media_type = "application/octet-stream"
+    
+    return FileResponse(
+        file_path, 
+        media_type=media_type,
+        headers={
+            "Access-Control-Allow-Origin": "*",
+            "Cache-Control": "public, max-age=86400"
+        }
+    )
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8001)
