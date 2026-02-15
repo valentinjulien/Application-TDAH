@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTasks } from '../hooks/useTasks';
 import { callOpenRouter } from '../hooks/useAI';
+import TimeBlockingModal from './TimeBlockingModal';
 import {
   AlertTriangle,
   Clock,
@@ -12,7 +13,8 @@ import {
   X,
   ChevronDown,
   ChevronUp,
-  GripVertical
+  GripVertical,
+  Calendar
 } from 'lucide-react';
 
 const EisenhowerMatrix = () => {
