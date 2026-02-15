@@ -45,6 +45,13 @@
           "icon": "./assets/notification-icon.png",
           "color": "#6366F1"
         }
+      ],
+      [
+        "expo-quick-actions",
+        {
+          "androidItemColor": "#6366F1",
+          "androidItemBackgroundColor": "#1E293B"
+        }
       ]
     ],
     "experiments": {
