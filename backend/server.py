@@ -4,7 +4,7 @@ FastAPI backend pour l'application de gestion TDAH avec Emergent Auth et IA
 """
 from fastapi import FastAPI, HTTPException, Request, Response, Cookie
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 from typing import Optional, List
 from datetime import datetime, timezone, timedelta
@@ -20,9 +20,6 @@ from emergentintegrations.llm.chat import LlmChat, UserMessage
 load_dotenv()
 
 app = FastAPI(title="Assistant TDAH API", version="1.2.0")
-
-# Servir les fichiers statiques Porcupine
-app.mount("/porcupine", StaticFiles(directory="static/porcupine"), name="porcupine")
 
 # CORS - Important pour les cookies
 app.add_middleware(
