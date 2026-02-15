@@ -11,13 +11,14 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
-import { supabase, Task, getTasks } from '../../lib/supabase';
+import { supabase, Task, getTasks, getDailyLogs, DailyLog } from '../../lib/supabase';
 import useNotifications, {
   scheduleDailyMotivation,
   sendImmediateNotification,
   cancelAllNotifications,
   getScheduledNotifications,
 } from '../../hooks/useNotifications';
+import useDailyTriggers from '../../hooks/useDailyTriggers';
 import { Colors, Spacing, BorderRadius, FontSizes, TouchTargets } from '../../constants/theme';
 
 export default function ProfileScreen() {
