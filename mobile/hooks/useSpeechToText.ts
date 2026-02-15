@@ -1,7 +1,6 @@
 import { useState, useRef, useCallback } from 'react';
 import { Platform } from 'react-native';
 import { Audio } from 'expo-av';
-import * as FileSystem from 'expo-file-system';
 
 const EMERGENT_LLM_KEY = 'sk-emergent-932624d8e6b1152661';
 const WHISPER_API_URL = 'https://api.openai.com/v1/audio/transcriptions';
@@ -116,15 +115,10 @@ export function useSpeechToText(): UseSpeechToTextReturn {
 }
 
 async function transcribeAudio(uri: string): Promise<string> {
-  // Read the file as base64
-  const base64Audio = await FileSystem.readAsStringAsync(uri, {
-    encoding: FileSystem.EncodingType.Base64,
-  });
-
   // Create form data for the API
   const formData = new FormData();
   
-  // Convert base64 to blob
+  // Convert to blob format for API
   const audioBlob = {
     uri: uri,
     type: 'audio/m4a',
