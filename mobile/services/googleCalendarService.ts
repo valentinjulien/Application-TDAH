@@ -78,7 +78,7 @@ export interface BusySlot {
 
 export function useGoogleAuth() {
   const redirectUri = AuthSession.makeRedirectUri({
-    scheme: 'tdah-companion',
+    scheme: 'assistant-tdah',
     path: 'oauth/callback',
   });
 
