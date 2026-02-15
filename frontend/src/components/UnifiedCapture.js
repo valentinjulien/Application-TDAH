@@ -322,7 +322,7 @@ const UnifiedCapture = () => {
     }
   }, [micPermissionStatus, checkStopCommand, processVoiceInput]);
 
-  // Start wake word listening (background)
+  // Start wake word listening (background) - Only within app
   const startWakeWordListening = useCallback(() => {
     if (!SpeechRecognition) {
       console.log('SpeechRecognition not supported');
@@ -343,6 +343,7 @@ const UnifiedCapture = () => {
     }
     
     console.log('Starting wake word listening...');
+    setWakeWordStatus('listening');
     
     const recognition = new SpeechRecognition();
     recognition.continuous = true;
@@ -351,7 +352,6 @@ const UnifiedCapture = () => {
     recognition.maxAlternatives = 1;
     
     let isActive = true;
-    let restartTimeout = null;
     
     recognition.onstart = () => {
       console.log('Wake word listening active');
@@ -361,11 +361,9 @@ const UnifiedCapture = () => {
     recognition.onresult = (event) => {
       for (let i = event.resultIndex; i < event.results.length; i++) {
         const text = event.results[i][0].transcript;
-        console.log('Wake word heard:', text);
         if (checkWakeWord(text)) {
           console.log('WAKE WORD DETECTED!');
           isActive = false;
-          if (restartTimeout) clearTimeout(restartTimeout);
           try { recognition.abort(); } catch(e) {}
           wakeWordRecognitionRef.current = null;
           setWakeWordActive(true);
@@ -380,25 +378,26 @@ const UnifiedCapture = () => {
     };
     
     recognition.onerror = (event) => {
-      console.log('Wake word error:', event.error);
-      // Ignore these common errors that don't mean failure
+      // Ignore common non-fatal errors
       if (event.error === 'aborted' || event.error === 'no-speech' || event.error === 'network') {
         return;
       }
-      setWakeWordStatus('error');
+      console.log('Wake word error:', event.error);
     };
     
     recognition.onend = () => {
-      console.log('Wake word listening ended, isActive:', isActive);
       wakeWordRecognitionRef.current = null;
       
-      // Auto-restart if still active and conditions are met
+      // Auto-restart if still active
       if (isActive && micPermissionStatus === 'granted') {
-        if (restartTimeout) clearTimeout(restartTimeout);
-        restartTimeout = setTimeout(() => {
-          console.log('Restarting wake word listening...');
-          startWakeWordListening();
-        }, 300); // Short delay before restart
+        // Use requestAnimationFrame for smoother restart
+        requestAnimationFrame(() => {
+          setTimeout(() => {
+            if (micPermissionStatus === 'granted' && !wakeWordRecognitionRef.current) {
+              startWakeWordListening();
+            }
+          }, 200);
+        });
       }
     };
     
@@ -409,12 +408,7 @@ const UnifiedCapture = () => {
     } catch (e) {
       console.log('Could not start wake word:', e);
       wakeWordRecognitionRef.current = null;
-      // Retry after delay
-      setTimeout(() => {
-        if (micPermissionStatus === 'granted') {
-          startWakeWordListening();
-        }
-      }, 1000);
+      setWakeWordStatus('error');
     }
   }, [checkWakeWord, speak, startVoiceCapture, micPermissionStatus]);
 
