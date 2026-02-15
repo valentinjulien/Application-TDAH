@@ -233,6 +233,21 @@ export default function CaptureScreen() {
           />
         )}
 
+        {/* Processing Indicator with AI features */}
+        {state === 'processing' && (
+          <View style={styles.processingContainer}>
+            <Animated.View style={[styles.processingGlow, { opacity: glowOpacity }]} />
+            <Text style={styles.processingEmoji}>🧠</Text>
+            <Text style={styles.processingTitle}>Analyse en cours...</Text>
+            <View style={styles.processingFeatures}>
+              <Text style={styles.processingFeature}>📊 Classification Eisenhower</Text>
+              <Text style={styles.processingFeature}>⚡ Niveau d'énergie</Text>
+              <Text style={styles.processingFeature}>⏱️ Estimation durée</Text>
+              <Text style={styles.processingFeature}>📅 Extraction de date</Text>
+            </View>
+          </View>
+        )}
+
         {/* Success Indicator */}
         {state === 'success' && (
           <Animated.View 
