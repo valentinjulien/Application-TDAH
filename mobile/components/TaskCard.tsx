@@ -1,11 +1,12 @@
-import { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { useState, useRef, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Animated } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { Task, updateTask } from '../lib/supabase';
 import { breakdownTask, TaskStep } from '../services/aiService';
 import { formatDuration } from '../services/timeBlockingService';
 import TaskBreakdown from './TaskBreakdown';
 import TimeBlockingModal from './TimeBlockingModal';
+import EnergyIndicator from './EnergyIndicator';
 import { Colors, Spacing, BorderRadius, FontSizes, TouchTargets } from '../constants/theme';
 
 interface TaskCardProps {
