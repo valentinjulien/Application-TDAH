@@ -187,7 +187,7 @@ export default function QuickCaptureButton({ userId, onTaskCreated }: QuickCaptu
         onPress={openModal}
         onLongPress={() => {
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
-          router.push('/capture');
+          router.push('/capture' as any);
         }}
         delayLongPress={400}
         activeOpacity={0.8}
