@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTasks } from '../hooks/useTasks';
-import { callOpenRouter } from '../hooks/useAI';
+import { useAIDecompose } from '../hooks/useAI';
 import TimeBlockingModal from './TimeBlockingModal';
 import {
   AlertTriangle,
