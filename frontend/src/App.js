@@ -165,6 +165,19 @@ const AppContent = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, setUser } = useUser();
+  const [showMorningGazette, setShowMorningGazette] = useState(false);
+  const [showEveningReview, setShowEveningReview] = useState(false);
+  
+  // Check for daily rituals when user is logged in
+  useEffect(() => {
+    if (user) {
+      if (shouldShowMorningGazette()) {
+        setShowMorningGazette(true);
+      } else if (shouldShowEveningReview()) {
+        setShowEveningReview(true);
+      }
+    }
+  }, [user]);
   
   // CRITICAL: Check for session_id in hash FIRST (before any routing)
   // REMINDER: DO NOT HARDCODE THE URL, OR ADD ANY FALLBACKS OR REDIRECT URLS, THIS BREAKS THE AUTH
@@ -188,13 +201,32 @@ const AppContent = () => {
 
   return (
     <>
+      {/* Daily Rituals Modals */}
+      <AnimatePresence>
+        {showMorningGazette && (
+          <MorningGazette onClose={() => setShowMorningGazette(false)} />
+        )}
+        {showEveningReview && (
+          <EveningReview onClose={() => setShowEveningReview(false)} />
+        )}
+      </AnimatePresence>
+
       {/* Navigation - only show when user is logged in and not on special pages */}
-      {user && location.pathname !== '/login' && location.pathname !== '/assist' && <Navigation />}
+      {user && location.pathname !== '/login' && location.pathname !== '/assist' && location.pathname !== '/capture' && <Navigation />}
       
-      <main className={user && location.pathname !== '/login' && location.pathname !== '/assist' ? 'pb-20 md:pb-0 md:ml-64' : ''}>
+      <main className={user && location.pathname !== '/login' && location.pathname !== '/assist' && location.pathname !== '/capture' ? 'pb-20 md:pb-0 md:ml-64' : ''}>
         <AnimatePresence mode="wait">
           <Routes>
             <Route path="/login" element={<Login />} />
+            {/* Ghost Capture Route - Quick frictionless capture */}
+            <Route
+              path="/capture"
+              element={
+                <ProtectedRoute>
+                  <GhostCapture />
+                </ProtectedRoute>
+              }
+            />
             {/* Voice Assistant Route - "Porte d'entrée" pour Siri/raccourcis */}
             <Route
               path="/assist"
