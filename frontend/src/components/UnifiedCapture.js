@@ -50,11 +50,11 @@ const UnifiedCapture = () => {
     }, 500);
   }, []);
 
-  // Initialize Porcupine v3 with built-in keyword "Hey Google"
+  // Initialize Porcupine v3 with PorcupineWorker
   const initPorcupine = useCallback(async () => {
     try {
       setPorcupineStatus('initializing');
-      console.log('🎤 Initializing Porcupine v3...');
+      console.log('🎤 Initializing Porcupine v3 Worker...');
       
       // Get access key
       const keyResponse = await fetch('/api/porcupine/access-key');
@@ -66,30 +66,30 @@ const UnifiedCapture = () => {
       const { accessKey } = await keyResponse.json();
       console.log('🔑 Got access key');
       
-      // Import Porcupine v3
-      const { Porcupine, BuiltInKeyword } = await import('@picovoice/porcupine-web');
+      // Import Porcupine v3 Worker
+      const PorcupineModule = await import('@picovoice/porcupine-web');
       const { WebVoiceProcessor } = await import('@picovoice/web-voice-processor');
-      console.log('📦 Porcupine v3 imported, BuiltInKeyword:', BuiltInKeyword);
       
-      // Detection callback
-      const detectionCallback = (detection) => {
-        console.log('🎉 Detection callback!', detection);
-        onWakeWordDetected(detection);
-      };
+      console.log('📦 Porcupine module:', Object.keys(PorcupineModule));
       
-      console.log('🔧 Creating Porcupine with built-in "Hey Google"...');
+      // Use PorcupineWorker for better performance
+      const PorcupineWorker = PorcupineModule.PorcupineWorker;
+      const BuiltInKeyword = PorcupineModule.BuiltInKeyword;
       
-      // Create Porcupine with built-in keyword "Hey Google"
-      // For built-in keywords, no model file is needed
-      const porcupine = await Porcupine.create(
+      console.log('🔧 Creating PorcupineWorker with built-in "Porcupine"...');
+      console.log('Available keywords:', BuiltInKeyword);
+      
+      // Create Porcupine Worker - Use "Porcupine" which is more reliable
+      const porcupine = await PorcupineWorker.create(
         accessKey,
-        [BuiltInKeyword.HeyGoogle],
-        detectionCallback
+        [BuiltInKeyword.Porcupine], // Using "Porcupine" wake word
+        (detection) => {
+          console.log('🎉 Wake word detected!', detection);
+          onWakeWordDetected(detection);
+        }
       );
       
-      console.log('✅ Porcupine created!', {
-        frameLength: porcupine.frameLength,
-        sampleRate: porcupine.sampleRate,
+      console.log('✅ Porcupine Worker created!', {
         version: porcupine.version
       });
       
@@ -100,7 +100,7 @@ const UnifiedCapture = () => {
       await WebVoiceProcessor.subscribe(porcupine);
       
       setPorcupineStatus('listening');
-      console.log('✅ Porcupine listening for "Hey Google"');
+      console.log('✅ Porcupine listening for "Porcupine" wake word');
       return true;
       
     } catch (err) {
