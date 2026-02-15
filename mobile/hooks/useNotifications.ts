@@ -10,6 +10,8 @@ Notifications.setNotificationHandler({
     shouldShowAlert: true,
     shouldPlaySound: true,
     shouldSetBadge: true,
+    shouldShowBanner: true,
+    shouldShowList: true,
   }),
 });
 
@@ -24,8 +26,8 @@ export function useNotifications() {
   const [notification, setNotification] = useState<Notifications.Notification | null>(null);
   const [error, setError] = useState<string | null>(null);
   
-  const notificationListener = useRef<Notifications.Subscription>();
-  const responseListener = useRef<Notifications.Subscription>();
+  const notificationListener = useRef<Notifications.EventSubscription | null>(null);
+  const responseListener = useRef<Notifications.EventSubscription | null>(null);
 
   useEffect(() => {
     registerForPushNotificationsAsync()
@@ -50,10 +52,10 @@ export function useNotifications() {
 
     return () => {
       if (notificationListener.current) {
-        Notifications.removeNotificationSubscription(notificationListener.current);
+        notificationListener.current.remove();
       }
       if (responseListener.current) {
-        Notifications.removeNotificationSubscription(responseListener.current);
+        responseListener.current.remove();
       }
     };
   }, []);
@@ -117,13 +119,14 @@ async function registerForPushNotificationsAsync(): Promise<string | undefined> 
     if (projectId) {
       token = (await Notifications.getExpoPushTokenAsync({ projectId })).data;
     } else {
-      // Fallback for development
-      token = (await Notifications.getExpoPushTokenAsync()).data;
+      // Fallback for development - generate a device token
+      token = (await Notifications.getDevicePushTokenAsync()).data as string;
     }
     
     console.log('Push token:', token);
   } catch (e) {
     console.log('Error getting push token:', e);
+    // For local testing, we can proceed without a token
   }
 
   return token;
@@ -148,9 +151,10 @@ export async function scheduleTaskReminder(
       title: quadrantLabels[quadrant] || 'Rappel de tâche',
       body: taskText,
       data: { taskId, action: 'open_task' },
-      sound: 'default',
+      sound: true,
     },
     trigger: {
+      type: Notifications.SchedulableTriggerInputTypes.DATE,
       date: triggerDate,
       channelId: 'reminders',
     },
@@ -179,9 +183,10 @@ export async function schedulePomodoroNotification(
   const identifier = await Notifications.scheduleNotificationAsync({
     content: {
       ...content,
-      sound: 'default',
+      sound: true,
     },
     trigger: {
+      type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
       seconds: delaySeconds,
       channelId: 'pomodoro',
     },
@@ -209,9 +214,9 @@ export async function scheduleDailyMotivation(hour: number = 9, minute: number =
       data: { action: 'daily_motivation' },
     },
     trigger: {
+      type: Notifications.SchedulableTriggerInputTypes.DAILY,
       hour,
       minute,
-      repeats: true,
       channelId: 'default',
     },
   });
@@ -245,7 +250,7 @@ export async function sendImmediateNotification(
       title,
       body,
       data,
-      sound: 'default',
+      sound: true,
     },
     trigger: null, // Immediate
   });
