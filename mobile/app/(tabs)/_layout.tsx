@@ -22,6 +22,16 @@ const MatrixIcon = ({ color, size }: { color: string; size: number }) => (
   </View>
 );
 
+const ScheduleIcon = ({ color, size }: { color: string; size: number }) => (
+  <View style={[styles.iconContainer, { width: size, height: size }]}>
+    <View style={[styles.scheduleIcon, { borderColor: color }]}>
+      <View style={[styles.scheduleLine, { backgroundColor: color }]} />
+      <View style={[styles.scheduleLine, { backgroundColor: color }]} />
+      <View style={[styles.scheduleLine, { backgroundColor: color }]} />
+    </View>
+  </View>
+);
+
 const ProfileIcon = ({ color, size }: { color: string; size: number }) => (
   <View style={[styles.iconContainer, { width: size, height: size }]}>
     <View style={[styles.profileHead, { backgroundColor: color }]} />
@@ -55,6 +65,13 @@ export default function TabLayout() {
         options={{
           title: 'Maintenant',
           tabBarIcon: ({ color, size }) => <HomeIcon color={color} size={size} />,
+        }}
+      />
+      <Tabs.Screen
+        name="schedule"
+        options={{
+          title: 'Planning',
+          tabBarIcon: ({ color, size }) => <ScheduleIcon color={color} size={size} />,
         }}
       />
       <Tabs.Screen
