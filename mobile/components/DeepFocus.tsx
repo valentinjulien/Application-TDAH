@@ -10,9 +10,12 @@ import {
   StatusBar,
   Alert,
   BackHandler,
+  AppState,
+  AppStateStatus,
 } from 'react-native';
 import { Audio } from 'expo-av';
 import * as Haptics from 'expo-haptics';
+import * as Notifications from 'expo-notifications';
 import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
 import { Colors, Spacing, BorderRadius, FontSizes, TouchTargets } from '../constants/theme';
 import useTimer, { TimerMode } from '../hooks/useTimer';
