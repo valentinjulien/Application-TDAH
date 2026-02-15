@@ -12,6 +12,7 @@ import * as Haptics from 'expo-haptics';
 import { Colors, Spacing, BorderRadius, FontSizes, TouchTargets } from '../constants/theme';
 import { TaskStep } from '../services/aiService';
 import { updateTask, Task } from '../lib/supabase';
+import ConfettiCannon from './ConfettiCannon';
 
 interface TaskBreakdownProps {
   task: Task;
