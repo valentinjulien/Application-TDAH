@@ -185,6 +185,11 @@ export default function QuickCaptureButton({ userId, onTaskCreated }: QuickCaptu
       <TouchableOpacity
         style={styles.fab}
         onPress={openModal}
+        onLongPress={() => {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+          router.push('/capture');
+        }}
+        delayLongPress={400}
         activeOpacity={0.8}
       >
         <Text style={styles.fabText}>+</Text>
