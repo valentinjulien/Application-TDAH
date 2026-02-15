@@ -8,12 +8,10 @@ import {
   Clock,
   UserCheck,
   Trash2,
-  CheckCircle,
   Sparkles,
   X,
   ChevronDown,
   ChevronUp,
-  GripVertical,
   Calendar
 } from 'lucide-react';
 
