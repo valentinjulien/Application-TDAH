@@ -769,6 +769,30 @@ export default function DeepFocus({ visible, onClose, userId, currentTaskText }:
           <Text style={styles.exitHintText}>Quitter le tunnel</Text>
         </TouchableOpacity>
 
+        {/* Interruption counter (subtle) */}
+        {interruptionCount > 0 && (
+          <View style={styles.interruptionBadge}>
+            <Text style={styles.interruptionText}>
+              {interruptionCount} pause{interruptionCount > 1 ? 's' : ''}
+            </Text>
+          </View>
+        )}
+
+        {/* Welcome Back Overlay */}
+        {showWelcomeBack && (
+          <Animated.View 
+            style={[
+              styles.welcomeBackOverlay,
+              { opacity: welcomeBackAnim }
+            ]}
+          >
+            <View style={styles.welcomeBackCard}>
+              <Text style={styles.welcomeBackEmoji}>👋</Text>
+              <Text style={styles.welcomeBackText}>{welcomeBackMessage}</Text>
+            </View>
+          </Animated.View>
+        )}
+
         {/* Confetti */}
         <ConfettiCannon active={showConfetti} count={100} />
       </Animated.View>
