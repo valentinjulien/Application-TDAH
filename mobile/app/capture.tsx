@@ -371,11 +371,58 @@ const styles = StyleSheet.create({
   hint: {
     position: 'absolute',
     bottom: SCREEN_HEIGHT * 0.15,
+    alignItems: 'center',
   },
   hintText: {
     fontSize: FontSizes.sm,
     color: Colors.neutral[500],
     letterSpacing: 0.5,
+  },
+  hintSubtext: {
+    fontSize: FontSizes.xs,
+    color: Colors.primary[400],
+    marginTop: Spacing.xs,
+  },
+  aiPreview: {
+    position: 'absolute',
+    bottom: SCREEN_HEIGHT * 0.18,
+    backgroundColor: Colors.primary[900] + '60',
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: 20,
+  },
+  aiPreviewText: {
+    fontSize: FontSizes.xs,
+    color: Colors.primary[300],
+  },
+  processingContainer: {
+    alignItems: 'center',
+    gap: Spacing.md,
+  },
+  processingGlow: {
+    position: 'absolute',
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    backgroundColor: Colors.primary[500],
+    opacity: 0.2,
+  },
+  processingEmoji: {
+    fontSize: 48,
+  },
+  processingTitle: {
+    fontSize: FontSizes.lg,
+    fontWeight: '600',
+    color: Colors.text.dark,
+  },
+  processingFeatures: {
+    marginTop: Spacing.md,
+    gap: Spacing.xs,
+  },
+  processingFeature: {
+    fontSize: FontSizes.sm,
+    color: Colors.neutral[400],
+    textAlign: 'center',
   },
   charCount: {
     position: 'absolute',
