@@ -140,6 +140,7 @@ Un sanctuaire numérique bienveillant qui protège l'attention des personnes TDA
 ├── hooks/
 │   ├── useDailyTriggers.ts      # Détection horaire
 │   ├── useNotifications.ts      # Push notifications
+│   ├── useQuickActions.ts       # 🆕 Raccourcis app icon
 │   ├── useSpeechToText.ts       # Whisper transcription
 │   └── useTimer.ts              # Timer robuste
 ├── services/
