@@ -32,7 +32,8 @@ export default function MatrixScreen() {
   const [showCompleted, setShowCompleted] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [movingTask, setMovingTask] = useState(false);
-  const [showPomodoro, setShowPomodoro] = useState(false);
+  const [showDeepFocus, setShowDeepFocus] = useState(false);
+  const [focusTask, setFocusTask] = useState<Task | null>(null);
 
   const fetchTasks = useCallback(async () => {
     try {
