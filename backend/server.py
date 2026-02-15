@@ -741,7 +741,7 @@ async def get_porcupine_access_key():
     return {"accessKey": PICOVOICE_ACCESS_KEY}
 
 
-@app.get("/api/porcupine/{filename}")
+@app.get("/api/porcupine/models/{filename}")
 async def get_porcupine_file(filename: str):
     """Sert les fichiers Porcupine (.ppn et .pv)"""
     # Sécurité: n'autoriser que certaines extensions
