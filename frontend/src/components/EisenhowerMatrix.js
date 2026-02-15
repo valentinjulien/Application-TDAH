@@ -19,10 +19,10 @@ import {
 
 const EisenhowerMatrix = () => {
   const { tasks, loading, error, updateTask, deleteTask } = useTasks();
+  const { decompose, loading: loadingSteps } = useAIDecompose();
   const [expanded, setExpanded] = useState({ 1: true, 2: true, 3: false, 4: false });
   const [decomposeModal, setDecomposeModal] = useState(null);
   const [microSteps, setMicroSteps] = useState([]);
-  const [loadingSteps, setLoadingSteps] = useState(false);
   const [timeBlockingTask, setTimeBlockingTask] = useState(null);
 
   const quadrants = [
