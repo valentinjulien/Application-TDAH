@@ -6,6 +6,7 @@ import { supabase } from '../lib/supabase';
 import { Session } from '@supabase/supabase-js';
 import { Colors } from '../constants/theme';
 import useNotifications from '../hooks/useNotifications';
+import useQuickActions from '../hooks/useQuickActions';
 
 export default function RootLayout() {
   const [session, setSession] = useState<Session | null>(null);
