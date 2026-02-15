@@ -510,6 +510,9 @@ export default function DeepFocus({ visible, onClose, userId, currentTaskText }:
   const handleStartFocus = async () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
     
+    // Reset interruption counter for new session
+    setInterruptionCount(0);
+    
     // Activate keep awake
     try {
       await activateKeepAwakeAsync('deep-focus');
