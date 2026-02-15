@@ -355,7 +355,7 @@ export default function TaskCard({ task, onComplete, onUpdate, isHighlighted = f
         onClose={() => setShowTimeBlocking(false)}
         onScheduled={handleTaskScheduled}
       />
-    </View>
+    </Animated.View>
   );
 }
 
