@@ -128,6 +128,21 @@ const styles = StyleSheet.create({
     height: 8,
     borderRadius: 2,
   },
+  scheduleIcon: {
+    width: 18,
+    height: 18,
+    borderWidth: 2,
+    borderRadius: 3,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 2,
+    paddingVertical: 3,
+  },
+  scheduleLine: {
+    width: 10,
+    height: 2,
+    borderRadius: 1,
+  },
   profileHead: {
     width: 10,
     height: 10,
