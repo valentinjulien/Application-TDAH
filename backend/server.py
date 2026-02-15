@@ -615,6 +615,119 @@ Quadrants: 1=Urgent+Important, 2=Important, 3=Urgent, 4=Autre"""
         }
 
 
+class DecomposeRequest(BaseModel):
+    task_text: str
+
+
+@app.post("/api/ai/decompose")
+async def ai_decompose(request: DecomposeRequest):
+    """Décompose une tâche en micro-étapes actionnables pour TDAH"""
+    if not EMERGENT_LLM_KEY:
+        raise HTTPException(status_code=500, detail="AI service not configured")
+    
+    try:
+        decompose_prompt = """Tu es un coach TDAH bienveillant. Décompose cette tâche en 5 micro-étapes très simples et actionnables pour quelqu'un avec TDAH. 
+Chaque étape doit être réalisable en moins de 5 minutes.
+Réponds UNIQUEMENT en JSON valide :
+{"steps": ["étape1", "étape2", "étape3", "étape4", "étape5"]}"""
+
+        chat = LlmChat(
+            api_key=EMERGENT_LLM_KEY,
+            session_id=f"decompose_{uuid.uuid4().hex[:8]}",
+            system_message=decompose_prompt
+        ).with_model("openai", "gpt-4o")
+        
+        response_text = await chat.send_message(UserMessage(text=f"Tâche: {request.task_text}"))
+        
+        # Parser
+        import json
+        clean = response_text.strip()
+        if clean.startswith("```json"): clean = clean[7:]
+        if clean.startswith("```"): clean = clean.split("\n", 1)[1] if "\n" in clean else clean[3:]
+        if clean.endswith("```"): clean = clean[:-3]
+        
+        result = json.loads(clean.strip())
+        return result
+        
+    except Exception as e:
+        # Fallback si erreur
+        return {
+            "steps": [
+                "Rassembler tout le matériel nécessaire",
+                "Identifier la première action concrète",
+                "Commencer par la partie la plus simple",
+                "Faire une mini-pause après 5 minutes",
+                "Terminer et célébrer la victoire !"
+            ]
+        }
+
+
+class TaskWeightRequest(BaseModel):
+    task_text: str
+
+
+@app.post("/api/ai/task-weight")
+async def ai_task_weight(request: TaskWeightRequest):
+    """Calcule le poids cognitif d'une tâche pour le time-blocking"""
+    if not EMERGENT_LLM_KEY:
+        raise HTTPException(status_code=500, detail="AI service not configured")
+    
+    try:
+        weight_prompt = """En tant qu'expert TDAH, analyse cette tâche et donne:
+1. Durée estimée en minutes (sois réaliste, ajoute 20% de marge)
+2. Niveau d'énergie requis: "low" (admin), "medium" (standard), "high" (deep work)
+3. Sous-tâches cachées que l'utilisateur pourrait oublier
+4. Court raisonnement
+
+Réponds UNIQUEMENT en JSON valide:
+{
+  "estimated_minutes": 30,
+  "estimated_total_minutes": 36,
+  "energy_required": "medium",
+  "energy_emoji": "⚡",
+  "energy_label": "Focus",
+  "hidden_subtasks": ["sous-tâche 1", "sous-tâche 2"],
+  "reasoning": "Explication courte"
+}"""
+
+        chat = LlmChat(
+            api_key=EMERGENT_LLM_KEY,
+            session_id=f"weight_{uuid.uuid4().hex[:8]}",
+            system_message=weight_prompt
+        ).with_model("openai", "gpt-4o")
+        
+        response_text = await chat.send_message(UserMessage(text=f"Tâche: {request.task_text}"))
+        
+        # Parser
+        import json
+        clean = response_text.strip()
+        if clean.startswith("```json"): clean = clean[7:]
+        if clean.startswith("```"): clean = clean.split("\n", 1)[1] if "\n" in clean else clean[3:]
+        if clean.endswith("```"): clean = clean[:-3]
+        
+        result = json.loads(clean.strip())
+        
+        # Assurer les valeurs par défaut
+        if not result.get("energy_emoji"):
+            result["energy_emoji"] = "🔥" if result.get("energy_required") == "high" else "🌿" if result.get("energy_required") == "low" else "⚡"
+        if not result.get("energy_label"):
+            result["energy_label"] = "Deep Work" if result.get("energy_required") == "high" else "Repos" if result.get("energy_required") == "low" else "Focus"
+        
+        return result
+        
+    except Exception as e:
+        # Fallback si erreur
+        return {
+            "estimated_minutes": 30,
+            "estimated_total_minutes": 36,
+            "energy_required": "medium",
+            "energy_emoji": "⚡",
+            "energy_label": "Focus",
+            "hidden_subtasks": [],
+            "reasoning": "Estimation par défaut"
+        }
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8001)
