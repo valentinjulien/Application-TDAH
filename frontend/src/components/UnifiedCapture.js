@@ -91,8 +91,8 @@ const UnifiedCapture = () => {
       // Créer l'instance Porcupine avec le wake word personnalisé "Hey assistant" en français
       const porcupine = await Porcupine.fromKeywordPaths(
         accessKey,
-        ['/api/porcupine/hey-assistant_fr.ppn'], // Wake word personnalisé via API
-        { publicPath: '/api/porcupine/porcupine_params_fr.pv' } // Modèle français via API
+        ['/api/porcupine/models/hey-assistant_fr.ppn'], // Wake word personnalisé via API
+        { publicPath: '/api/porcupine/models/porcupine_params_fr.pv' } // Modèle français via API
       );
       
       porcupineRef.current = porcupine;
