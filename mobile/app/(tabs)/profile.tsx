@@ -38,6 +38,15 @@ export default function ProfileScreen() {
   const router = useRouter();
   const { expoPushToken, error: notificationError } = useNotifications();
   const { resetGazette, resetReview, morningWindow, eveningWindow } = useDailyTriggers();
+  
+  // Google Calendar
+  const {
+    isConnected: isCalendarConnected,
+    isLoading: isCalendarLoading,
+    userEmail: calendarEmail,
+    connect: connectCalendar,
+    disconnect: disconnectCalendar,
+  } = useGoogleCalendar();
 
   useEffect(() => {
     fetchUserData();
