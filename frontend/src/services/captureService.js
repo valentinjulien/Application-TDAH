@@ -1,70 +1,38 @@
 // Capture Service - AI-Powered Thought Classification
 // Transforms raw text into structured task with Eisenhower classification
 
-import { callOpenRouter } from '../hooks/useAI';
-
-const CAPTURE_PROCESSOR_PROMPT = `Tu es un assistant expert TDAH. Analyse la pensée brute de l'utilisateur et structure-la.
-
-RÈGLES D'ANALYSE:
-
-1. **Classification Eisenhower** (quadrant 1-4):
-   - Q1 (Urgent + Important): Deadlines, crises, problèmes urgents
-   - Q2 (Important): Planification, développement personnel, projets long terme
-   - Q3 (Urgent): Interruptions, certains emails, réunions peu importantes
-   - Q4 (Ni urgent ni important): Distractions, time-wasters
-
-2. **Score d'Énergie**:
-   - "low": Tâches répétitives, admin simple, rangement
-   - "medium": Travail standard, appels, emails
-   - "high": Création, programmation, deep work, apprentissage
-
-3. **Estimation Temporelle**:
-   - Estime en minutes le temps RÉALISTE
-   - Ajoute automatiquement +20% de marge de sécurité pour le TDAH
-
-4. **Extraction de Date**:
-   - Si "demain", "mardi", "ce soir", etc. → extraire la date cible
-   - Format: ISO 8601 (YYYY-MM-DDTHH:MM:SS)
-
-5. **Priorité**:
-   - "high" pour Q1 et Q2
-   - "medium" pour Q3
-   - "low" pour Q4
-
-RÉPONDS UNIQUEMENT EN JSON VALIDE:
-{
-  "text": "Texte nettoyé et clarifié de la tâche",
-  "quadrant": 2,
-  "priority": "high",
-  "energy_required": "medium",
-  "estimated_minutes": 30,
-  "estimated_total_minutes": 36,
-  "due_date": "2024-02-16T14:00:00Z",
-  "reasoning": "Courte explication de la classification"
-}`;
+// API URL - use relative path to go through same origin
+const API_URL = '';
 
 export const processCapture = async (rawText) => {
   try {
-    const today = new Date().toISOString().split('T')[0];
-    const prompt = CAPTURE_PROCESSOR_PROMPT.replace('${new Date().toISOString().split(\'T\')[0]}', today);
+    // Use the backend AI classify endpoint
+    const response = await fetch(`${API_URL}/api/ai/classify`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify({ message: rawText }),
+    });
     
-    const response = await callOpenRouter(`${prompt}\n\nAnalyse cette pensée: "${rawText}"`);
-    
-    // Parse JSON from response
-    let jsonStr = response.trim();
-    const jsonMatch = jsonStr.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-      const result = JSON.parse(jsonMatch[0]);
-      
-      // Ensure valid values
-      result.quadrant = Math.max(1, Math.min(4, result.quadrant || 2));
-      result.estimated_total_minutes = result.estimated_total_minutes || 
-        Math.ceil((result.estimated_minutes || 30) * 1.2);
-      
-      return result;
+    if (!response.ok) {
+      throw new Error('API error');
     }
     
-    throw new Error('Invalid JSON response');
+    const result = await response.json();
+    
+    // Ensure valid values and add defaults
+    return {
+      text: result.text || rawText,
+      quadrant: Math.max(1, Math.min(4, result.quadrant || 2)),
+      priority: result.priority || 'medium',
+      energy_required: result.energy_required || 'medium',
+      estimated_minutes: result.estimated_minutes || 30,
+      estimated_total_minutes: result.estimated_total_minutes || Math.ceil((result.estimated_minutes || 30) * 1.2),
+      due_date: result.due_date || null,
+      reasoning: result.reasoning || 'Classification IA',
+    };
   } catch (error) {
     console.error('Error processing capture:', error);
     return getSmartFallback(rawText);
