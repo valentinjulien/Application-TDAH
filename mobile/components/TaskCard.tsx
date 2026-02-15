@@ -20,6 +20,7 @@ export default function TaskCard({ task, onComplete, onUpdate, isHighlighted = f
   const [isBreakingDown, setIsBreakingDown] = useState(false);
   const [steps, setSteps] = useState<TaskStep[] | null>((task as any).steps || null);
   const [showBreakdown, setShowBreakdown] = useState(!!steps);
+  const [showTimeBlocking, setShowTimeBlocking] = useState(false);
 
   const getQuadrantColor = (quadrant: number) => {
     switch (quadrant) {
@@ -28,6 +29,19 @@ export default function TaskCard({ task, onComplete, onUpdate, isHighlighted = f
       case 3: return Colors.quadrant.delegate;
       case 4: return Colors.quadrant.eliminate;
       default: return Colors.neutral[500];
+    }
+  };
+
+  const getEnergyInfo = (energy?: 'low' | 'medium' | 'high') => {
+    switch (energy) {
+      case 'low':
+        return { emoji: '⚡', label: 'Repos', color: Colors.accent[500] };
+      case 'medium':
+        return { emoji: '⚡⚡', label: 'Focus', color: Colors.warning[500] };
+      case 'high':
+        return { emoji: '⚡⚡⚡', label: 'Deep Work', color: Colors.danger[500] };
+      default:
+        return null;
     }
   };
 
