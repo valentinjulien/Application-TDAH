@@ -142,7 +142,7 @@ export default function EveningReview({ visible, tasks, userId, onClose, onTasks
           user_id: userId,
           text: task.text,
           priority: task.priority,
-          quadrant: task.quadrant,
+          quadrant: (task.quadrant as 1 | 2 | 3 | 4) || 2,
           completed: false,
           source: 'evening_review',
         });
