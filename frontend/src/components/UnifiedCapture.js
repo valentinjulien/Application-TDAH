@@ -389,7 +389,7 @@ const UnifiedCapture = () => {
                 <Mic className="w-8 h-8 text-primary-400" />
               </div>
               <h2 className="text-xl font-bold text-white mb-2">Autoriser le microphone</h2>
-              <p className="text-neutral-400 mb-6">Dites "Hey Assistant" pour activer l'assistant vocal.</p>
+              <p className="text-neutral-400 mb-6">Dites "Hey Google" pour activer l'assistant vocal.</p>
               <div className="bg-neutral-700/50 rounded-xl p-4 mb-6 text-left">
                 <div className="flex items-start gap-3">
                   <Shield className="w-5 h-5 text-green-400 mt-0.5" />
