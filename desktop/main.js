@@ -4,7 +4,7 @@ const { Porcupine, BuiltinKeyword } = require('@picovoice/porcupine-node');
 
 // Configuration
 const PICOVOICE_ACCESS_KEY = 'v5Kza3KFpiORFUdA9RwBx4ailO4eqUY2JOBQAfXY/Ba+L2CtdKv4JQ==';
-const WEB_APP_URL = 'https://adhd-assistant-12.preview.emergentagent.com';
+const WEB_APP_URL = 'https://adhd-assistant-13.preview.emergentagent.com';
 const CUSTOM_KEYWORD_PATH = path.join(__dirname, 'porcupine', 'hey-assistant_fr.ppn');
 const FRENCH_MODEL_PATH = path.join(__dirname, 'porcupine', 'porcupine_params_fr.pv');
 

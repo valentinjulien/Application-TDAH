@@ -1,13 +1,15 @@
 <analysis>**original_problem_statement:**
-The user's initial goal was to enhance a GitHub project for ADHD management. This has evolved into building a feature-rich, dual-platform application: a native mobile app using Expo and a parallel web application. The application is an ADHD-friendly companion focusing on low-stimulation UX, AI-powered coaching, and productivity tools.
+The user's initial goal was to build a feature-rich ADHD companion application. This session focused on two primary user requests:
+1.  Rename the entire application (web and mobile) from TDAH Companion to Assistant TDAH.
+2.  Implement a reliable, hands-free hey assistant wake word to activate the voice capture feature in the web application.
+3.  As a stretch goal, the user requested that the wake word functionality also work globally, outside of the application window.
 
 **PRODUCT REQUIREMENTS (Mobile & Web App - Current Focus):**
 -   **Objective:** Build and maintain two parallel applications (Expo Native & React Web) that serve as an ADHD companion, with a focus on cognitive offloading, focus assistance, and structured planning.
 -   **Tech Stack:**
     -   **Mobile:** Expo (React Native), TypeScript,  for navigation, Supabase for backend.
     -   **Web:** React, FastAPI, Supabase for backend.
--   **Design System (ADHD-friendly UX):**
-    -   Low-Stimulation color palette, haptic feedback, large tap areas, gratifying animations.
+    -   **Desktop (New):** Electron, Node.js for a background wake word listener.
 -   **Key Features Requested (for both platforms):**
     -   **Home Screen (Now):** Displays the single active task.
     -   **AI Coaching:** Morning Gazette (daily goal setting) & Evening Review (brain dump).
@@ -19,79 +21,83 @@ The user's initial goal was to enhance a GitHub project for ADHD management. Thi
 -   **User Provided Credentials:**
     -   Supabase URL: 
     -   Supabase Anon Key: 
-    -   Google OAuth Client IDs (Web, Android, iOS) have been provided.
+    -   Picovoice Porcupine Access Key: 
 
 **User's preferred language**: Français
 
 **what currently exists?**
-A comprehensive Expo (React Native) mobile app exists in . A parallel React web application exists in  with a FastAPI backend at .
+The web and mobile applications have been successfully renamed to Assistant TDAH. A new, unscaffolded Electron desktop application now exists in , created to fulfill the user's request for a global wake word.
 
-The agent has successfully ported several key features from mobile to web, including the Eisenhower Matrix, Time Blocking, and Daily Rituals. Crucially, the AI features (task breakdown/classification) have been refactored from insecure client-side calls into a secure FastAPI backend service that uses the Emergent LLM Key.
-
-Following a user request, the Ghost Capture (text) and Voice Assistant features were merged into a single component: .
+The web app's voice capture component, , has been completely refactored. After multiple failed attempts with the Web Speech API and Picovoice Porcupine v4, it now uses **Picovoice Porcupine v3**. Due to model/library version incompatibilities, it is temporarily configured to use the built-in English wake word Hey Google instead of the user's desired Hey Assistant.
 
 **Last working item**:
--   Last item agent was working: The user requested to merge the Quick Capture and Voice Assistant features and add a wake word activation: And I want that when I say hey assistant, the voice assistant activates. The agent merged the components but did not implement the wake word functionality.
+-   Last item agent was working: The agent was debugging why the Picovoice wake word integration was failing. After discovering a version mismatch between the library (v4) and available models (v3), the agent downgraded the Picovoice library to v3. As the user's custom Hey Assistant model file was for v4, the agent implemented a temporary solution using the built-in Hey Google keyword to establish a working baseline.
 -   Status: IN PROGRESS
--   Agent Testing Done: N (The agent ran tests on the merged component, but the wake word feature itself is not implemented. Automated tests cannot verify microphone access anyway.)
--   Which testing method agent to use? Manual testing by user (after implementation). The agent must inform the user that automated testing of the microphone is not possible and request they verify it.
+-   Agent Testing Done: N (The agent confirmed the backend endpoints for models were serving correct files, but client-side functionality requires user testing.)
+-   Which testing method agent to use? Manual testing by user. The agent needs to ask the user to test saying Hey Google and report back.
 -   User Testing Done: N
 
 **All Pending/In progress Issue list**:
--   **Issue 1: Implement hey assistant wake word detection** (P0 - HIGHEST)
-    -   **Description**: The user explicitly requested that saying hey assistant should activate the voice capture. The current  component uses  but lacks a wake word engine.
-    -   **Attempted fixes**: None. The agent created the unified component but omitted the wake word logic that was present in the old  component (which used Picovoice Porcupine).
+-   **Issue 1: Wake word is not Hey Assistant and is in English** (P0 - HIGHEST)
+    -   **Description**: The primary goal of implementing the Hey Assistant wake word has failed due to a version incompatibility between the user's custom wake word model ( file for Porcupine v4) and the only available French language model ( file for Porcupine v3). The current implementation uses Hey Google as a temporary fix.
+    -   **Attempted fixes**:
+        -   Using Web Speech API: Failed due to unreliability and automatically stopping.
+        -   Using Porcupine v4: Failed because the French language model file () for v4 is not publicly available and was downloaded incorrectly.
+        -   Downgrading to Porcupine v3: Partially successful, but is incompatible with the user's v4 custom wake word file.
     -   **Next debug checklist**:
-        1.  Examine  to understand its current state.
-        2.  Re-integrate a wake word library (e.g., Picovoice Porcupine, which was used previously) into the  component.
-        3.  Implement a hook that listens for the hey assistant wake word.
-        4.  On detection, trigger the  function from the  hook.
-    -   **Why fix this issue and what will be achieved with the fix?**: This will fulfill the user's direct and most recent request for a hands-free experience.
-    -   **Status**: NOT STARTED
-    -   **Is recurring issue?**: N
+        1.  Confirm with the user that the current Hey Google implementation works. This validates the Porcupine v3 setup.
+        2.  Instruct the user to go to the Picovoice Console and re-train/download their Hey Assistant wake word, making sure to select **version 3.0** for the model.
+        3.  Once the user provides the new v3  file, update  to use it instead of the built-in keyword.
+    -   **Why fix this issue and what will be achieved with the fix?**: This will finally achieve the user's core request for a reliable, hands-free Hey Assistant activation in French.
+    -   **Status**: IN PROGRESS
+    -   **Is recurring issue?**: Y
     -   **Should Test frontend/backend/both after fix?**: Frontend (Manual user testing required).
-    -   **Blocked on other issue**: None.
+    -   **Blocked on other issue**: User action required (re-training the v3 model).
 
 **In progress Task List**:
--   **Task 1: Port All Mobile Features to Web App** (P0 - HIGHEST)
-    -   **Description**: The overarching goal is to achieve feature parity between the mobile and web applications.
-    -   **Where to resume**: After implementing the wake word (Issue 1), the agent should proceed with the remaining tasks from the backlog, starting with implementing the full authentication flow for the mobile app.
-    -   **What will be achieved with this?**: A consistent user experience across both web and mobile platforms.
-    -   **Status**: IN PROGRESS
-    -   **Should Test frontend/backend/both after fix?**: Both
-    -   **Blocked on something**: hey assistant wake word implementation.
+-   **Task 1: Complete and Test the Desktop Application** (P1)
+    -   **Description**: The user requested a global wake word, which prompted the creation of an Electron app in . This app is currently just a scaffold.
+    -   **Where to resume**:
+        1.  Navigate to .
+        2.  Run  to install dependencies (, , etc.).
+        3.  Run  to test the application locally.
+        4.  Debug any issues in  to ensure it listens for the wake word in the background and correctly opens the web application.
+    -   **What will be achieved with this?**: Fulfills the user's request for a wake word that works even when the browser is not in focus.
+    -   **Status**: NOT STARTED
+    -   **Should Test frontend/backend/both after fix?**: N/A (Desktop application)
+    -   **Blocked on something**: The web app's wake word issue (Issue 1) should be resolved first to ensure the core technology is sound before expanding it to the desktop.
 
 **Upcoming and Future Tasks**
--   **P1: Implement Full Authentication Flow (Mobile)**: The mobile app's login/register screens in  are placeholders and need to be fully integrated with Supabase Auth and session persistence.
--   **P2: Implement Functional Voice Capture (Mobile)**: The  hook needs to be fully wired into the  component to enable voice-to-task functionality on mobile.
--   **P3: AI-driven Focus Suggestions (Web & Mobile)**: Enhance the AI coaching to analyze  of focus session interruptions and proactively suggest shorter, more manageable session lengths.
--   **P4: Final UI/UX Polish (Web & Mobile)**: Conduct a full-app review across both platforms to ensure consistency with the Low-Stimulation design system.
+-   **P2: Implement Full Authentication Flow (Mobile)**: The mobile app's login/register screens in  are placeholders and need to be fully integrated with Supabase Auth.
+-   **P3: Implement Functional Voice Capture (Mobile)**: The  hook needs to be fully wired into the  component.
+-   **P4: AI-driven Focus Suggestions (Web & Mobile)**: Enhance the AI coaching to analyze  and suggest better focus session lengths.
+-   **P5: Final UI/UX Polish (Web & Mobile)**: Conduct a full-app review to ensure consistency.
 
 **Completed work in this session**
--   **AI Feature Refactor**: Fixed a broken AI integration by moving logic from the frontend to a new secure FastAPI backend () using the Emergent LLM Key. Created  and  endpoints.
--   **Web App Feature Porting**: Integrated , , and  into the web app, including routing and UI elements in , , and .
--   **Unified Capture Component**: Merged Ghost Capture and Voice Assistant into  as per user request.
--   **Configuration**: Updated  with the correct Supabase credentials.
--   **Testing**: Successfully used the testing agent to identify and then verify the fix for the AI feature. A second test run confirmed the Unified Capture merge was successful (with known voice limitations).
+-   **Application Renaming**: The application was successfully renamed from TDAH Companion to Assistant TDAH across all relevant files in both the web () and mobile () projects.
+-   **Wake Word Refactor**: The entire voice capture system was moved from the unreliable Web Speech API to Picovoice Porcupine for robust, continuous listening. This involved significant debugging.
+-   **Backend Endpoints**: Created new FastAPI endpoints to securely serve the Picovoice access key () and model files ().
+-   **Desktop App Scaffolding**: Created a new Electron project in  to address the user's request for a global wake word.
 
 **Earlier issues found/mentioned but not fixed**
--   None.
+-   The core issue of the wake word not being Hey Assistant is the main unresolved item, detailed in the All Pending/In progress Issue list.
 
 **Known issue recurrence from previous fork**
 -   None.
 
 **Code Architecture**
 -   **/app/frontend/**: React web application.
--   **/app/backend/**: FastAPI backend for custom business logic (e.g., AI services).
+-   **/app/backend/**: FastAPI backend for custom business logic and serving secure assets.
 -   **/app/mobile/**: Expo (React Native) mobile application.
--   **Backend Service**: Supabase (Database, Auth, Realtime), managed by the user.
+-   **/app/desktop/**: **(New)** Electron desktop application for background wake word detection.
+-   **Backend Service**: Supabase (Database, Auth) & Custom FastAPI Server.
 
 **Key Technical Concepts**
 -   **Dual Platform**: React Native (Expo) for mobile, React for web.
--   **Backend Architecture**: Hybrid model using a user-managed Supabase project for BaaS and a custom FastAPI server for secure AI endpoint logic.
--   **AI Integration**: Backend-driven AI using  and the Emergent LLM Key.
--   **Speech Recognition**:  for transcription.
--   **Wake Word Detection (Pending)**: Requires a library like .
+-   **Desktop App**: Electron for cross-platform background tasks.
+-   **Backend Architecture**: Hybrid model using Supabase (BaaS) and a custom FastAPI server.
+-   **Wake Word Detection**: **Picovoice Porcupine v3** for reliable, low-resource wake word listening.
+-   **Speech Recognition**:  for transcription (activated *after* wake word).
 
 **key DB schema**
 -   **tasks**: uid=0(root) gid=0(root) groups=0(root), , , , ,  (jsonb), , , , 
@@ -99,51 +105,60 @@ Following a user request, the Ghost Capture (text) and Voice Assistant features 
 -   **pomodoro_sessions**: uid=0(root) gid=0(root) groups=0(root), , , 
 
 **changes in tech stack**
--   The AI implementation was significantly refactored from insecure, client-side API calls to a secure, dedicated FastAPI backend service.
+-   The wake word implementation was changed from Web Speech API to **Picovoice Porcupine v3**.
+-   **Electron** was introduced for a new desktop application.
 
 **All files of reference**
--   : The new merged component for text/voice input, pending wake word implementation.
--   : The FastAPI backend containing the new AI endpoints.
--   : Frontend hook updated to call the new backend AI service.
--   : Main entry point and router for the web app.
--   : The main dashboard component.
--   : Reference file for the pending mobile authentication task.
+-   : The core component for all voice interactions. It has been heavily modified and now contains the Picovoice v3 logic.
+-   : Modified to serve the Porcupine access key and model files.
+-   : **(New)** The main process file for the new Electron application.
+-   : **(New)** Dependencies for the Electron app.
+-   : Updated with the new desktop application feature.
 
 **Areas that need refactoring**:
--   The wake word functionality, which was present in the now-deleted  component, needs to be re-implemented within the new  component.
+-   The Electron app in  is a scaffold and needs to be properly built and tested.
 
 **key api endpoints**
 -   : Backend endpoint to break a task into smaller steps.
--   : Backend endpoint to analyze a task's properties (priority, energy, etc.).
+-   : Backend endpoint to analyze a task's properties.
+-   : **(New)** Securely provides the Porcupine access key to the frontend.
+-   : **(New)** Serves Porcupine model files (, ).
 
 **Critical Info for New Agent**
 -   **Language:** You MUST communicate with the user in **Français**.
--   **Top Priority:** The user's most recent request was to implement hey assistant wake word detection. This is the immediate next step.
--   **Testing Limitation:** Be aware that automated testing agents cannot access the microphone. Any voice-related feature, especially the wake word, will require you to ask the user to test it manually after you've implemented the code.
--   **Architecture:** The project now has a FastAPI backend at  for AI logic. All AI calls from the frontend must go through this backend, not directly to a third-party service.
+-   **Top Priority:** The wake word feature is the highest priority. The immediate next step is to guide the user to **re-train their Hey Assistant wake word for Porcupine version 3.0** on the Picovoice Console. The current Hey Google is a temporary placeholder to prove the technology works. Do not proceed to other tasks until this is resolved.
+-   **Version Mismatch:** Be very clear about the Porcupine v3 vs v4 issue. The libraries in  are now v3. The custom  file from the user was for v4, which is why it failed. You need a new v3-compatible  file from the user.
+-   **Desktop App:** Acknowledge the new Electron app in , but treat it as a secondary task (P1) to be addressed *after* the web-based wake word is fully functional.
 
 **documents and test reports created in this job**
--   
--   
--   
+-    (updated)
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  **User (summary):** Merge quick capture and voice assistant. And I want to say hey assistant to activate it. - **Status: IN PROGRESS** (Merge is done, wake word is pending).
-2.  **User (summary):** Do the immediate actions and the upcoming tasks. - **Status: Acknowledged.**
+1.  **User**: It has the same problem, turns on and then off immediately. (Referring to Web Speech API attempts). **Status: In Progress**
+2.  **User**: You have free rein. But I also want the wake word to work outside the app. **Status: Addressed** by creating a scaffold for a desktop app.
+3.  **User**: It's the same problem again. **Status: In Progress**
+4.  **User**: You're an expert... the wake word doesn't seem to respond. **Status: Acknowledged**, prompted deeper debugging.
+5.  **User**: There's still a problem. **Status: In Progress**
+6.  **User**: We can use a built-in keyword temporarily. **Status: Implemented**, agent configured Hey Google.
+7.  **User**: Let's go with the built-in keyword for now. **Status: Actioned.**
+8.  **User**: The issue is #1 and #2 (wake word and manual button don't work). I'm on the website version. **Status: In Progress**
+9.  **User**: Error: aborted. Can you add a popup to authorize the mic? **Status: Completed.**
+10. **User**: The audio turns on and then off 1 second later. **Status: In Progress.**
 
 **Project Health Check:**
--   **Broken**: None.
--   **Mocked**: None.
--   **In Progress**: Wake word detection for the Unified Capture feature. Porting of remaining features from mobile to web.
+-   **Broken**: The core Hey Assistant wake word feature is not functional as requested.
+-   **Mocked**: The wake word is temporarily using Hey Google.
+-   **In Progress**: Wake word implementation, Desktop application.
 
 **3rd Party Integrations**
--   **OpenAI GPT-4o**: Uses Emergent LLM Key (via custom FastAPI backend).
--   **Supabase (Auth, DB, Realtime)**: Requires User API Key (configured).
--   **Google Calendar**: Requires User OAuth credentials (integrated on mobile, web implementation pending).
--   **Picovoice Porcupine**: Required for wake word detection, needs to be re-integrated into the web app.
+-   **OpenAI GPT-4o**: Uses Emergent LLM Key (via FastAPI backend).
+-   **Supabase (Auth, DB, Realtime)**: Requires User API Key.
+-   **Google Calendar**: Requires User OAuth credentials.
+-   **Picovoice Porcupine v3**: Integrated for wake word detection. Requires a user-provided Access Key.
+-   **Electron**: Introduced for the new desktop application.
 
 **Testing status**
--   **Testing agent used after significant changes**: YES (Two iterations were run).
+-   **Testing agent used after significant changes**: NO
 -   **Troubleshoot agent used after agent stuck in loop**: NO
 -   **Test files created**: None.
 -   **Known regressions**: None.
@@ -151,7 +166,7 @@ Following a user request, the Ghost Capture (text) and Voice Assistant features 
 **Credentials to test flow:**
 -   **Supabase URL**: 
 -   **Supabase Anon Key**: 
--   **Google OAuth Client IDs**: Have been provided by the user previously.
+-   **Picovoice Access Key**:  (This is stored in ).
 
 **What agent forgot to execute**
--   The agent did not implement the hey assistant wake word functionality, which was a specific part of the user's last request. It merged the two components but missed this critical part of the requirement.</analysis>
+-   The agent created a full Electron application scaffold in response to a user request, which was a significant deviation. While not forgotten, it was a large, new task that now needs to be completed and may have distracted from solving the primary web issue sooner. The agent should have perhaps confirmed with the user if they wanted to pause the web-app debugging to build the desktop app.</analysis>
