@@ -144,4 +144,46 @@ export const subscribeToTasks = (
     .subscribe();
 };
 
+// Daily Logs functions
+export const createDailyLog = async (log: Omit<DailyLog, 'id' | 'created_at'>): Promise<DailyLog> => {
+  const { data, error } = await supabase
+    .from('daily_logs')
+    .insert(log)
+    .select()
+    .single();
+  
+  if (error) throw error;
+  return data as DailyLog;
+};
+
+export const getDailyLogs = async (userId: string, days: number = 7): Promise<DailyLog[]> => {
+  const startDate = new Date();
+  startDate.setDate(startDate.getDate() - days);
+  
+  const { data, error } = await supabase
+    .from('daily_logs')
+    .select('*')
+    .eq('user_id', userId)
+    .gte('date', startDate.toISOString().split('T')[0])
+    .order('date', { ascending: false });
+  
+  if (error) throw error;
+  return (data || []) as DailyLog[];
+};
+
+export const getTodayLog = async (userId: string, type: 'morning_gazette' | 'evening_review'): Promise<DailyLog | null> => {
+  const today = new Date().toISOString().split('T')[0];
+  
+  const { data, error } = await supabase
+    .from('daily_logs')
+    .select('*')
+    .eq('user_id', userId)
+    .eq('date', today)
+    .eq('type', type)
+    .single();
+  
+  if (error && error.code !== 'PGRST116') throw error; // PGRST116 = no rows
+  return data as DailyLog | null;
+};
+
 export default supabase;
