@@ -9,8 +9,7 @@ import MoodTracker from './components/MoodTracker';
 import Settings from './components/Settings';
 import Login from './components/Login';
 import Navigation from './components/Navigation';
-import VoiceAssistant from './components/VoiceAssistant';
-import GhostCapture from './components/GhostCapture';
+import UnifiedCapture from './components/UnifiedCapture';
 import { MorningGazette, EveningReview, shouldShowMorningGazette, shouldShowEveningReview } from './components/DailyRituals';
 import { motion, AnimatePresence } from 'framer-motion';
 
