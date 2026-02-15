@@ -93,11 +93,26 @@ export default function TaskCard({ task, onComplete, onUpdate, isHighlighted = f
     onComplete();
   };
 
+  const handleOpenTimeBlocking = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setShowTimeBlocking(true);
+  };
+
+  const handleTaskScheduled = (updatedTask: Task) => {
+    // Task was scheduled, refresh the parent
+    onUpdate?.();
+  };
+
   const quadrantColor = getQuadrantColor(task.quadrant);
   const hasSteps = steps && steps.length > 0;
   const stepsProgress = hasSteps 
     ? Math.round((steps.filter(s => s.done).length / steps.length) * 100) 
     : 0;
+  
+  // Time-blocking info
+  const energyInfo = getEnergyInfo(task.energy_required);
+  const isScheduled = !!task.scheduled_at;
+  const scheduledDate = task.scheduled_at ? new Date(task.scheduled_at) : null;
 
   // Compact view for matrix
   if (compact) {
