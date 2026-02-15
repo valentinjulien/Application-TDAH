@@ -15,6 +15,7 @@ import {
   Animated,
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
+import { router } from 'expo-router';
 import { createTask } from '../lib/supabase';
 import { scheduleTaskReminder } from '../hooks/useNotifications';
 import useSpeechToText from '../hooks/useSpeechToText';
