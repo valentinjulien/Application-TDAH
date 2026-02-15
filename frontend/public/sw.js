@@ -1,5 +1,5 @@
-// Service Worker pour TDAH Companion PWA
-const CACHE_NAME = 'tdah-companion-v1.1.0';
+// Service Worker pour Assistant TDAH PWA
+const CACHE_NAME = 'assistant-tdah-v1.1.0';
 const OFFLINE_URL = '/offline.html';
 
 // Fichiers à mettre en cache
@@ -78,7 +78,7 @@ self.addEventListener('push', (event) => {
   console.log('[SW] Push received');
   
   let data = {
-    title: 'TDAH Companion',
+    title: 'Assistant TDAH',
     body: 'Nouvelle notification',
     icon: '/icon-192x192.png',
     badge: '/icon-72x72.png',
