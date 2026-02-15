@@ -171,9 +171,15 @@ export default function NowScreen() {
           <Text style={styles.greeting}>{getTimeBasedGreeting()}</Text>
           <Text style={styles.subtitle}>Focus sur l'essentiel</Text>
           <Text style={styles.stats}>
-            {completedToday} terminée{completedToday > 1 ? 's' : ''} aujourd'hui
+            {completedToday} terminée{completedToday > 1 ? 's' : ''} aujourd'hui • {incompleteTasks.length} restante{incompleteTasks.length > 1 ? 's' : ''}
           </Text>
         </View>
+
+        {/* Focus Stats Banner */}
+        <FocusStatsBanner 
+          userId={userId} 
+          onStartFocus={() => router.push('/(tabs)/matrix')}
+        />
 
         {/* Current Task */}
         <View style={styles.taskSection}>
