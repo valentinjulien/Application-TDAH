@@ -10,46 +10,40 @@ Un sanctuaire numérique bienveillant qui protège l'attention des personnes TDA
 
 ## ✅ Fonctionnalités Implémentées (App Web)
 
-### 15 Février 2026 - Portage Mobile → Web
+### 15 Février 2026 - Capture Unifiée (Texte + Voix)
 
-#### 1. Ghost UI - Capture Rapide (/capture)
-- **Interface minimaliste** : Fond blur, aucun menu
-- **Auto-focus immédiat** : Curseur prêt à écrire
-- **Placeholders dynamiques** : Rotation de suggestions
-- **Raccourcis** : Entrée = capturer, Échap = annuler
-- **Traitement IA** : Classification automatique Eisenhower
+#### Unified Capture (/capture)
+- **Mode Texte** : Saisie rapide avec placeholders dynamiques
+- **Mode Voix** : Reconnaissance vocale avec synthèse pour feedback
+- **Wake Word "Hey Assistant"** : Détection en arrière-plan pour activer la voix
+- **Toggle Texte/Voix** : Basculement fluide entre les deux modes
+- **Analyse IA** : Classification Eisenhower, énergie, durée estimée
+- **Commandes vocales** : "Terminé", "Stop", "Envoie" pour finaliser
+- **Auto-envoi** : Envoi automatique après 3 secondes de silence
 
-#### 2. Daily Rituals - Rituels Quotidiens
+**Anciens composants fusionnés :**
+- ~~GhostCapture.js~~ → UnifiedCapture.js
+- ~~VoiceAssistant.js~~ → UnifiedCapture.js
+- Route `/assist` supprimée → Tout via `/capture`
+
+### Portage Mobile → Web (Session précédente)
+
+#### 1. Daily Rituals - Rituels Quotidiens
 - **Morning Gazette** : Briefing du matin (7h-11h)
-  - Aperçu des tâches urgentes/importantes
-  - Définition d'objectif quotidien
-  - Suggestions IA personnalisées
 - **Evening Review** : Bilan du soir (20h-24h)
-  - Résumé des accomplissements
-  - Sélecteur d'humeur
-  - Brain dump pour vider l'esprit
 
-#### 3. Time-Blocking Modal
+#### 2. Time-Blocking Modal
 - **Calculateur de charge cognitive IA**
-  - Durée estimée +20% marge TDAH
-  - Niveau d'énergie (low/medium/high)
-  - Sous-tâches cachées détectées
 - **Suggestions de créneaux intelligentes**
-  - Deep Work → Matins (8h-11h)
-  - Tâches légères → Fin de journée
-- **Intégration** : Dashboard + Matrice Eisenhower
 
-#### 4. Deep Focus Mode (Pomodoro++)
+#### 3. Deep Focus Mode (Pomodoro++)
 - **3 modes de durée** : 15/25/50 minutes
 - **Son ambiant** : Pluie, Café, Vent
-- **Anti-distraction** : Notifications quand l'utilisateur quitte
-- **Compteur d'interruptions** visible
-- **Messages bienveillants** au retour
+- **Anti-distraction** avec compteur d'interruptions
 
-#### 5. Navigation Enrichie
-- **Bouton Capture Rapide** dans la sidebar
-- **FAB flottant** sur le Dashboard
-- **Routes protégées** avec redirection login
+#### 4. Navigation Enrichie
+- **Un seul bouton "Capture Rapide"** avec icônes texte+micro
+- **FAB flottant** sur Dashboard avec badge micro
 
 ---
 
@@ -69,25 +63,22 @@ Un sanctuaire numérique bienveillant qui protège l'attention des personnes TDA
 ### Frontend (React)
 ```
 /app/frontend/src/
-  ├── App.js : Routes + Daily Rituals
+  ├── App.js : Routes (plus de /assist)
   ├── components/
-  │   ├── GhostCapture.js : Interface capture rapide
+  │   ├── UnifiedCapture.js : ⭐ NOUVEAU - Capture Texte+Voix+WakeWord
   │   ├── DailyRituals.js : Morning/Evening modals
   │   ├── TimeBlockingModal.js : Planification IA
   │   ├── Pomodoro.js : Deep Focus Mode
   │   ├── EisenhowerMatrix.js : Matrice + décomposition
-  │   ├── Dashboard.js : Page principale + FAB
-  │   └── Navigation.js : Sidebar enrichie
-  ├── hooks/
-  │   └── useAI.js : Hooks IA centralisés
-  └── services/
-      └── captureService.js : Logique capture
+  │   ├── Dashboard.js : Page principale + FAB unifié
+  │   └── Navigation.js : Sidebar avec bouton capture unifié
+  ├── hooks/useAI.js : Hooks IA centralisés
+  └── services/captureService.js : Logique capture
 ```
 
-### Mobile (Expo - Non modifié cette session)
-```
-/app/mobile/ : Application React Native complète
-```
+### Fichiers obsolètes (à supprimer si nécessaire)
+- `/app/frontend/src/components/GhostCapture.js`
+- `/app/frontend/src/components/VoiceAssistant.js`
 
 ---
 
@@ -107,7 +98,7 @@ Un sanctuaire numérique bienveillant qui protège l'attention des personnes TDA
 ### P1 - À faire
 - [ ] Authentification complète mobile (Supabase Auth)
 - [ ] Sync bidirectionnelle Google Calendar
-- [ ] Capture vocale web (Web Speech API)
+- [ ] Améliorer la détection wake word (sensibilité, feedback visuel)
 
 ### P2 - Nice to have
 - [ ] Mode hors-ligne avec sync
@@ -124,7 +115,8 @@ Un sanctuaire numérique bienveillant qui protège l'attention des personnes TDA
 | OpenAI GPT-4o | ✅ Actif | Emergent LLM Key |
 | Supabase | ✅ Actif | User API Key |
 | Google Calendar | ⏳ Mobile only | OAuth |
+| Web Speech API | ✅ Actif | Navigateur |
 
 ---
 
-*Dernière mise à jour: 15 Février 2026 - Portage complet Mobile → Web*
+*Dernière mise à jour: 15 Février 2026 - Fusion Capture Unifiée (Texte + Voix + Wake Word)*
