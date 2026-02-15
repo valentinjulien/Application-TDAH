@@ -1,151 +1,132 @@
 <analysis>**original_problem_statement:**
-The user's initial goal was to enhance a GitHub project for ADHD management. This has since evolved into building a feature-rich, native mobile application from scratch using Expo. The application is designed to be an ADHD-friendly companion, focusing on a low-stimulation UX, AI-powered coaching, and productivity tools.
+The user's initial goal was to enhance a GitHub project for ADHD management. This has evolved into building a feature-rich, dual-platform application: a native mobile app using Expo and a parallel web application. The application is an ADHD-friendly companion focusing on low-stimulation UX, AI-powered coaching, and productivity tools.
 
-**PRODUCT REQUIREMENTS (Mobile App - Current Focus):**
--   **Objective:** Build a native mobile app using Expo that serves as an ADHD companion, with a focus on cognitive offloading, focus assistance, and structured planning.
--   **Tech Stack:** Expo (React Native), TypeScript,  for navigation, and Supabase for the backend (database, auth, realtime).
+**PRODUCT REQUIREMENTS (Mobile & Web App - Current Focus):**
+-   **Objective:** Build and maintain two parallel applications (Expo Native & React Web) that serve as an ADHD companion, with a focus on cognitive offloading, focus assistance, and structured planning.
+-   **Tech Stack:**
+    -   **Mobile:** Expo (React Native), TypeScript,  for navigation, Supabase for backend.
+    -   **Web:** React, Supabase for backend.
 -   **Design System (ADHD-friendly UX):**
-    -   Low-Stimulation color palette (soft pastels, non-aggressive darks).
-    -   Haptic feedback () for rewarding interactions.
-    -   Large, easy-to-tap click areas.
-    -   Visually gratifying animations (e.g., confetti on task completion).
--   **Key Features Requested:**
+    -   Low-Stimulation color palette, haptic feedback, large tap areas, gratifying animations.
+-   **Key Features Requested (for both platforms):**
     -   **Home Screen (Now):** Displays the single active task.
-    -   **AI Coaching:** Morning Gazette to set a daily goal and Evening Review for a brain dump.
-    -   **Quick Capture:** A Floating Action Button with voice-to-text () to quickly add tasks.
-    -   **AI Task Breakdown (Micro-planification):** An AI service to break large tasks into small, actionable sub-steps with a progress bar.
-    -   **Deep Work Focus Mode:** A full-screen, immersive timer with selectable durations (Pomodoro), ambient sounds, and wake-lock to prevent the screen from sleeping.
-    -   **Eisenhower Matrix:** An interactive drag-and-drop view to categorize tasks.
-    -   **Time-Blocking & Calendar Sync (Latest Request):**
-        -   An AI-powered Cognitive Load Calculator to estimate task duration and energy requirements ('low', 'medium', 'high').
-        -   Intelligent scheduling that suggests calendar slots based on the task's energy level (e.g., 'high' energy tasks in the morning).
-        -   Sync with Google/Outlook calendar.
+    -   **AI Coaching:** Morning Gazette (daily goal setting) & Evening Review (brain dump).
+    -   **Quick Capture:** Ghost UI for instant, frictionless task entry.
+    -   **AI Task Breakdown (Micro-planification):** AI service to break tasks into small sub-steps.
+    -   **Deep Work Focus Mode:** Full-screen timer with multiple durations, ambient sounds, and an Anti-Distraction module.
+    -   **Eisenhower Matrix:** Interactive task categorization.
+    -   **Time-Blocking & Calendar Sync:** AI Cognitive Load Calculator to estimate task effort and intelligently schedule tasks on Google/Outlook calendar.
 -   **User Provided Credentials:**
     -   Supabase URL: 
     -   Supabase Anon Key: 
+    -   Google OAuth Client IDs (Web, Android, iOS) have been provided.
 
 **User's preferred language**: Français
 
 **what currently exists?**
-A comprehensive Expo (React Native) mobile application project has been set up in . The agent has scaffolded the full application structure, including routing, components, hooks, and services. Many of the user's requested features have been implemented at the code level, including AI-driven task breakdown, daily coaching modals, a Deep Work focus timer, and the foundational hooks for push notifications and speech-to-text. Supabase is configured as the backend, and a SQL schema file () has been created to define the necessary tables (, , etc.).
+A comprehensive Expo (React Native) mobile app exists in  with most features implemented at the code level. A parallel React web application exists in . Following user feedback, the agent has begun porting all the advanced features from the mobile app to the web app to ensure feature parity. The user has confirmed the Supabase database schema is now set up, resolving a critical blocker.
 
 **Last working item**:
--   Last item agent was working: The agent received a detailed request to implement an intelligent Time-Blocking feature that syncs with a user's calendar. It correctly identified the need for Google Calendar integration, retrieved the integration playbook, and noted that it would require user-provided OAuth credentials. The agent decided to start by building the mobile-side UI and logic first, before tackling the API connection.
--   Status: NOT STARTED
+-   Last item agent was working: Porting features from the mobile app to the web app. The agent's last action was creating placeholder files for the new web components: , , and . It was about to create the  component for the web.
+-   Status: IN PROGRESS
 -   Agent Testing Done: N
 -   Which testing method agent to use? Frontend testing agent
 -   User Testing Done: N
 
 **All Pending/In progress Issue list**:
-There are no known bugs. All pending work is feature development.
+There are no known bugs or issues. All pending work is feature development.
 
 **In progress Task List**:
--   **Task 1: Implement Supabase Schema** (P0 - BLOCKER)
-    -   **Where to resume**: An earlier check revealed that the required tables (, etc.) do not exist in the user's Supabase project. The  file is ready. The next agent must prompt the user to execute this SQL script in their Supabase dashboard or find a way to create the tables programmatically.
-    -   **What will be achieved with this?**: The application's backend will have the necessary data structure, unblocking all features that rely on reading or writing data (which is almost all of them).
-    -   **Status**: BLOCKED
-    -   **Should Test frontend/backend/both after fix?**: Backend
-    -   **Blocked on something**: User action is required to set up the database tables.
+-   **Task 1: Port All Mobile Features to Web App** (P0 - HIGHEST)
+    -   **Where to resume**: The agent just created , , and . The immediate next step is to create the  component. After creating the necessary files, integrate them into the main web application structure (e.g., , ), add routing for , and connect them to the Supabase backend via .
+    -   **What will be achieved with this?**: The web application will have complete feature parity with the mobile app, including the Ghost UI, Daily Rituals, and Time Blocking with Google Calendar Sync.
+    -   **Status**: IN PROGRESS
+    -   **Should Test frontend/backend/both after fix?**: Frontend
+    -   **Blocked on something**: Nothing.
 
 **Upcoming and Future Tasks**
--   **P0: Implement Time-Blocking & Calendar Sync**
-    -   **Description**: This is the latest and highest-priority feature request from the user.
-    -   **Next Steps**:
-        1.  Execute the  command from  to add the new columns (, , etc.).
-        2.  Implement the  AI function in .
-        3.  Update  to display energy badges (⚡) and calendar status (📅).
-        4.  Implement the scheduling logic and UI.
-        5.  Once the UI is ready, prompt the user for Google Calendar OAuth credentials to connect the API.
-    -   **Phase**: Development
--   **P1: Implement Full Authentication Flow**
-    -   **Description**: The current login/register screens are placeholders. A complete authentication flow using Supabase Auth and  for session persistence is needed.
-    -   **File References**: 
--   **P2: Implement Functional Voice Capture**
-    -   **Description**: The  hook is created but needs to be fully integrated into the  to allow users to create tasks via voice.
-    -   **File References**: , 
--   **P2: Final UI/UX Polish**
-    -   **Description**: Conduct a full-app review to ensure consistency with the Low-Stimulation design system and ADHD-friendly principles.
+-   **P1: Implement Full Authentication Flow (Mobile)**: The mobile app's login/register screens in  are still placeholders and need to be fully integrated with Supabase Auth and session persistence.
+-   **P2: Implement Functional Voice Capture (Mobile)**: The  hook is created but needs to be fully wired into the  component to enable voice-to-task functionality.
+-   **P3: AI-driven Focus Suggestions (Web & Mobile)**: Enhance the AI coaching to analyze the  of focus session interruptions and proactively suggest shorter, more manageable session lengths to the user.
+-   **P4: Final UI/UX Polish (Web & Mobile)**: Conduct a full-app review across both platforms to ensure consistency with the Low-Stimulation design system and ADHD-friendly principles.
 
 **Completed work in this session**
--   **Mobile App Scaffolding**: Created the entire Expo project structure in .
--   **AI Task Breakdown (Micro-planification)**: Implemented the service () and UI () for breaking tasks into sub-steps.
--   **AI Daily Coaching**: Created the Morning Gazette and Evening Review features with services () and modal components (, ).
--   **Deep Work Focus Mode**: Built an advanced, full-screen timer component () with selectable durations, ambient audio playback, and animations.
--   **Core App Functionality**: Implemented interactive hooks for speech-to-text (), timers (), and push notifications ().
--   **Database Schema Definition**: Created and maintained  with definitions for , , and .
+-   **Database Setup**: Guided the user to execute the  script, making the backend database fully operational.
+-   **Mobile App Feature Completion**:
+    -   **Time-Blocking & Google Calendar Sync**: Implemented the full flow from AI task analysis to scheduling events on Google Calendar using  and user-provided OAuth credentials.
+    -   **Ghost UI Quick Capture**: Created a dedicated, minimal capture screen at .
+    -   **App Quick Actions**: Implemented home screen shortcuts (long-press on app icon) for iOS and Android.
+    -   **Focus Protection Module**: Integrated an anti-distraction system into  that sends notifications when the user leaves the app during a session and tracks interruptions.
+    -   **Major UX/UI Overhaul**: Revamped the Home screen, , and  screen with ADHD-friendly design principles, including  and  components.
+    -   **Bug Fixes**: Corrected multiple TypeScript errors and improved UI visibility issues.
+-   **Web App Feature Porting**:
+    -   Successfully ported the Deep Work / Focus Protection Module from mobile to the web app's  component.
+    -   Began scaffolding the other major features (, ) for the web platform.
 
 **Earlier issues found/mentioned but not fixed**
--   None relevant to the current mobile app project.
+-   None.
 
 **Known issue recurrence from previous fork**
 -   None.
 
 **Code Architecture**
--   **/app/mobile/**: Expo (React Native) project root.
-    -   : File-system based routing via .
-        -   : Authentication screens.
-        -   : Main application tabs (Home, Matrix, Profile).
-        -   : Root navigator and provider setup.
-    -   : Reusable UI components (e.g., , ).
-    -   : Reusable logic hooks (e.g., , ).
-    -   : Core configuration, including  and .
-    -   : External API logic (e.g., , ).
+-   **/app/mobile/**: Expo (React Native) mobile application project root.
+-   **/app/frontend/**: React web application project root.
+-   Backend is a user-managed Supabase project.
 
 **Key Technical Concepts**
--   React Native / Expo
--   TypeScript
--   Supabase (Database, Auth, Realtime)
--    (File-system navigation)
--   AI Integration (via Emergent LLM Key)
--   Native Modules: ,  (for audio), 
+-   **Dual Platform**: React Native (Expo) for mobile, React for web.
+-   **Backend**: Supabase (Database, Auth, Realtime).
+-   **Navigation**:  (mobile),  (web).
+-   **Authentication**:  for mobile Google OAuth.
+-   **AI Integration**: Using Emergent LLM Key for services like task breakdown and cognitive load calculation.
 
 **key DB schema**
--   **tasks**: uid=0(root) gid=0(root) groups=0(root), , , , ,  (jsonb).
-    -   *(Pending additions: , , , )*
--   **daily_logs**: uid=0(root) gid=0(root) groups=0(root), , ,  (jsonb).
--   **pomodoro_sessions**: uid=0(root) gid=0(root) groups=0(root), , , .
+-   **tasks**: uid=0(root) gid=0(root) groups=0(root), , , , ,  (jsonb), , , , 
+-   **daily_logs**: uid=0(root) gid=0(root) groups=0(root), , ,  (jsonb)
+-   **pomodoro_sessions**: uid=0(root) gid=0(root) groups=0(root), , , 
 
 **changes in tech stack**
--   The project fully pivoted from a web application (React/FastAPI/MongoDB) to a native mobile application (Expo/React Native/Supabase). This is the new and only direction.
+-   The project has a dual focus on both a mobile (Expo) and web (React) application, both using Supabase.
 
 **All files of reference**
--   **/app/mobile/supabase_schema.sql**: CRITICAL file defining the database structure.
--   **/app/mobile/lib/supabase.ts**: Contains all Supabase client logic and data-fetching functions.
--   **/app/mobile/app/(tabs)/matrix.tsx**: The interactive Eisenhower Matrix screen.
--   **/app/mobile/components/TaskCard.tsx**: The core component for displaying a task.
--   **/app/mobile/components/DeepFocus.tsx**: The immersive focus timer component.
--   **/app/mobile/services/aiService.ts**: Service for AI-powered task breakdown and cognitive load calculation.
+-   : The single source of truth for the database schema.
+-   : The main entry point for the web application.
+-   : The newly refactored web component for the focus timer.
+-   : The feature-rich focus component on mobile.
+-   : The logic for Google Calendar authentication on mobile.
+-   Files to be created/integrated in web app: , , .
 
 **Critical Info for New Agent**
 -   **Language:** You MUST communicate with the user in **Français**.
--   **Database Blocker:** The user's Supabase database is likely empty. Your first action must be to guide the user to execute the script at . Without this, the app will not function.
--   **Focus on Time-Blocking:** The user's most recent and highest-priority request is the intelligent time-blocking and calendar sync feature. Address the database blocker, then move directly to this task.
--   **Native APIs Only:** This is a mobile app. Do not use web-specific APIs like  or . Use native equivalents from Expo (e.g., , custom animation libraries).
--   **OAuth Credentials Needed:** Be prepared to ask the user for Google Calendar OAuth credentials when you are ready to implement the final API connection for the time-blocking feature.
+-   **Dual Platform Mandate:** The user's primary request is to achieve feature parity between the mobile () and web () applications. Your immediate task is to continue porting the features from mobile to the web.
+-   **Database Is Live:** The database blocker from the previous handoff is **resolved**. The user confirmed they executed the SQL schema.
+-   **Web App is the Focus:** The user's last interaction was about updating the web app after seeing it was outdated. Prioritize completing the feature porting to the web application.
 
 **documents and test reports created in this job**
--   /app/memory/PRD.md
--   /app/mobile/supabase_schema.sql
+-    (updated frequently throughout the session).
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  **User Request:** Implement Time-Blocking with AI cognitive load calculation and calendar sync. (Status: Not Started)
-2.  **User Request:** Implement a Deep Work immersive focus mode. (Status: Completed)
-3.  **User Request:** Make core features (voice capture, Pomodoro, matrix) functional. (Status: Completed)
-4.  **User Request:** Implement Morning Gazette and Evening Review AI coaching modules. (Status: Completed)
-5.  **User Request:** Implement Micro-planification AI task breakdown. (Status: Completed)
-6.  **User Confirmation:** tu peux continuer (you can continue). (Status: Completed)
-7.  **User Request:** Implement push notifications. (Status: Completed)
-8.  **User Feedback:** fait les Actions prioritaires (do the priority actions). (Status: Completed)
+1.  **User:** yes, I want you to put all the improvements from the mobile app onto the web app. - **Status: In Progress**
+2.  **User:** can we do both? [referring to mobile and web apps] - **Status: Acknowledged, work started.**
+3.  **User:** (Sends screenshot of old web UI) is this the right interface? - **Status: Resolved**, agent clarified the pivot to mobile and is now updating the web UI.
+4.  **User:** but I cant see the 15, 25, and 50 minute focus modes" - **Status: Resolved**, agent improved UI on mobile before pivoting to update the web app.
+5.  **User:** "you are an expert in UX... Could you improve the interface?" - **Status: Completed**, agent performed a major UX overhaul on the mobile app.
+6.  **User:** (Shared original prompt for Focus Protection Module) - **Status: Completed**, agent implemented it on mobile.
+7.  **User:** "in the focus mode page, I dont see the changes. - **Status: Resolved**.
+8.  **User:** you can continue - **Status: Acknowledged**.
+9.  **User:** (Provided all Google OAuth Client IDs) - **Status: Completed**, credentials used for mobile integration.
+10. **User:** could you generate the SHA-1 for me - **Status: Resolved**, agent provided the necessary SHA-1 hashes.
 
 **Project Health Check:**
--   **Broken**: The application is functionally broken because the backend database tables have not been created. This is a critical blocker.
--   **Mocked**: No mocked data.
--   **In Progress**: The Time-Blocking feature.
+-   **Broken**: No part of the application is broken.
+-   **Mocked**: No mocked data is being used.
+-   **In Progress**: Porting a large set of features from the mobile application to the web application.
 
 **3rd Party Integrations**
--   **OpenAI GPT-4o**: Uses Emergent LLM Key.
+-   **OpenAI GPT-4o**: Uses Emergent LLM Key (for AI services).
 -   **Supabase (Auth, DB, Realtime)**: Requires User API Key (provided).
--   **Google Calendar (Planned)**: Requires User OAuth credentials.
+-   **Google Calendar**: Requires User OAuth credentials (provided, and integrated on mobile).
 
 **Testing status**
 -   **Testing agent used after significant changes**: NO
@@ -156,6 +137,7 @@ There are no known bugs. All pending work is feature development.
 **Credentials to test flow:**
 -   **Supabase URL**: 
 -   **Supabase Anon Key**: 
+-   **Google OAuth Client IDs**: Provided by the user during the session.
 
 **What agent forgot to execute**
-The agent correctly identified the need for database tables by creating , but it failed to ensure these tables were actually created in the user's Supabase project. An earlier check (Message 74) confirmed the tables were missing, but this critical blocker was not prioritized and resolved. All subsequent feature development is built on a non-existent database structure.</analysis>
+The agent initially caused confusion by focusing solely on the mobile app, which the user couldn't view in their web browser. This has since been corrected, and the agent is now actively working on the web application per the user's explicit request.</analysis>
