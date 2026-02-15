@@ -5,6 +5,8 @@
   "proxy": "http://localhost:8001",
   "dependencies": {
     "@heroicons/react": "^2.2.0",
+    "@picovoice/porcupine-react": "^4.0.0",
+    "@picovoice/web-voice-processor": "^4.0.9",
     "@reduxjs/toolkit": "^1.9.5",
     "@supabase/supabase-js": "^2.93.1",
     "framer-motion": "^10.16.0",
