@@ -94,24 +94,14 @@ const EisenhowerMatrix = () => {
 
   const decomposeTask = async (task) => {
     setDecomposeModal(task);
-    setLoadingSteps(true);
     setMicroSteps([]);
     
     try {
-      const prompt = `Tu es un coach TDAH bienveillant. Décompose cette tâche en 5 micro-étapes très simples et actionnables pour quelqu'un avec TDAH. Chaque étape doit être réalisable en moins de 5 minutes. Tâche: "${task.text}". Réponds UNIQUEMENT en JSON valide: {"steps": ["étape1", "étape2", "étape3", "étape4", "étape5"]}`;
-      const response = await callOpenRouter(prompt);
-      
-      // Parser la réponse JSON
-      const jsonMatch = response.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        const parsed = JSON.parse(jsonMatch[0]);
-        setMicroSteps(parsed.steps || []);
-      }
+      const result = await decompose(task.text);
+      setMicroSteps(result.steps || []);
     } catch (error) {
       console.error('Error decomposing task:', error);
       setMicroSteps(['Erreur lors de la génération des étapes']);
-    } finally {
-      setLoadingSteps(false);
     }
   };
 
