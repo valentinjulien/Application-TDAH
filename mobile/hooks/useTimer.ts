@@ -43,7 +43,7 @@ export function useTimer(
   const [sessionsCompleted, setSessionsCompleted] = useState(0);
   
   const endTimeRef = useRef<number | null>(null);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const notificationIdRef = useRef<string | null>(null);
   const appState = useRef(AppState.currentState);
 
