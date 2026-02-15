@@ -93,45 +93,32 @@ const getSmartFallback = (text) => {
 // Calculate task weight for time-blocking
 export const calculateTaskWeight = async (taskText) => {
   try {
-    const prompt = `En tant qu'expert TDAH, analyse cette tâche et donne:
-1. Durée estimée en minutes (sois réaliste, ajoute 20% de marge)
-2. Niveau d'énergie requis: "low" (admin), "medium" (standard), "high" (deep work)
-3. Sous-tâches cachées que l'utilisateur pourrait oublier
-4. Court raisonnement
-
-Tâche: "${taskText}"
-
-Réponds UNIQUEMENT en JSON:
-{
-  "estimated_minutes": 30,
-  "estimated_total_minutes": 36,
-  "energy_required": "medium",
-  "energy_emoji": "⚡",
-  "energy_label": "Focus",
-  "hidden_subtasks": ["sous-tâche 1", "sous-tâche 2"],
-  "reasoning": "Explication courte"
-}`;
-
-    const response = await callOpenRouter(prompt);
-    const jsonMatch = response.match(/\{[\s\S]*\}/);
+    const response = await fetch(`${API_URL}/api/ai/task-weight`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify({ task_text: taskText }),
+    });
     
-    if (jsonMatch) {
-      const result = JSON.parse(jsonMatch[0]);
-      
-      // Add emoji and label if missing
-      if (!result.energy_emoji) {
-        result.energy_emoji = result.energy_required === 'high' ? '🔥' : 
-                             result.energy_required === 'low' ? '🌿' : '⚡';
-      }
-      if (!result.energy_label) {
-        result.energy_label = result.energy_required === 'high' ? 'Deep Work' : 
-                             result.energy_required === 'low' ? 'Repos' : 'Focus';
-      }
-      
-      return result;
+    if (!response.ok) {
+      throw new Error('API error');
     }
     
-    throw new Error('Invalid response');
+    const result = await response.json();
+    
+    // Add emoji and label if missing
+    if (!result.energy_emoji) {
+      result.energy_emoji = result.energy_required === 'high' ? '🔥' : 
+                           result.energy_required === 'low' ? '🌿' : '⚡';
+    }
+    if (!result.energy_label) {
+      result.energy_label = result.energy_required === 'high' ? 'Deep Work' : 
+                           result.energy_required === 'low' ? 'Repos' : 'Focus';
+    }
+    
+    return result;
   } catch (error) {
     console.error('Error calculating task weight:', error);
     return {
