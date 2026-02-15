@@ -12,6 +12,33 @@ Un sanctuaire numérique bienveillant qui protège l'attention des personnes TDA
 
 ### ✅ Fonctionnalités Implémentées
 
+#### 🆕 Ghost UI - Capture Ultra-Rapide (15 Février 2026)
+
+**Route `/capture` - Interface minimaliste zéro-friction**
+- **Design "Ghost"** : Fond transparent + blur, aucun menu/scroll
+- **Auto-focus immédiat** : Le curseur est déjà dans le champ
+- **Placeholders dynamiques** : "Vider l'esprit...", "Une idée ?", etc.
+- **Raccourcis clavier** : Entrée = envoyer, Retour = annuler
+
+**Traitement IA en arrière-plan (`captureService.ts`)**
+| Analyse | Description |
+|---------|-------------|
+| Classification Eisenhower | Détection automatique du quadrant (Q1-Q4) |
+| Score d'énergie | low/medium/high basé sur complexité |
+| Estimation temporelle | Minutes + 20% marge de sécurité |
+| Extraction de date | "demain", "ce soir" → timestamp ISO |
+
+**Feedback visuel minimaliste**
+- Lueur bleue pulsante pendant le traitement
+- Coche ✓ éphémère au succès
+- Fermeture automatique après capture
+
+**Accès**
+- Appui long sur le FAB (+) depuis n'importe quel écran
+- Route directe : `/capture`
+
+---
+
 #### 🆕 Time-Blocking Intelligent (15 Février 2026)
 
 **1. Calculateur de Charge Cognitive (IA)**
