@@ -88,11 +88,11 @@ const UnifiedCapture = () => {
       
       const { accessKey } = await response.json();
       
-      // Créer l'instance Porcupine avec le wake word "hey google" intégré
-      // Note: Pour "hey assistant" personnalisé, il faudrait entraîner un modèle via console.picovoice.ai
-      const porcupine = await Porcupine.fromBuiltInKeywords(
+      // Créer l'instance Porcupine avec le wake word personnalisé "Hey assistant" en français
+      const porcupine = await Porcupine.fromKeywordPaths(
         accessKey,
-        ['hey google'] // Utilise "hey google" comme wake word disponible
+        ['/porcupine/hey-assistant_fr.ppn'], // Wake word personnalisé
+        { publicPath: '/porcupine/porcupine_params_fr.pv' } // Modèle français
       );
       
       porcupineRef.current = porcupine;
@@ -103,13 +103,13 @@ const UnifiedCapture = () => {
       
       // Écouter les détections
       porcupine.onKeywordDetected = (keywordIndex) => {
-        console.log('Porcupine wake word detected!', keywordIndex);
+        console.log('Porcupine wake word "Hey assistant" detected!', keywordIndex);
         handleWakeWordDetected();
       };
       
       setPorcupineReady(true);
       setPorcupineListening(true);
-      console.log('Porcupine initialized with "hey google" wake word');
+      console.log('Porcupine initialized with custom "Hey assistant" wake word (French)');
       return true;
     } catch (err) {
       console.error('Failed to initialize Porcupine:', err);
