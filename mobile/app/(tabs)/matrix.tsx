@@ -194,24 +194,31 @@ export default function MatrixScreen() {
                 {totalIncomplete} tâche{totalIncomplete !== 1 ? 's' : ''} en cours
               </Text>
             </View>
-            
-            {/* Deep Focus Button */}
-            <TouchableOpacity
-              style={styles.pomodoroButton}
-              onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                // Get first urgent task for focus
-                const urgentTask = tasks.filter(t => !t.completed).sort((a, b) => a.quadrant - b.quadrant)[0];
-                setFocusTask(urgentTask || null);
-                setShowDeepFocus(true);
-              }}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.pomodoroEmoji}>🧘</Text>
-              <Text style={styles.pomodoroText}>Deep Focus</Text>
-            </TouchableOpacity>
           </View>
         </View>
+
+        {/* Deep Focus Card - More prominent */}
+        <TouchableOpacity
+          style={styles.deepFocusCard}
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+            const urgentTask = tasks.filter(t => !t.completed).sort((a, b) => a.quadrant - b.quadrant)[0];
+            setFocusTask(urgentTask || null);
+            setShowDeepFocus(true);
+          }}
+          activeOpacity={0.8}
+        >
+          <View style={styles.deepFocusLeft}>
+            <Text style={styles.deepFocusEmoji}>🧘</Text>
+          </View>
+          <View style={styles.deepFocusCenter}>
+            <Text style={styles.deepFocusTitle}>Deep Focus Mode</Text>
+            <Text style={styles.deepFocusSubtitle}>15, 25 ou 50 min • Sons ambiants • Anti-distraction</Text>
+          </View>
+          <View style={styles.deepFocusRight}>
+            <Text style={styles.deepFocusArrow}>→</Text>
+          </View>
+        </TouchableOpacity>
 
         {/* Toggle completed */}
         <TouchableOpacity
