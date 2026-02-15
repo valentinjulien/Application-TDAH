@@ -11,7 +11,8 @@ CREATE TABLE IF NOT EXISTS tasks (
   completed BOOLEAN DEFAULT false,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   due_date TIMESTAMP WITH TIME ZONE,
-  source TEXT
+  source TEXT,
+  steps JSONB DEFAULT NULL -- Micro-planning steps (AI-generated)
 );
 
 -- Index pour les recherches par utilisateur
