@@ -346,6 +346,73 @@ export default function ProfileScreen() {
           )}
         </View>
 
+        {/* Google Calendar Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>📅 Google Calendar</Text>
+          
+          {isCalendarConnected ? (
+            <View style={styles.calendarConnectedCard}>
+              <View style={styles.calendarConnectedInfo}>
+                <View style={styles.calendarStatusDot} />
+                <View style={styles.calendarConnectedText}>
+                  <Text style={styles.calendarConnectedTitle}>Connecté</Text>
+                  {calendarEmail && (
+                    <Text style={styles.calendarConnectedEmail}>{calendarEmail}</Text>
+                  )}
+                </View>
+              </View>
+              
+              <Text style={styles.calendarFeatures}>
+                ✓ Créneaux occupés pris en compte{'\n'}
+                ✓ Tâches synchronisées au calendrier{'\n'}
+                ✓ Rappels automatiques
+              </Text>
+
+              <TouchableOpacity
+                style={styles.calendarDisconnectButton}
+                onPress={() => {
+                  Alert.alert(
+                    'Déconnecter Google Calendar',
+                    'Les tâches déjà synchronisées resteront dans votre calendrier.',
+                    [
+                      { text: 'Annuler', style: 'cancel' },
+                      {
+                        text: 'Déconnecter',
+                        style: 'destructive',
+                        onPress: disconnectCalendar,
+                      },
+                    ]
+                  );
+                }}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.calendarDisconnectText}>Déconnecter</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <TouchableOpacity
+              style={styles.calendarConnectButton}
+              onPress={connectCalendar}
+              disabled={isCalendarLoading}
+              activeOpacity={0.7}
+            >
+              {isCalendarLoading ? (
+                <ActivityIndicator size="small" color={Colors.primary[400]} />
+              ) : (
+                <>
+                  <Text style={styles.calendarConnectIcon}>🔗</Text>
+                  <View style={styles.calendarConnectInfo}>
+                    <Text style={styles.calendarConnectTitle}>Connecter Google Calendar</Text>
+                    <Text style={styles.calendarConnectDesc}>
+                      Synchronise vos tâches et évite les conflits d'horaires
+                    </Text>
+                  </View>
+                </>
+              )}
+            </TouchableOpacity>
+          )}
+        </View>
+
         {/* Logout Button */}
         <TouchableOpacity
           style={styles.logoutButton}
