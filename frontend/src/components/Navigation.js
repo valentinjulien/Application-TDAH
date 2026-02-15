@@ -16,7 +16,6 @@ import {
   Menu,
   X,
   Mic,
-  Ghost,
   Plus
 } from 'lucide-react';
 
