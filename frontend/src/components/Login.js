@@ -65,7 +65,7 @@ const Login = () => {
               <Sparkles className="w-8 h-8 text-white" />
             </motion.div>
             <h1 className="text-2xl font-display font-bold text-neutral-900 dark:text-white">
-              TDAH Companion
+              Assistant TDAH
             </h1>
             <p className="text-neutral-500 mt-2">
               Organisez votre vie avec douceur ✨
