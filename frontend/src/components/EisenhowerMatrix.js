@@ -241,6 +241,13 @@ const EisenhowerMatrix = () => {
                                 </div>
                                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                   <button
+                                    onClick={() => setTimeBlockingTask(task)}
+                                    className="p-1.5 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 text-blue-500"
+                                    title="Planifier dans le calendrier"
+                                  >
+                                    <Calendar className="w-4 h-4" />
+                                  </button>
+                                  <button
                                     onClick={() => decomposeTask(task)}
                                     className="p-1.5 rounded-lg hover:bg-primary-50 dark:hover:bg-primary-900/30 text-primary-500"
                                     title="Décomposer en micro-étapes"
