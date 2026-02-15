@@ -7,6 +7,7 @@ import {
   Alert,
   ScrollView,
   Switch,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -19,6 +20,7 @@ import useNotifications, {
   getScheduledNotifications,
 } from '../../hooks/useNotifications';
 import useDailyTriggers from '../../hooks/useDailyTriggers';
+import { useGoogleCalendar } from '../../hooks/useGoogleCalendar';
 import { Colors, Spacing, BorderRadius, FontSizes, TouchTargets } from '../../constants/theme';
 
 export default function ProfileScreen() {
