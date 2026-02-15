@@ -417,7 +417,7 @@ const Settings = () => {
           <div className="divide-y divide-neutral-100 dark:divide-neutral-800">
             <SettingItem
               icon={Sparkles}
-              label="TDAH Companion"
+              label="Assistant TDAH"
               description="Version 1.1.0 - Voice Assistant"
               action={() => {}}
             />
