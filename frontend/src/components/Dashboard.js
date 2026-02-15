@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { Link, useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useUser } from '../App';
 import { useTasks } from '../hooks/useTasks';
 import { useAIClassification } from '../hooks/useAI';
+import TimeBlockingModal from './TimeBlockingModal';
 import {
   Sparkles,
   Send,
@@ -16,7 +17,10 @@ import {
   ArrowRight,
   Zap,
   Calendar,
-  AlertTriangle
+  AlertTriangle,
+  Plus,
+  Ghost,
+  Brain
 } from 'lucide-react';
 
 const Dashboard = () => {
