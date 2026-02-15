@@ -205,6 +205,8 @@ const Dashboard = () => {
                     type="button"
                     className="btn-icon"
                     title="Dictée vocale"
+                    onClick={() => navigate('/capture')}
+                    data-testid="voice-capture-btn"
                   >
                     <Mic className="w-5 h-5" />
                   </button>
