@@ -14,8 +14,7 @@ import {
   Volume2, 
   Loader2,
   Keyboard,
-  Brain,
-  Zap
+  Brain
 } from 'lucide-react';
 
 // Configuration Web Speech API
