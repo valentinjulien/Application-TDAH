@@ -322,7 +322,7 @@ const Dashboard = () => {
         </motion.div>
       </div>
 
-      {/* Floating Action Button - Ghost Capture */}
+      {/* Floating Action Button - Unified Capture */}
       <motion.button
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
@@ -330,9 +330,13 @@ const Dashboard = () => {
         whileTap={{ scale: 0.9 }}
         onClick={() => navigate('/capture')}
         className="fixed bottom-24 md:bottom-8 right-6 w-14 h-14 rounded-2xl bg-gradient-to-br from-primary-500 to-purple-600 text-white shadow-lg shadow-primary-500/30 flex items-center justify-center z-40 group"
-        data-testid="ghost-capture-fab"
+        data-testid="unified-capture-fab"
+        title="Capture rapide (Texte + Voix)"
       >
         <Plus className="w-6 h-6 group-hover:rotate-90 transition-transform duration-300" />
+        <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-accent-500 flex items-center justify-center">
+          <Mic className="w-2.5 h-2.5 text-white" />
+        </span>
       </motion.button>
 
       {/* Time Blocking Modal */}
