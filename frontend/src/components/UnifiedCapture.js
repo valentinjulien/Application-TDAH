@@ -50,42 +50,49 @@ const UnifiedCapture = () => {
     }, 500);
   }, []);
 
-  // Initialize Porcupine
+  // Initialize Porcupine v3 with custom French wake word
   const initPorcupine = useCallback(async () => {
     try {
       setPorcupineStatus('initializing');
-      console.log('🎤 Initializing Porcupine...');
+      console.log('🎤 Initializing Porcupine v3...');
       
       // Get access key
       const keyResponse = await fetch('/api/porcupine/access-key');
       if (!keyResponse.ok) {
-        console.log('No Porcupine access key');
+        console.log('❌ No Porcupine access key');
         setPorcupineStatus('error');
         return false;
       }
       const { accessKey } = await keyResponse.json();
       console.log('🔑 Got access key');
       
-      // Import Porcupine
-      const { Porcupine, BuiltInKeyword } = await import('@picovoice/porcupine-web');
-      console.log('📦 Porcupine imported, BuiltInKeyword:', BuiltInKeyword);
+      // Import Porcupine v3
+      const { Porcupine } = await import('@picovoice/porcupine-web');
+      const { WebVoiceProcessor } = await import('@picovoice/web-voice-processor');
+      console.log('📦 Porcupine v3 imported');
       
-      // Create detection callback
+      // Detection callback
       const detectionCallback = (detection) => {
-        console.log('🎉 Detection callback fired!', detection);
+        console.log('🎉 Detection callback!', detection);
         onWakeWordDetected(detection);
       };
       
-      // Create Porcupine with built-in "Hey Google" keyword
-      // API: create(accessKey, keywords, detectionCallback, model, options)
-      // For built-in keywords, we use the builtin property
-      console.log('🔧 Creating Porcupine instance...');
+      console.log('🔧 Creating Porcupine with custom French wake word...');
       
+      // Create Porcupine with custom keyword "Hey Assistant" in French
+      // API v3: create(accessKey, keywords, detectionCallback, model, options)
       const porcupine = await Porcupine.create(
         accessKey,
-        [{ builtin: BuiltInKeyword.HeyGoogle, sensitivity: 0.65 }],
+        [{
+          publicPath: '/api/porcupine/models/hey-assistant_fr.ppn',
+          label: 'hey assistant',
+          sensitivity: 0.7
+        }],
         detectionCallback,
-        { base64: '' }  // Empty model = use default bundled English model for built-in keywords
+        {
+          publicPath: '/api/porcupine/models/porcupine_params_fr.pv',
+          forceWrite: true
+        }
       );
       
       console.log('✅ Porcupine created!', {
@@ -96,20 +103,18 @@ const UnifiedCapture = () => {
       
       porcupineRef.current = porcupine;
       
-      // Start audio processing with WebVoiceProcessor
-      const { WebVoiceProcessor } = await import('@picovoice/web-voice-processor');
-      console.log('📦 WebVoiceProcessor imported');
-      
+      // Subscribe to WebVoiceProcessor
+      console.log('🎤 Subscribing to WebVoiceProcessor...');
       await WebVoiceProcessor.subscribe(porcupine);
-      console.log('🎤 Subscribed to WebVoiceProcessor');
       
       setPorcupineStatus('listening');
-      console.log('✅ Porcupine listening for "Hey Google"');
+      console.log('✅ Porcupine listening for "Hey Assistant" (French)');
       return true;
       
     } catch (err) {
       console.error('❌ Porcupine error:', err);
-      console.error('Error details:', err.message, err.stack);
+      console.error('Error message:', err.message);
+      console.error('Error stack:', err.stack);
       setPorcupineStatus('error');
       return false;
     }
@@ -372,7 +377,7 @@ const UnifiedCapture = () => {
 
   const getStatusText = () => {
     if (micPermissionStatus !== 'granted') return { text: 'Autorisez le micro', color: 'amber' };
-    if (porcupineStatus === 'listening') return { text: '🎤 Dites "Hey Google"', color: 'green' };
+    if (porcupineStatus === 'listening') return { text: '🎤 Dites "Hey Assistant"', color: 'green' };
     if (porcupineStatus === 'initializing') return { text: 'Initialisation...', color: 'blue' };
     return { text: 'Erreur - Cliquez sur Voix', color: 'red' };
   };
@@ -392,11 +397,11 @@ const UnifiedCapture = () => {
                 <Mic className="w-8 h-8 text-primary-400" />
               </div>
               <h2 className="text-xl font-bold text-white mb-2">Autoriser le microphone</h2>
-              <p className="text-neutral-400 mb-6">Dites "Hey Google" pour activer l'assistant.</p>
+              <p className="text-neutral-400 mb-6">Dites "Hey Assistant" pour activer l'assistant vocal.</p>
               <div className="bg-neutral-700/50 rounded-xl p-4 mb-6 text-left">
                 <div className="flex items-start gap-3">
                   <Shield className="w-5 h-5 text-green-400 mt-0.5" />
-                  <p className="text-sm text-neutral-300">Audio traité localement.</p>
+                  <p className="text-sm text-neutral-300">Audio traité localement avec Porcupine.</p>
                 </div>
               </div>
               {micPermissionStatus === 'denied' && (
