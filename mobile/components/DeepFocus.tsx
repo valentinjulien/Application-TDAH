@@ -29,6 +29,59 @@ const TIMER_SIZE = Math.min(SCREEN_WIDTH * 0.75, 320);
 // CONFIGURATION
 // ============================================
 
+// Messages bienveillants TDAH pour les notifications de rappel
+const DISTRACTION_MESSAGES = [
+  {
+    title: "Hé, on s'égare ? 🌟",
+    body: "Reviens, on finit cette étape ensemble !",
+  },
+  {
+    title: "Le plus dur est fait 💪",
+    body: "Ne laisse pas une distraction gâcher ton élan.",
+  },
+  {
+    title: "Pause respiratoire 🌬️",
+    body: "Prends une grande inspiration. Reviens juste 2 minutes.",
+  },
+  {
+    title: "Ton focus t'attend 🎯",
+    body: "La tâche est toujours là, et toi tu es capable.",
+  },
+  {
+    title: "Petit rappel bienveillant 🤗",
+    body: "C'est normal de se distraire. L'important c'est de revenir.",
+  },
+  {
+    title: "Le Flow est fragile ✨",
+    body: "Reviens maintenant pour ne pas perdre le rythme.",
+  },
+  {
+    title: "Tu y étais presque ! 🚀",
+    body: "Quelques minutes de plus et tu auras fini.",
+  },
+  {
+    title: "TDAH challenge 🧠",
+    body: "La distraction a gagné une bataille, pas la guerre !",
+  },
+  {
+    title: "Retour au cocon 🛸",
+    body: "Ton espace de focus sécurisé t'attend.",
+  },
+  {
+    title: "Mission en cours 🎮",
+    body: "Ne laisse pas le boss final t'échapper !",
+  },
+];
+
+// Messages de retour (sans jugement)
+const WELCOME_BACK_MESSAGES = [
+  "Heureux de te revoir ! On reprend là où on en était ? 🙌",
+  "Te revoilà ! Le timer t'attendait patiemment ⏱️",
+  "Super que tu sois revenu(e) ! On continue ensemble 💪",
+  "Bienvenue de retour ! Ton focus est toujours intact ✨",
+  "Hey ! Content de te revoir dans la zone 🎯",
+];
+
 const FOCUS_MODES = [
   { 
     id: 'quick', 
