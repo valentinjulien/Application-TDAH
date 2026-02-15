@@ -273,22 +273,17 @@ export default function DeepFocus({ visible, onClose, userId, currentTaskText }:
           },
         });
         
-        // Log interruption to Supabase
+        // Log interruption to Supabase (best effort, don't fail)
         if (userId) {
-          try {
-            await createDailyLog({
-              user_id: userId,
-              date: new Date().toISOString().split('T')[0],
-              type: 'focus_interruption',
-              content: {
-                interruption_count: interruptionCount + 1,
-                session_mode: selectedMode.id,
-                minutes_elapsed: Math.floor((selectedMode.minutes * 60 - progress * selectedMode.minutes * 60 / 100) / 60),
-              },
-            }).catch(() => {});
-          } catch (e) {
-            console.log('Could not log interruption:', e);
-          }
+          createDailyLog({
+            user_id: userId,
+            date: new Date().toISOString().split('T')[0],
+            type: 'focus_session',
+            content: {
+              focus_completed: false,
+              duration_minutes: selectedMode.minutes,
+            },
+          }).catch(() => {});
         }
       }
       
