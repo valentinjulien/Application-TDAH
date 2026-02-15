@@ -8,11 +8,45 @@ Un sanctuaire numérique bienveillant qui protège l'attention des personnes TDA
 
 ---
 
-## 📱 APPLICATION MOBILE NATIVE (Expo) - COMPLÈTE
+## 📱 APPLICATION MOBILE NATIVE (Expo)
 
-### ✅ Toutes les Fonctionnalités (4 Février 2026)
+### ✅ Fonctionnalités Implémentées
 
-#### 🛸 Système d'Immersion Totale "Deep Work" ✅ (NOUVEAU)
+#### 🆕 Time-Blocking Intelligent (15 Février 2026)
+
+**1. Calculateur de Charge Cognitive (IA)**
+- Analyse automatique des tâches via GPT-4o
+- Estimation réaliste de la durée (+20% marge TDAH pour Time Blindness)
+- Détection du niveau d'énergie requis (low/medium/high)
+- Identification des sous-tâches cachées souvent oubliées
+
+**2. Badges Visuels sur TaskCard**
+| Badge | Signification |
+|-------|---------------|
+| ⚡ Repos | Tâche légère, fin de journée |
+| ⚡⚡ Focus | Tâche standard, flexible |
+| ⚡⚡⚡ Deep Work | Haute concentration, matin |
+| ⏱️ Durée | Temps estimé avec marge |
+| 📅 Planifié | Date/heure du créneau |
+
+**3. Suggestion Intelligente de Créneaux**
+- Tâches "high" → Créneaux matinaux (8h-11h)
+- Tâches "low" → Fin de journée (16h-19h)
+- Tâches "medium" → Horaires flexibles
+- Évite les conflits avec créneaux occupés
+
+**4. Nouvel Onglet "Planning"**
+- Vue timeline par jour (Aujourd'hui, Demain, etc.)
+- Toggle entre tâches planifiées et à planifier
+- Indicateurs visuels de temps et énergie
+
+**5. Intégration Google Calendar** ⚠️ EN ATTENTE
+- Nécessite les credentials OAuth de l'utilisateur
+- Sync bidirectionnelle planifiée
+
+---
+
+#### 🛸 Système d'Immersion Totale "Deep Work" ✅
 
 **1. Sélecteur de Chronos (Triple Mode)**
 | Mode | Durée | Emoji | Usage |
@@ -24,9 +58,7 @@ Un sanctuaire numérique bienveillant qui protège l'attention des personnes TDA
 **2. Mode "Cinéma" (Isolation Visuelle)**
 - StatusBar masquée en mode focus
 - UI immersive centrée sur le timer
-- Background `#0a0a12` (slate-950)
 - Animation pulse lumineux lent sur le contour
-- Glow animé avec interpolation de couleurs
 
 **3. Isolation Auditive (Bruit Blanc Intégré)**
 | Son | Emoji | Description |
@@ -35,21 +67,10 @@ Un sanctuaire numérique bienveillant qui protège l'attention des personnes TDA
 | Bruit Brun | 🔊 | Fréquences basses relaxantes |
 | Café | ☕ | Ambiance coffee shop |
 
-- Volume indépendant avec slider
-- Fade-in 2 secondes au démarrage
-- Fade-out 2 secondes à la fin
-- Lecture en boucle continue
-
 **4. Sécurité & Engagement (Nudging)**
 - **Wake Lock** : `expo-keep-awake` empêche l'écran de s'éteindre
-- **Interception sortie** : Alert bienveillante "Le tunnel est toujours ouvert..."
+- **Interception sortie** : Alert bienveillante
 - **Célébration** : Confettis + haptics à 00:00
-- **Auto-close** : Fermeture automatique après célébration
-
-**5. Persistance & Statistiques**
-- Sauvegarde dans `pomodoro_sessions` (Supabase)
-- Log dans `daily_logs` avec type `focus_session`
-- Compteur de sessions pour le streak
 
 ---
 
@@ -63,17 +84,19 @@ Un sanctuaire numérique bienveillant qui protège l'attention des personnes TDA
 │   │   └── register.tsx
 │   └── (tabs)/
 │       ├── index.tsx            # Now + Gazette + Review
+│       ├── schedule.tsx         # 🆕 Planning Timeline
 │       ├── matrix.tsx           # Matrice + DeepFocus
 │       └── profile.tsx          # Settings + Rituels
 ├── components/
 │   ├── ConfettiCannon.tsx       # Célébration native
-│   ├── DeepFocus.tsx            # 🆕 Système immersion totale
+│   ├── DeepFocus.tsx            # Système immersion totale
 │   ├── EveningReview.tsx        # Revue du soir
 │   ├── MorningGazette.tsx       # Gazette du matin
 │   ├── PomodoroTimer.tsx        # Timer simple (legacy)
 │   ├── QuickCaptureButton.tsx   # FAB + Voice + AI
 │   ├── TaskBreakdown.tsx        # Micro-étapes
-│   └── TaskCard.tsx             # Carte tâche
+│   ├── TaskCard.tsx             # Carte tâche + Time-Blocking
+│   └── TimeBlockingModal.tsx    # 🆕 Planification intelligente
 ├── hooks/
 │   ├── useDailyTriggers.ts      # Détection horaire
 │   ├── useNotifications.ts      # Push notifications
@@ -81,66 +104,51 @@ Un sanctuaire numérique bienveillant qui protège l'attention des personnes TDA
 │   └── useTimer.ts              # Timer robuste
 ├── services/
 │   ├── aiService.ts             # Task breakdown
-│   └── dailyAIService.ts        # Gazette + Review
+│   ├── dailyAIService.ts        # Gazette + Review
+│   └── timeBlockingService.ts   # 🆕 Calcul charge cognitive
 └── lib/
     └── supabase.ts              # Client + helpers
 ```
 
-### 🎨 UX Deep Focus
-```
-┌─────────────────────────────────────┐
-│            MODE FOCUS               │
-│                                     │
-│           🎯 Focus actuel           │
-│     "Terminer le rapport Q4"        │
-│                                     │
-│         ┌───────────────┐           │
-│         │      🍅       │           │
-│         │    24:35      │           │
-│         │ En immersion  │           │
-│         └───────────────┘           │
-│              (pulse)                │
-│                                     │
-│      [ ⏸️ Pause / ▶️ Reprendre ]     │
-│                                     │
-│   🔉 ━━━━━━━━━━━━━━━━━━━ 🔊        │
-│                                     │
-│        Quitter le tunnel            │
-└─────────────────────────────────────┘
-```
+### 📊 Tables Supabase (avec colonnes Time-Blocking)
+```sql
+-- Table tasks (avec nouvelles colonnes)
+tasks:
+  - id, user_id, text, priority, quadrant, completed
+  - steps (JSONB) - Micro-étapes AI
+  - estimated_total_minutes (INT) - Durée estimée
+  - energy_required (TEXT) - 'low'|'medium'|'high'
+  - scheduled_at (TIMESTAMP) - Créneau planifié
+  - calendar_event_id (TEXT) - ID Google Calendar
+  - hidden_subtasks (JSONB) - Sous-tâches cachées
 
-### 📊 Toutes les Tables Supabase
-- `tasks` - Tâches avec JSONB `steps`
-- `daily_logs` - Gazette, Review, Focus sessions
-- `pomodoro_sessions` - Historique des sessions focus
+-- Autres tables
+daily_logs, pomodoro_sessions, moods
+```
 
 ---
 
-## 🎯 Application 100% Complète
+## 🔴 ACTION REQUISE - BASE DE DONNÉES
 
-### Features Actives
-- ✅ Capture vocale (Whisper)
-- ✅ Décomposition IA
-- ✅ Matrice interactive (drag & drop)
-- ✅ Gazette du Matin (7h-10h)
-- ✅ Revue du Soir (21h-23h)
-- ✅ Push Notifications
-- ✅ **Deep Focus avec isolation totale**
-- ✅ **Bruit blanc intégré (3 sons)**
-- ✅ **Wake Lock (écran toujours allumé)**
-- ✅ **Nudging anti-distraction**
+⚠️ **Le script SQL doit être exécuté dans Supabase :**
+1. Aller sur https://supabase.com/dashboard
+2. Ouvrir le projet → SQL Editor
+3. Coller le contenu de `/app/mobile/supabase_schema.sql`
+4. Exécuter
 
 ---
 
-## 📦 Backlog Optionnel
+## 📦 Backlog
 
-### P3 - Nice to have
+### P1 - À faire
+- [ ] Intégration Google Calendar (credentials OAuth requis)
+- [ ] Flux d'authentification complet
+
+### P2 - Nice to have
+- [ ] Capture vocale fonctionnelle
 - [ ] Mode hors-ligne avec sync
 - [ ] Widget iOS/Android
 - [ ] Statistiques graphiques avancées
-- [ ] Intégration calendrier
-- [ ] Thèmes personnalisables
-- [ ] Plus de sons ambiants
 
 ---
-*Dernière mise à jour: 4 Février 2026 - Deep Focus Immersion Totale*
+*Dernière mise à jour: 15 Février 2026 - Time-Blocking Intelligent*
