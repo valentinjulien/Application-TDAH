@@ -106,6 +106,7 @@ Un sanctuaire numérique bienveillant qui protège l'attention des personnes TDA
 /app/mobile/
 ├── app/
 │   ├── _layout.tsx
+│   ├── capture.tsx              # 🆕 Ghost UI capture
 │   ├── (auth)/
 │   │   ├── login.tsx
 │   │   └── register.tsx
