@@ -25,9 +25,12 @@ import {
 
 const Dashboard = () => {
   const { user } = useUser();
+  const navigate = useNavigate();
   const [input, setInput] = useState('');
   const [lastAction, setLastAction] = useState(null);
-  const { tasks, addTask } = useTasks();
+  const [selectedTask, setSelectedTask] = useState(null);
+  const [showTimeBlocking, setShowTimeBlocking] = useState(false);
+  const { tasks, addTask, updateTask } = useTasks();
   const { classify, loading: classifyLoading } = useAIClassification();
 
   // Statistiques
