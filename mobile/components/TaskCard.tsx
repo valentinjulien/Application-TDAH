@@ -195,39 +195,58 @@ export default function TaskCard({ task, onComplete, onUpdate, isHighlighted = f
   }
 
   // Full view
+  const highlightBorderColor = highlightAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [Colors.neutral[800], Colors.primary[500]],
+  });
+
   return (
-    <View style={[
+    <Animated.View style={[
       styles.container, 
       isHighlighted && styles.highlightedContainer,
-      task.completed && styles.completedContainer
+      task.completed && styles.completedContainer,
+      { transform: [{ scale: scaleAnim }] }
     ]}>
-      <View style={[styles.quadrantBar, { backgroundColor: quadrantColor }]} />
+      {/* Animated highlight border for current task */}
+      {isHighlighted && (
+        <Animated.View 
+          style={[
+            styles.highlightBorder, 
+            { borderColor: highlightBorderColor }
+          ]} 
+        />
+      )}
+      
+      {/* Quadrant indicator with label */}
+      <View style={styles.header}>
+        <View style={[styles.quadrantBadge, { backgroundColor: quadrantColor + '20' }]}>
+          <View style={[styles.quadrantDot, { backgroundColor: quadrantColor }]} />
+          <Text style={[styles.quadrantLabel, { color: quadrantColor }]}>
+            {getQuadrantLabel(task.quadrant)}
+          </Text>
+        </View>
+        
+        {/* Energy Indicator - only show if analyzed */}
+        {task.energy_required && (
+          <EnergyIndicator 
+            level={task.energy_required} 
+            size="small" 
+            showLabel={true}
+          />
+        )}
+      </View>
       
       <View style={styles.content}>
         <Text style={[styles.taskText, task.completed && styles.completedText]}>
           {task.text}
         </Text>
         
+        {/* Meta badges row */}
         <View style={styles.meta}>
-          <View style={[styles.priorityBadge, { backgroundColor: quadrantColor + '20' }]}>
-            <Text style={[styles.priorityText, { color: quadrantColor }]}>
-              {getPriorityLabel(task.priority)}
-            </Text>
-          </View>
-          
-          {/* Energy Badge */}
-          {energyInfo && (
-            <View style={[styles.energyBadge, { backgroundColor: energyInfo.color + '20' }]}>
-              <Text style={[styles.energyBadgeText, { color: energyInfo.color }]}>
-                {energyInfo.emoji} {energyInfo.label}
-              </Text>
-            </View>
-          )}
-
           {/* Duration Badge */}
           {task.estimated_total_minutes && (
-            <View style={[styles.durationBadge, { backgroundColor: Colors.neutral[700] }]}>
-              <Text style={styles.durationBadgeText}>
+            <View style={styles.metaBadge}>
+              <Text style={styles.metaBadgeText}>
                 ⏱️ {formatDuration(task.estimated_total_minutes)}
               </Text>
             </View>
@@ -235,27 +254,41 @@ export default function TaskCard({ task, onComplete, onUpdate, isHighlighted = f
 
           {/* Scheduled Badge */}
           {isScheduled && scheduledDate && (
-            <View style={[styles.scheduledBadge, { backgroundColor: Colors.primary[600] + '30' }]}>
-              <Text style={[styles.scheduledText, { color: Colors.primary[400] }]}>
+            <View style={[styles.metaBadge, styles.scheduledBadge]}>
+              <Text style={styles.scheduledText}>
                 📅 {scheduledDate.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric' })} à {scheduledDate.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
               </Text>
             </View>
           )}
           
           {task.due_date && !isScheduled && (
-            <Text style={styles.dueDate}>
-              📅 {new Date(task.due_date).toLocaleDateString('fr-FR')}
-            </Text>
-          )}
-
-          {hasSteps && (
-            <View style={[styles.stepsBadge, { backgroundColor: Colors.accent[600] + '20' }]}>
-              <Text style={[styles.stepsText, { color: Colors.accent[400] }]}>
-                {stepsProgress}% fait
+            <View style={styles.metaBadge}>
+              <Text style={styles.metaBadgeText}>
+                📅 {new Date(task.due_date).toLocaleDateString('fr-FR')}
               </Text>
             </View>
           )}
         </View>
+
+        {/* Progress bar for steps */}
+        {hasSteps && (
+          <View style={styles.progressSection}>
+            <View style={styles.progressBar}>
+              <Animated.View 
+                style={[
+                  styles.progressFill, 
+                  { 
+                    width: `${stepsProgress}%`, 
+                    backgroundColor: stepsProgress === 100 ? Colors.accent[500] : quadrantColor 
+                  }
+                ]} 
+              />
+            </View>
+            <Text style={styles.progressText}>
+              {stepsProgress}% complété • {steps.filter(s => s.done).length}/{steps.length} étapes
+            </Text>
+          </View>
+        )}
       </View>
 
       {/* Breakdown Section */}
