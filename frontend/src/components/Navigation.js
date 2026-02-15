@@ -15,7 +15,9 @@ import {
   Sparkles,
   Menu,
   X,
-  Mic
+  Mic,
+  Ghost,
+  Plus
 } from 'lucide-react';
 
 const Navigation = () => {
