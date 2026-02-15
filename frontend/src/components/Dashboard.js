@@ -292,13 +292,28 @@ const Dashboard = () => {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.1 }}
-                    className="flex items-center gap-3 p-3 rounded-xl bg-neutral-50 dark:bg-neutral-800/50 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+                    className="flex items-center gap-3 p-3 rounded-xl bg-neutral-50 dark:bg-neutral-800/50 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer group"
+                    onClick={() => {
+                      setSelectedTask(task);
+                      setShowTimeBlocking(true);
+                    }}
                   >
                     <div className="w-2 h-2 rounded-full bg-red-500" />
                     <span className="flex-1 text-neutral-700 dark:text-neutral-300">
                       {task.text}
                     </span>
                     <span className="badge-danger">Urgent</span>
+                    <button 
+                      className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-lg hover:bg-primary-100 dark:hover:bg-primary-900/30"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedTask(task);
+                        setShowTimeBlocking(true);
+                      }}
+                      title="Planifier"
+                    >
+                      <Calendar className="w-4 h-4 text-primary-500" />
+                    </button>
                   </motion.div>
                 ))}
               </div>
@@ -306,6 +321,33 @@ const Dashboard = () => {
           </div>
         </motion.div>
       </div>
+
+      {/* Floating Action Button - Ghost Capture */}
+      <motion.button
+        initial={{ scale: 0 }}
+        animate={{ scale: 1 }}
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.9 }}
+        onClick={() => navigate('/capture')}
+        className="fixed bottom-24 md:bottom-8 right-6 w-14 h-14 rounded-2xl bg-gradient-to-br from-primary-500 to-purple-600 text-white shadow-lg shadow-primary-500/30 flex items-center justify-center z-40 group"
+        data-testid="ghost-capture-fab"
+      >
+        <Plus className="w-6 h-6 group-hover:rotate-90 transition-transform duration-300" />
+      </motion.button>
+
+      {/* Time Blocking Modal */}
+      <AnimatePresence>
+        {showTimeBlocking && selectedTask && (
+          <TimeBlockingModal
+            task={selectedTask}
+            onClose={() => {
+              setShowTimeBlocking(false);
+              setSelectedTask(null);
+            }}
+            onScheduled={handleTimeBlockScheduled}
+          />
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 };
