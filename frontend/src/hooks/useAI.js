@@ -1,28 +1,36 @@
 import { useState } from 'react';
 
-const Thotify = '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';
-const MODEL = 'google/gemini-2.0-flash-exp:free';
+// API URL - use relative path to go through same origin
+const API_URL = '';
 
-const callOpenRouter = async (prompt) => {
-  const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+// Centralized API call function for AI endpoints
+const callAIEndpoint = async (endpoint, data) => {
+  const response = await fetch(`${API_URL}/api/ai/${endpoint}`, {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${Thotify}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({
-      model: MODEL,
-      messages: [{ role: 'user', content: prompt }],
-    }),
+    credentials: 'include',
+    body: JSON.stringify(data),
   });
+  
   if (!response.ok) {
-    throw new Error('Erreur API');
+    throw new Error(`AI API error: ${response.status}`);
   }
-  const data = await response.json();
-  return data.choices[0].message.content;
+  
+  return response.json();
 };
 
-export { callOpenRouter };
+// Legacy function for components that still use it directly
+export const callOpenRouter = async (prompt) => {
+  try {
+    const response = await callAIEndpoint('chat', { message: prompt });
+    return response.message || JSON.stringify(response);
+  } catch (error) {
+    console.error('AI call error:', error);
+    throw error;
+  }
+};
 
 export const useAIClassification = () => {
   const [loading, setLoading] = useState(false);
@@ -30,13 +38,11 @@ export const useAIClassification = () => {
   const classify = async (text) => {
     setLoading(true);
     try {
-      const prompt = `Classifie cette tâche selon la matrice Eisenhower. Réponds uniquement en JSON : {"priority": "urgent"|"important"|"low", "quadrant": 1|2|3|4}. Tâche : ${text}`;
-      const result = await callOpenRouter(prompt);
-      const parsed = JSON.parse(result);
-      return parsed;
+      const result = await callAIEndpoint('classify', { message: text });
+      return result;
     } catch (error) {
-      console.error(error);
-      return { priority: 'low', quadrant: 4 };
+      console.error('Classification error:', error);
+      return { priority: 'medium', quadrant: 2 };
     } finally {
       setLoading(false);
     }
@@ -45,18 +51,71 @@ export const useAIClassification = () => {
   return { classify, loading };
 };
 
+export const useAIDecompose = () => {
+  const [loading, setLoading] = useState(false);
+
+  const decompose = async (taskText) => {
+    setLoading(true);
+    try {
+      const result = await callAIEndpoint('decompose', { task_text: taskText });
+      return result;
+    } catch (error) {
+      console.error('Decompose error:', error);
+      return { steps: ['Erreur lors de la génération des étapes'] };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return { decompose, loading };
+};
+
+export const useAITaskWeight = () => {
+  const [loading, setLoading] = useState(false);
+
+  const calculateWeight = async (taskText) => {
+    setLoading(true);
+    try {
+      const result = await callAIEndpoint('task-weight', { task_text: taskText });
+      return result;
+    } catch (error) {
+      console.error('Task weight error:', error);
+      return {
+        estimated_minutes: 30,
+        estimated_total_minutes: 36,
+        energy_required: 'medium',
+        energy_emoji: '⚡',
+        energy_label: 'Focus',
+        hidden_subtasks: [],
+        reasoning: 'Estimation par défaut'
+      };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return { calculateWeight, loading };
+};
+
 export const useAIMeetingSummary = () => {
   const [loading, setLoading] = useState(false);
 
   const summarize = async (notes) => {
     setLoading(true);
     try {
-      const prompt = `Résume cette réunion en TL;DR et liste les next steps actionnables. Réponds uniquement en JSON : {"summary": "string", "nextSteps": ["step1", "step2"]}. Notes : ${notes}`;
-      const result = await callOpenRouter(prompt);
-      const parsed = JSON.parse(result);
-      return parsed;
+      const response = await callAIEndpoint('chat', { 
+        message: `Résume cette réunion en TL;DR et liste les next steps actionnables. Notes : ${notes}`,
+        action: 'question'
+      });
+      // Try to parse if it's JSON
+      try {
+        const parsed = JSON.parse(response.message);
+        return parsed;
+      } catch {
+        return { summary: response.message, nextSteps: [] };
+      }
     } catch (error) {
-      console.error(error);
+      console.error('Summary error:', error);
       return { summary: 'Erreur de génération', nextSteps: [] };
     } finally {
       setLoading(false);
@@ -72,12 +131,17 @@ export const useAICreateEvent = () => {
   const createEvent = async (data) => {
     setLoading(true);
     try {
-      const prompt = `Crée un événement Google Calendar basé sur ces données : ${JSON.stringify(data)}. Réponds uniquement en JSON : {"title": "string", "description": "string", "start": "ISO date string", "end": "ISO date string"}.`;
-      const result = await callOpenRouter(prompt);
-      const parsed = JSON.parse(result);
-      return parsed;
+      const response = await callAIEndpoint('chat', { 
+        message: `Crée un événement Google Calendar basé sur ces données : ${JSON.stringify(data)}. Réponds en JSON : {"title": "string", "description": "string", "start": "ISO date string", "end": "ISO date string"}.`,
+        action: 'question'
+      });
+      try {
+        return JSON.parse(response.message);
+      } catch {
+        return null;
+      }
     } catch (error) {
-      console.error(error);
+      console.error('Create event error:', error);
       return null;
     } finally {
       setLoading(false);
