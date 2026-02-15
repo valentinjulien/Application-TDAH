@@ -818,10 +818,22 @@ export default function DeepFocus({ visible, onClose, userId, currentTaskText }:
           <Text style={styles.completeStatValue}>{selectedMode.emoji}</Text>
           <Text style={styles.completeStatLabel}>{selectedMode.label}</Text>
         </View>
+        {interruptionCount > 0 && (
+          <View style={styles.completeStat}>
+            <Text style={styles.completeStatValue}>{interruptionCount}</Text>
+            <Text style={styles.completeStatLabel}>
+              {interruptionCount === 1 ? 'Distraction' : 'Distractions'}
+            </Text>
+          </View>
+        )}
       </View>
 
       <Text style={styles.completeMessage}>
-        Tu as prouvé que tu peux te concentrer. Félicitations ! 🌟
+        {interruptionCount === 0 
+          ? 'Focus parfait ! Tu as tenu sans distraction. 🌟'
+          : interruptionCount <= 2
+          ? 'Tu es revenu(e) à chaque fois, c\'est ça la vraie force ! 💪'
+          : 'Malgré les distractions, tu as fini. C\'est une victoire ! 🏆'}
       </Text>
 
       <ConfettiCannon active={showConfetti} count={100} />
