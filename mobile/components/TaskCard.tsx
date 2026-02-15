@@ -22,6 +22,30 @@ export default function TaskCard({ task, onComplete, onUpdate, isHighlighted = f
   const [steps, setSteps] = useState<TaskStep[] | null>((task as any).steps || null);
   const [showBreakdown, setShowBreakdown] = useState(!!steps);
   const [showTimeBlocking, setShowTimeBlocking] = useState(false);
+  
+  // Animations
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+  const highlightAnim = useRef(new Animated.Value(0)).current;
+
+  // Highlight animation effect
+  useEffect(() => {
+    if (isHighlighted) {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(highlightAnim, {
+            toValue: 1,
+            duration: 1500,
+            useNativeDriver: false,
+          }),
+          Animated.timing(highlightAnim, {
+            toValue: 0,
+            duration: 1500,
+            useNativeDriver: false,
+          }),
+        ])
+      ).start();
+    }
+  }, [isHighlighted]);
 
   const getQuadrantColor = (quadrant: number) => {
     switch (quadrant) {
@@ -33,14 +57,24 @@ export default function TaskCard({ task, onComplete, onUpdate, isHighlighted = f
     }
   };
 
+  const getQuadrantLabel = (quadrant: number) => {
+    switch (quadrant) {
+      case 1: return '🔥 Urgent';
+      case 2: return '⭐ Important';
+      case 3: return '📤 Déléguer';
+      case 4: return '🗑️ Éliminer';
+      default: return '';
+    }
+  };
+
   const getEnergyInfo = (energy?: 'low' | 'medium' | 'high') => {
     switch (energy) {
       case 'low':
-        return { emoji: '⚡', label: 'Repos', color: Colors.accent[500] };
+        return { emoji: '🌿', label: 'Repos', color: Colors.accent[500] };
       case 'medium':
-        return { emoji: '⚡⚡', label: 'Focus', color: Colors.warning[500] };
+        return { emoji: '⚡', label: 'Focus', color: Colors.warning[500] };
       case 'high':
-        return { emoji: '⚡⚡⚡', label: 'Deep Work', color: Colors.danger[500] };
+        return { emoji: '🔥', label: 'Deep Work', color: Colors.danger[500] };
       default:
         return null;
     }
