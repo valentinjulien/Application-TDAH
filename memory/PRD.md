@@ -1,85 +1,84 @@
 # TDAH Companion - Product Requirements Document
 
 ## 📋 Original Problem Statement
-Application TDAH avec UX cognitive optimisée, rituels quotidiens, et fonctionnalités anti-paralysie.
+Application TDAH avec UX cognitive optimisée, rituels quotidiens, et système d'immersion totale pour l'hyperfocus.
 
 ## 🎯 Vision
-Une application bienveillante qui accompagne les personnes TDAH 24h/24 avec des rituels, un coach IA, et un feedback gratifiant.
+Un sanctuaire numérique bienveillant qui protège l'attention des personnes TDAH avec des outils de focus immersif et un feedback gratifiant.
 
 ---
 
-## 📱 APPLICATION MOBILE NATIVE (Expo) - FONCTIONNELLE
+## 📱 APPLICATION MOBILE NATIVE (Expo) - COMPLÈTE
 
-### ✅ Toutes les Fonctionnalités Actives (4 Février 2026)
+### ✅ Toutes les Fonctionnalités (4 Février 2026)
 
-#### 1. 🎤 Capture Vocale Fonctionnelle ✅
-- **Hook `useSpeechToText.ts`** avec OpenAI Whisper
-- Enregistrement audio via `expo-av`
-- Transcription en français automatique
-- Animation pulse pendant l'écoute
-- Gestion des erreurs de permission micro
-- Insertion automatique du texte transcrit
+#### 🛸 Système d'Immersion Totale "Deep Work" ✅ (NOUVEAU)
 
-#### 2. 🍅 Timer Pomodoro Réel ✅
-- **Hook `useTimer.ts`** robuste
-- Fonctionne en arrière-plan (timestamp de fin)
-- Modes: Focus (25min), Pause (5min), Longue pause (15min)
-- Notifications programmées à la fin
-- Confettis + haptics à 00:00
-- Sauvegarde des sessions dans `pomodoro_sessions`
-- Compteur de sessions 🍅
+**1. Sélecteur de Chronos (Triple Mode)**
+| Mode | Durée | Emoji | Usage |
+|------|-------|-------|-------|
+| Démarrage Rapide | 15 min | ⚡ | Anti-procrastination |
+| Classique | 25 min | 🍅 | Pomodoro standard |
+| Immersion | 50 min | 🧘 | Hyperfocus profond |
 
-#### 3. 📊 Matrice Eisenhower Interactive ✅
-- **Long press** pour déplacer une tâche
-- Modal de sélection du nouveau quadrant
-- **Optimistic UI** : mise à jour instantanée
-- Synchronisation avec Supabase en arrière-plan
-- Rollback automatique en cas d'erreur
+**2. Mode "Cinéma" (Isolation Visuelle)**
+- StatusBar masquée en mode focus
+- UI immersive centrée sur le timer
+- Background `#0a0a12` (slate-950)
+- Animation pulse lumineux lent sur le contour
+- Glow animé avec interpolation de couleurs
 
-#### 4. ✨ Découpage de Tâches IA Opérationnel ✅
-- Toggle "Décomposer avec IA" dans QuickCapture
-- Génération des micro-étapes au moment de la création
-- Barre de progression animée
-- Checkbox interactive pour chaque étape
-- Confettis à 100% de progression
+**3. Isolation Auditive (Bruit Blanc Intégré)**
+| Son | Emoji | Description |
+|-----|-------|-------------|
+| Pluie | 🌧️ | Bruit de pluie apaisant |
+| Bruit Brun | 🔊 | Fréquences basses relaxantes |
+| Café | ☕ | Ambiance coffee shop |
 
-#### 5. 🌅 Gazette du Matin (7h-10h) ✅
-- Détection automatique de la fenêtre horaire
-- Sélection IA de la "Victoire du Jour"
-- Proposition "Étape 0" de 30 secondes
-- Bouton "🚀 Lancer l'Étape 0"
+- Volume indépendant avec slider
+- Fade-in 2 secondes au démarrage
+- Fade-out 2 secondes à la fin
+- Lecture en boucle continue
 
-#### 6. 🌙 Revue du Soir (21h-23h) ✅
-- Mode sombre profond
-- Questions apaisantes pour "Brain Dump"
-- Transformation en tâches pour demain
-- Bouton "😴 Tout est noté, dors bien"
+**4. Sécurité & Engagement (Nudging)**
+- **Wake Lock** : `expo-keep-awake` empêche l'écran de s'éteindre
+- **Interception sortie** : Alert bienveillante "Le tunnel est toujours ouvert..."
+- **Célébration** : Confettis + haptics à 00:00
+- **Auto-close** : Fermeture automatique après célébration
+
+**5. Persistance & Statistiques**
+- Sauvegarde dans `pomodoro_sessions` (Supabase)
+- Log dans `daily_logs` avec type `focus_session`
+- Compteur de sessions pour le streak
+
+---
 
 ### 📂 Structure Complète
 ```
 /app/mobile/
 ├── app/
-│   ├── _layout.tsx              # Auth + Notifications init
+│   ├── _layout.tsx
 │   ├── (auth)/
 │   │   ├── login.tsx
 │   │   └── register.tsx
 │   └── (tabs)/
 │       ├── index.tsx            # Now + Gazette + Review
-│       ├── matrix.tsx           # Matrice interactive + Pomodoro
-│       └── profile.tsx          # Notifications + Rituels
+│       ├── matrix.tsx           # Matrice + DeepFocus
+│       └── profile.tsx          # Settings + Rituels
 ├── components/
 │   ├── ConfettiCannon.tsx       # Célébration native
+│   ├── DeepFocus.tsx            # 🆕 Système immersion totale
 │   ├── EveningReview.tsx        # Revue du soir
 │   ├── MorningGazette.tsx       # Gazette du matin
-│   ├── PomodoroTimer.tsx        # Timer modal
+│   ├── PomodoroTimer.tsx        # Timer simple (legacy)
 │   ├── QuickCaptureButton.tsx   # FAB + Voice + AI
 │   ├── TaskBreakdown.tsx        # Micro-étapes
-│   └── TaskCard.tsx             # Carte tâche + AI
+│   └── TaskCard.tsx             # Carte tâche
 ├── hooks/
 │   ├── useDailyTriggers.ts      # Détection horaire
 │   ├── useNotifications.ts      # Push notifications
-│   ├── useSpeechToText.ts       # 🆕 Whisper transcription
-│   └── useTimer.ts              # 🆕 Pomodoro timer
+│   ├── useSpeechToText.ts       # Whisper transcription
+│   └── useTimer.ts              # Timer robuste
 ├── services/
 │   ├── aiService.ts             # Task breakdown
 │   └── dailyAIService.ts        # Gazette + Review
@@ -87,49 +86,61 @@ Une application bienveillante qui accompagne les personnes TDAH 24h/24 avec des 
     └── supabase.ts              # Client + helpers
 ```
 
-### 🔧 Fonctionnalités UI/UX
-| Composant | Feedback Visuel |
-|-----------|-----------------|
-| Voice Input | Pulse animation + "Parlez maintenant..." |
-| Task Creation | Spinner sur bouton pendant chargement |
-| Task Move | Overlay modal + "Déplacer vers" |
-| Pomodoro End | Confettis + Haptics + Notification |
-| Task Complete | Optimistic update + Revert on error |
+### 🎨 UX Deep Focus
+```
+┌─────────────────────────────────────┐
+│            MODE FOCUS               │
+│                                     │
+│           🎯 Focus actuel           │
+│     "Terminer le rapport Q4"        │
+│                                     │
+│         ┌───────────────┐           │
+│         │      🍅       │           │
+│         │    24:35      │           │
+│         │ En immersion  │           │
+│         └───────────────┘           │
+│              (pulse)                │
+│                                     │
+│      [ ⏸️ Pause / ▶️ Reprendre ]     │
+│                                     │
+│   🔉 ━━━━━━━━━━━━━━━━━━━ 🔊        │
+│                                     │
+│        Quitter le tunnel            │
+└─────────────────────────────────────┘
+```
 
-### 📊 Tables Supabase Utilisées
+### 📊 Toutes les Tables Supabase
 - `tasks` - Tâches avec JSONB `steps`
-- `daily_logs` - Gazette + Review historique
-- `pomodoro_sessions` - Sessions de focus
-
-### ⚠️ Gestion des Erreurs
-- **Micro bloqué** : Message "Autorisation du micro nécessaire"
-- **API IA fail** : Fallback avec tâches génériques
-- **Sync fail** : Optimistic UI + rollback automatique
+- `daily_logs` - Gazette, Review, Focus sessions
+- `pomodoro_sessions` - Historique des sessions focus
 
 ---
 
-## 🎯 Application 100% Fonctionnelle
+## 🎯 Application 100% Complète
 
-L'application est maintenant **entièrement opérationnelle** :
-- ✅ Capture vocale avec Whisper
-- ✅ Timer Pomodoro robuste
-- ✅ Matrice drag & drop
+### Features Actives
+- ✅ Capture vocale (Whisper)
 - ✅ Décomposition IA
-- ✅ Gazette du Matin
-- ✅ Revue du Soir
+- ✅ Matrice interactive (drag & drop)
+- ✅ Gazette du Matin (7h-10h)
+- ✅ Revue du Soir (21h-23h)
 - ✅ Push Notifications
-- ✅ Authentification Supabase
+- ✅ **Deep Focus avec isolation totale**
+- ✅ **Bruit blanc intégré (3 sons)**
+- ✅ **Wake Lock (écran toujours allumé)**
+- ✅ **Nudging anti-distraction**
 
 ---
 
-## 📦 Backlog Restant
+## 📦 Backlog Optionnel
 
-### P2 - Nice to have
+### P3 - Nice to have
 - [ ] Mode hors-ligne avec sync
 - [ ] Widget iOS/Android
-- [ ] Statistiques graphiques
+- [ ] Statistiques graphiques avancées
 - [ ] Intégration calendrier
 - [ ] Thèmes personnalisables
+- [ ] Plus de sons ambiants
 
 ---
-*Dernière mise à jour: 4 Février 2026 - Application 100% fonctionnelle*
+*Dernière mise à jour: 4 Février 2026 - Deep Focus Immersion Totale*
