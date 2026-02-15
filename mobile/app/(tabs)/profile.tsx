@@ -597,6 +597,82 @@ const styles = StyleSheet.create({
     fontSize: FontSizes.md,
     color: Colors.neutral[300],
   },
+  // Google Calendar styles
+  calendarConnectedCard: {
+    backgroundColor: Colors.surface.dark,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.lg,
+    borderWidth: 1,
+    borderColor: Colors.accent[700],
+    gap: Spacing.md,
+  },
+  calendarConnectedInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.md,
+  },
+  calendarStatusDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: Colors.accent[500],
+  },
+  calendarConnectedText: {
+    flex: 1,
+  },
+  calendarConnectedTitle: {
+    fontSize: FontSizes.md,
+    fontWeight: '600',
+    color: Colors.accent[400],
+  },
+  calendarConnectedEmail: {
+    fontSize: FontSizes.sm,
+    color: Colors.neutral[400],
+    marginTop: 2,
+  },
+  calendarFeatures: {
+    fontSize: FontSizes.sm,
+    color: Colors.neutral[400],
+    lineHeight: FontSizes.sm * 1.6,
+    paddingLeft: Spacing.sm,
+  },
+  calendarDisconnectButton: {
+    alignSelf: 'flex-start',
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+  },
+  calendarDisconnectText: {
+    fontSize: FontSizes.sm,
+    color: Colors.danger[400],
+    fontWeight: '500',
+  },
+  calendarConnectButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.surface.dark,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.lg,
+    gap: Spacing.md,
+    borderWidth: 1,
+    borderColor: Colors.neutral[700],
+    borderStyle: 'dashed',
+  },
+  calendarConnectIcon: {
+    fontSize: 32,
+  },
+  calendarConnectInfo: {
+    flex: 1,
+  },
+  calendarConnectTitle: {
+    fontSize: FontSizes.md,
+    fontWeight: '600',
+    color: Colors.primary[400],
+  },
+  calendarConnectDesc: {
+    fontSize: FontSizes.sm,
+    color: Colors.neutral[400],
+    marginTop: 2,
+  },
   logoutButton: {
     backgroundColor: Colors.danger[600],
     borderRadius: BorderRadius.md,
