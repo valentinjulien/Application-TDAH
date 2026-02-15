@@ -8,235 +8,123 @@ Un sanctuaire numérique bienveillant qui protège l'attention des personnes TDA
 
 ---
 
-## 📱 APPLICATION MOBILE NATIVE (Expo)
+## ✅ Fonctionnalités Implémentées (App Web)
 
-### ✅ Fonctionnalités Implémentées
+### 15 Février 2026 - Portage Mobile → Web
 
-#### 🎨 Améliorations UX/UI TDAH-Friendly (15 Février 2026)
+#### 1. Ghost UI - Capture Rapide (/capture)
+- **Interface minimaliste** : Fond blur, aucun menu
+- **Auto-focus immédiat** : Curseur prêt à écrire
+- **Placeholders dynamiques** : Rotation de suggestions
+- **Raccourcis** : Entrée = capturer, Échap = annuler
+- **Traitement IA** : Classification automatique Eisenhower
 
-**1. FocusStatsBanner (Nouveau composant)**
-- Bannière expandable sur l'écran d'accueil
-- Affichage du streak (🔥 jours consécutifs)
-- Messages d'encouragement personnalisés
-- Statistiques : sessions, minutes, distractions
-- Bouton rapide "Démarrer une session"
+#### 2. Daily Rituals - Rituels Quotidiens
+- **Morning Gazette** : Briefing du matin (7h-11h)
+  - Aperçu des tâches urgentes/importantes
+  - Définition d'objectif quotidien
+  - Suggestions IA personnalisées
+- **Evening Review** : Bilan du soir (20h-24h)
+  - Résumé des accomplissements
+  - Sélecteur d'humeur
+  - Brain dump pour vider l'esprit
 
-**2. EnergyIndicator (Nouveau composant)**
-- Visualisation dynamique du niveau d'énergie
-- 3 barres animées (style signal WiFi)
-- Version badge compacte pour les cartes
-- Animation pulse pour les tâches "high energy"
+#### 3. Time-Blocking Modal
+- **Calculateur de charge cognitive IA**
+  - Durée estimée +20% marge TDAH
+  - Niveau d'énergie (low/medium/high)
+  - Sous-tâches cachées détectées
+- **Suggestions de créneaux intelligentes**
+  - Deep Work → Matins (8h-11h)
+  - Tâches légères → Fin de journée
+- **Intégration** : Dashboard + Matrice Eisenhower
 
-**3. TaskCard améliorée**
-- En-tête avec badge quadrant + indicateur énergie
-- Labels quadrant explicites (🔥 Urgent, ⭐ Important, etc.)
-- Barre de progression animée pour les sous-étapes
-- Animation de highlight pulsante pour la tâche courante
-- Animation de satisfaction au clic "Terminé"
+#### 4. Deep Focus Mode (Pomodoro++)
+- **3 modes de durée** : 15/25/50 minutes
+- **Son ambiant** : Pluie, Café, Vent
+- **Anti-distraction** : Notifications quand l'utilisateur quitte
+- **Compteur d'interruptions** visible
+- **Messages bienveillants** au retour
 
-**4. Ghost UI Capture améliorée**
-- Indicateur IA pendant le traitement
-- Preview des fonctionnalités d'analyse
-- Message "L'IA va analyser : priorité, énergie, durée"
-- Animation de traitement avec détails
-
----
-
-#### 🆕 Ghost UI - Capture Ultra-Rapide (15 Février 2026)
-
-**Route `/capture` - Interface minimaliste zéro-friction**
-- **Design "Ghost"** : Fond transparent + blur, aucun menu/scroll
-- **Auto-focus immédiat** : Le curseur est déjà dans le champ
-- **Placeholders dynamiques** : "Vider l'esprit...", "Une idée ?", etc.
-- **Raccourcis clavier** : Entrée = envoyer, Retour = annuler
-
-**Traitement IA en arrière-plan (`captureService.ts`)**
-| Analyse | Description |
-|---------|-------------|
-| Classification Eisenhower | Détection automatique du quadrant (Q1-Q4) |
-| Score d'énergie | low/medium/high basé sur complexité |
-| Estimation temporelle | Minutes + 20% marge de sécurité |
-| Extraction de date | "demain", "ce soir" → timestamp ISO |
-
-**Feedback visuel minimaliste**
-- Lueur bleue pulsante pendant le traitement
-- Coche ✓ éphémère au succès
-- Fermeture automatique après capture
-
-**Accès**
-- Appui long sur le FAB (+) depuis n'importe quel écran
-- Route directe : `/capture`
-- **Quick Actions** : Appui long sur l'icône de l'app (iOS/Android)
-
-#### 🆕 Quick Actions - Raccourcis App (15 Février 2026)
-
-**Raccourcis disponibles (appui long sur icône app)**
-| Action | Titre | Description |
-|--------|-------|-------------|
-| 📝 Capture | "Capture rapide" | Ouvre Ghost UI directement |
-| ⏱️ Focus | "Deep Focus" | Lance une session de concentration |
-| ➕ Tâche | "Nouvelle tâche" | Ouvre le formulaire complet |
-
-**Configuration** : `app.json` avec plugin `expo-quick-actions`
+#### 5. Navigation Enrichie
+- **Bouton Capture Rapide** dans la sidebar
+- **FAB flottant** sur le Dashboard
+- **Routes protégées** avec redirection login
 
 ---
 
-#### 🆕 Time-Blocking Intelligent (15 Février 2026)
+## 🔧 Architecture Technique
 
-**1. Calculateur de Charge Cognitive (IA)**
-- Analyse automatique des tâches via GPT-4o
-- Estimation réaliste de la durée (+20% marge TDAH pour Time Blindness)
-- Détection du niveau d'énergie requis (low/medium/high)
-- Identification des sous-tâches cachées souvent oubliées
-
-**2. Badges Visuels sur TaskCard**
-| Badge | Signification |
-|-------|---------------|
-| ⚡ Repos | Tâche légère, fin de journée |
-| ⚡⚡ Focus | Tâche standard, flexible |
-| ⚡⚡⚡ Deep Work | Haute concentration, matin |
-| ⏱️ Durée | Temps estimé avec marge |
-| 📅 Planifié | Date/heure du créneau |
-
-**3. Suggestion Intelligente de Créneaux**
-- Tâches "high" → Créneaux matinaux (8h-11h)
-- Tâches "low" → Fin de journée (16h-19h)
-- Tâches "medium" → Horaires flexibles
-- Évite les conflits avec créneaux occupés
-
-**4. Nouvel Onglet "Planning"**
-- Vue timeline par jour (Aujourd'hui, Demain, etc.)
-- Toggle entre tâches planifiées et à planifier
-- Indicateurs visuels de temps et énergie
-
-**5. Intégration Google Calendar** ✅ IMPLÉMENTÉ
-- OAuth 2.0 avec PKCE (expo-auth-session)
-- Lecture des créneaux occupés (FreeBusy API)
-- Création d'événements avec couleur selon énergie
-- Gestion dans l'écran Profil (connexion/déconnexion)
-
----
-
-#### 🛸 Système d'Immersion Totale "Deep Work" ✅
-
-**1. Sélecteur de Chronos (Triple Mode)**
-| Mode | Durée | Emoji | Usage |
-|------|-------|-------|-------|
-| Démarrage Rapide | 15 min | ⚡ | Anti-procrastination |
-| Classique | 25 min | 🍅 | Pomodoro standard |
-| Immersion | 50 min | 🧘 | Hyperfocus profond |
-
-**2. Mode "Cinéma" (Isolation Visuelle)**
-- StatusBar masquée en mode focus
-- UI immersive centrée sur le timer
-- Animation pulse lumineux lent sur le contour
-
-**3. Isolation Auditive (Bruit Blanc Intégré)**
-| Son | Emoji | Description |
-|-----|-------|-------------|
-| Pluie | 🌧️ | Bruit de pluie apaisant |
-| Bruit Brun | 🔊 | Fréquences basses relaxantes |
-| Café | ☕ | Ambiance coffee shop |
-
-**4. Sécurité & Engagement (Nudging)**
-- **Wake Lock** : `expo-keep-awake` empêche l'écran de s'éteindre
-- **Interception sortie** : Alert bienveillante "Le tunnel est toujours ouvert..."
-- **Célébration** : Confettis + haptics à 00:00
-- **Auto-close** : Fermeture automatique après célébration
-
-**5. 🆕 Module Protection du Focus (Anti-Distraction)**
-- **Détection d'abandon** : `AppState` détecte quand l'utilisateur quitte l'app
-- **Notifications bienveillantes** : 10 messages TDAH-friendly aléatoires
-  - "Hé, on s'égare ? Reviens, on finit cette étape ensemble !"
-  - "Le plus dur est fait, ne laisse pas une distraction gâcher ton élan."
-- **UI de retour** : Message d'accueil sans jugement quand l'utilisateur revient
-- **Statistiques d'interruption** : Compteur affiché + sauvegarde dans `daily_logs`
-- **Feedback personnalisé** : Message de complétion adapté au nombre d'interruptions
-
----
-
-### 📂 Structure Complète
+### Backend (FastAPI)
 ```
-/app/mobile/
-├── app/
-│   ├── _layout.tsx
-│   ├── capture.tsx              # 🆕 Ghost UI capture
-│   ├── (auth)/
-│   │   ├── login.tsx
-│   │   └── register.tsx
-│   └── (tabs)/
-│       ├── index.tsx            # Now + Gazette + Review
-│       ├── schedule.tsx         # 🆕 Planning Timeline
-│       ├── matrix.tsx           # Matrice + DeepFocus
-│       └── profile.tsx          # Settings + Rituels
-├── components/
-│   ├── ConfettiCannon.tsx       # Célébration native
-│   ├── DeepFocus.tsx            # Système immersion + anti-distraction
-│   ├── EnergyIndicator.tsx      # 🆕 Visualisation niveau d'énergie
-│   ├── EveningReview.tsx        # Revue du soir
-│   ├── FocusStatsBanner.tsx     # 🆕 Bannière stats focus
-│   ├── MorningGazette.tsx       # Gazette du matin
-│   ├── PomodoroTimer.tsx        # Timer simple (legacy)
-│   ├── QuickCaptureButton.tsx   # FAB + Voice + AI
-│   ├── TaskBreakdown.tsx        # Micro-étapes
-│   ├── TaskCard.tsx             # Carte tâche (améliorée)
-│   └── TimeBlockingModal.tsx    # Planification intelligente
-├── hooks/
-│   ├── useDailyTriggers.ts      # Détection horaire
-│   ├── useGoogleCalendar.ts     # 🆕 Google Calendar hook
-│   ├── useNotifications.ts      # Push notifications
-│   ├── useQuickActions.ts       # Raccourcis app icon
-│   ├── useSpeechToText.ts       # Whisper transcription
-│   └── useTimer.ts              # Timer robuste
-├── services/
-│   ├── aiService.ts             # Task breakdown
-│   ├── captureService.ts        # Ghost UI AI processing
-│   ├── dailyAIService.ts        # Gazette + Review
-│   ├── googleCalendarService.ts # 🆕 Google Calendar OAuth + API
-│   └── timeBlockingService.ts   # Calcul charge cognitive
-└── lib/
-    └── supabase.ts              # Client + helpers
+/app/backend/server.py
+  - /api/auth/* : Authentification Emergent Google Auth
+  - /api/tasks/* : CRUD tâches
+  - /api/ai/chat : Assistant conversationnel
+  - /api/ai/classify : Classification Eisenhower
+  - /api/ai/decompose : Décomposition en micro-étapes
+  - /api/ai/task-weight : Calcul charge cognitive
 ```
 
-### 📊 Tables Supabase (avec colonnes Time-Blocking)
-```sql
--- Table tasks (avec nouvelles colonnes)
-tasks:
-  - id, user_id, text, priority, quadrant, completed
-  - steps (JSONB) - Micro-étapes AI
-  - estimated_total_minutes (INT) - Durée estimée
-  - energy_required (TEXT) - 'low'|'medium'|'high'
-  - scheduled_at (TIMESTAMP) - Créneau planifié
-  - calendar_event_id (TEXT) - ID Google Calendar
-  - hidden_subtasks (JSONB) - Sous-tâches cachées
+### Frontend (React)
+```
+/app/frontend/src/
+  ├── App.js : Routes + Daily Rituals
+  ├── components/
+  │   ├── GhostCapture.js : Interface capture rapide
+  │   ├── DailyRituals.js : Morning/Evening modals
+  │   ├── TimeBlockingModal.js : Planification IA
+  │   ├── Pomodoro.js : Deep Focus Mode
+  │   ├── EisenhowerMatrix.js : Matrice + décomposition
+  │   ├── Dashboard.js : Page principale + FAB
+  │   └── Navigation.js : Sidebar enrichie
+  ├── hooks/
+  │   └── useAI.js : Hooks IA centralisés
+  └── services/
+      └── captureService.js : Logique capture
+```
 
--- Autres tables
-daily_logs, pomodoro_sessions, moods
+### Mobile (Expo - Non modifié cette session)
+```
+/app/mobile/ : Application React Native complète
 ```
 
 ---
 
-## 🔴 ACTION REQUISE - BASE DE DONNÉES
+## 🗄️ Base de Données
 
-⚠️ **Le script SQL doit être exécuté dans Supabase :**
-1. Aller sur https://supabase.com/dashboard
-2. Ouvrir le projet → SQL Editor
-3. Coller le contenu de `/app/mobile/supabase_schema.sql`
-4. Exécuter
+### Supabase (User-managed)
+- URL: `https://fkkjlkliksnujqsujzae.supabase.co`
+- Tables: tasks, daily_logs, pomodoro_sessions, moods
+
+### MongoDB (Backend local)
+- users, user_sessions, tasks, chat_history
 
 ---
 
 ## 📦 Backlog
 
 ### P1 - À faire
-- [ ] Flux d'authentification complet (Supabase Auth)
-- [ ] Synchronisation bidirectionnelle Google Calendar (màj/suppression)
+- [ ] Authentification complète mobile (Supabase Auth)
+- [ ] Sync bidirectionnelle Google Calendar
+- [ ] Capture vocale web (Web Speech API)
 
 ### P2 - Nice to have
-- [ ] Capture vocale fonctionnelle
 - [ ] Mode hors-ligne avec sync
 - [ ] Widget iOS/Android
 - [ ] Statistiques graphiques avancées
+- [ ] Suggestions IA basées sur historique focus
 
 ---
-*Dernière mise à jour: 15 Février 2026 - Google Calendar + Ghost UI + Quick Actions + Time-Blocking*
+
+## 🔗 Intégrations
+
+| Service | Statut | Clé |
+|---------|--------|-----|
+| OpenAI GPT-4o | ✅ Actif | Emergent LLM Key |
+| Supabase | ✅ Actif | User API Key |
+| Google Calendar | ⏳ Mobile only | OAuth |
+
+---
+
+*Dernière mise à jour: 15 Février 2026 - Portage complet Mobile → Web*
