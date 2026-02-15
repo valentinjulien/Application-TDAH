@@ -15,6 +15,12 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 });
 
 // Types pour les tables
+export interface TaskStep {
+  id: number;
+  text: string;
+  done: boolean;
+}
+
 export interface Task {
   id: string;
   user_id: string;
@@ -25,6 +31,7 @@ export interface Task {
   created_at: string;
   due_date?: string;
   source?: string;
+  steps?: TaskStep[]; // JSONB column for micro-planning
 }
 
 export interface Mood {
