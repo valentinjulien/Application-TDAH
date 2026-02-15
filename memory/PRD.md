@@ -36,6 +36,18 @@ Un sanctuaire numérique bienveillant qui protège l'attention des personnes TDA
 **Accès**
 - Appui long sur le FAB (+) depuis n'importe quel écran
 - Route directe : `/capture`
+- **Quick Actions** : Appui long sur l'icône de l'app (iOS/Android)
+
+#### 🆕 Quick Actions - Raccourcis App (15 Février 2026)
+
+**Raccourcis disponibles (appui long sur icône app)**
+| Action | Titre | Description |
+|--------|-------|-------------|
+| 📝 Capture | "Capture rapide" | Ouvre Ghost UI directement |
+| ⏱️ Focus | "Deep Focus" | Lance une session de concentration |
+| ➕ Tâche | "Nouvelle tâche" | Ouvre le formulaire complet |
+
+**Configuration** : `app.json` avec plugin `expo-quick-actions`
 
 ---
 
