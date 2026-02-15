@@ -74,6 +74,17 @@ CREATE POLICY "Users can insert their own sessions" ON pomodoro_sessions
 ALTER PUBLICATION supabase_realtime ADD TABLE tasks;
 
 -- ============================================
+-- COLONNES TIME-BLOCKING (Mise à jour de la table tasks)
+-- ============================================
+-- Exécutez ces commandes si la table tasks existe déjà
+
+ALTER TABLE tasks ADD COLUMN IF NOT EXISTS estimated_total_minutes INTEGER;
+ALTER TABLE tasks ADD COLUMN IF NOT EXISTS energy_required TEXT CHECK (energy_required IN ('low', 'medium', 'high'));
+ALTER TABLE tasks ADD COLUMN IF NOT EXISTS scheduled_at TIMESTAMP WITH TIME ZONE;
+ALTER TABLE tasks ADD COLUMN IF NOT EXISTS calendar_event_id TEXT;
+ALTER TABLE tasks ADD COLUMN IF NOT EXISTS hidden_subtasks JSONB DEFAULT NULL;
+
+-- ============================================
 -- Table des journaux quotidiens (Gazette + Revue)
 -- ============================================
 CREATE TABLE IF NOT EXISTS daily_logs (
