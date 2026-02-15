@@ -104,12 +104,28 @@ export default function TimeBlockingModal({
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
 
     try {
+      let calendarEventId: string | undefined;
+
+      // Sync to Google Calendar if enabled and connected
+      if (syncToCalendar && isCalendarConnected) {
+        const eventId = await syncTaskToCalendar(
+          task.text,
+          selectedSlot.start,
+          weight.estimated_total_minutes,
+          weight.energy_required
+        );
+        if (eventId) {
+          calendarEventId = eventId;
+        }
+      }
+
       // Update task with scheduling info
       const updatedTask = await updateTask(task.id, {
         estimated_total_minutes: weight.estimated_total_minutes,
         energy_required: weight.energy_required,
         scheduled_at: selectedSlot.start.toISOString(),
         hidden_subtasks: weight.hidden_subtasks,
+        calendar_event_id: calendarEventId,
       } as any);
 
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
