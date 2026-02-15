@@ -522,7 +522,7 @@ const UnifiedCapture = () => {
   // Déterminer le texte du wake word indicator
   const getWakeWordText = () => {
     if (porcupineReady && porcupineListening) {
-      return 'Dis "Hey Google" pour la voix';
+      return 'Dis "Hey Assistant" pour activer la voix';
     }
     return 'Dis "Hey Assistant" pour la voix';
   };
