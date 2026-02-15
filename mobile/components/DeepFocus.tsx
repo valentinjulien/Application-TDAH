@@ -1129,6 +1129,53 @@ const styles = StyleSheet.create({
     fontSize: FontSizes.sm,
     color: Colors.neutral[600],
   },
+  
+  // Focus Protection UI
+  interruptionBadge: {
+    position: 'absolute',
+    top: Spacing.xl,
+    right: Spacing.lg,
+    backgroundColor: Colors.warning[900] + '60',
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.full,
+  },
+  interruptionText: {
+    fontSize: FontSizes.xs,
+    color: Colors.warning[400],
+    fontWeight: '500',
+  },
+  welcomeBackOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    zIndex: 100,
+  },
+  welcomeBackCard: {
+    backgroundColor: Colors.surface.dark,
+    borderRadius: BorderRadius.xl,
+    padding: Spacing.xl,
+    marginHorizontal: Spacing.xl,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: Colors.primary[700],
+    shadowColor: Colors.primary[500],
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  welcomeBackEmoji: {
+    fontSize: 48,
+    marginBottom: Spacing.md,
+  },
+  welcomeBackText: {
+    fontSize: FontSizes.lg,
+    color: Colors.text.dark,
+    textAlign: 'center',
+    lineHeight: FontSizes.lg * 1.5,
+  },
 
   // Complete Phase
   completeContainer: {
