@@ -110,8 +110,18 @@ Un sanctuaire numérique bienveillant qui protège l'attention des personnes TDA
 
 **4. Sécurité & Engagement (Nudging)**
 - **Wake Lock** : `expo-keep-awake` empêche l'écran de s'éteindre
-- **Interception sortie** : Alert bienveillante
+- **Interception sortie** : Alert bienveillante "Le tunnel est toujours ouvert..."
 - **Célébration** : Confettis + haptics à 00:00
+- **Auto-close** : Fermeture automatique après célébration
+
+**5. 🆕 Module Protection du Focus (Anti-Distraction)**
+- **Détection d'abandon** : `AppState` détecte quand l'utilisateur quitte l'app
+- **Notifications bienveillantes** : 10 messages TDAH-friendly aléatoires
+  - "Hé, on s'égare ? Reviens, on finit cette étape ensemble !"
+  - "Le plus dur est fait, ne laisse pas une distraction gâcher ton élan."
+- **UI de retour** : Message d'accueil sans jugement quand l'utilisateur revient
+- **Statistiques d'interruption** : Compteur affiché + sauvegarde dans `daily_logs`
+- **Feedback personnalisé** : Message de complétion adapté au nombre d'interruptions
 
 ---
 
