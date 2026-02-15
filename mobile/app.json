@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "TDAH Companion",
-    "slug": "tdah-companion",
+    "name": "Assistant TDAH",
+    "slug": "assistant-tdah",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
