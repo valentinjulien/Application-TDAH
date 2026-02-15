@@ -1,4 +1,4 @@
-# TDAH Companion - Product Requirements Document
+# Assistant TDAH - Product Requirements Document
 
 ## 📋 Original Problem Statement
 Application TDAH avec UX cognitive optimisée, rituels quotidiens, et système d'immersion totale pour l'hyperfocus.
@@ -10,12 +10,20 @@ Un sanctuaire numérique bienveillant qui protège l'attention des personnes TDA
 
 ## ✅ Fonctionnalités Implémentées (App Web)
 
-### 15 Février 2026 - Capture Unifiée (Texte + Voix)
+### 15 Février 2026 - Application Desktop + Wake Word
+
+#### Application Desktop Electron (/app/desktop)
+- **Écoute en arrière-plan** : Tourne dans la barre système (system tray)
+- **Wake Word "Hey Assistant"** : Détection avec Picovoice Porcupine (français)
+- **Ouverture automatique** : Ouvre l'app web quand wake word détecté
+- **Multi-plateforme** : Windows, macOS, Linux
+- **Notifications système** : Feedback visuel lors de la détection
 
 #### Unified Capture (/capture)
 - **Mode Texte** : Saisie rapide avec placeholders dynamiques
 - **Mode Voix** : Reconnaissance vocale avec synthèse pour feedback
-- **Wake Word "Hey Assistant"** : Détection en arrière-plan pour activer la voix
+- **Wake Word "Hey Assistant"** : Détection via Web Speech API (dans l'app)
+- **Popup permission microphone** : Demande explicite avec explication vie privée
 - **Toggle Texte/Voix** : Basculement fluide entre les deux modes
 - **Analyse IA** : Classification Eisenhower, énergie, durée estimée
 - **Commandes vocales** : "Terminé", "Stop", "Envoie" pour finaliser
