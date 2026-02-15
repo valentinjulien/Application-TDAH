@@ -79,9 +79,11 @@ Un sanctuaire numérique bienveillant qui protège l'attention des personnes TDA
 - Toggle entre tâches planifiées et à planifier
 - Indicateurs visuels de temps et énergie
 
-**5. Intégration Google Calendar** ⚠️ EN ATTENTE
-- Nécessite les credentials OAuth de l'utilisateur
-- Sync bidirectionnelle planifiée
+**5. Intégration Google Calendar** ✅ IMPLÉMENTÉ
+- OAuth 2.0 avec PKCE (expo-auth-session)
+- Lecture des créneaux occupés (FreeBusy API)
+- Création d'événements avec couleur selon énergie
+- Gestion dans l'écran Profil (connexion/déconnexion)
 
 ---
 
