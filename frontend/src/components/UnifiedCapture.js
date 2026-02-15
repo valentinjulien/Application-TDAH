@@ -18,17 +18,11 @@ import {
   Shield
 } from 'lucide-react';
 
-// Configuration Web Speech API (for voice capture, not wake word)
+// Configuration Web Speech API
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
-// Placeholders dynamiques
-const PLACEHOLDERS = [
-  'Vider l\'esprit...',
-  'Une idée ?',
-  'À faire...',
-  'Note rapide...',
-  'Capture...',
-];
+// Placeholders
+const PLACEHOLDERS = ['Vider l\'esprit...', 'Une idée ?', 'À faire...', 'Note rapide...', 'Capture...'];
 
 // Stop commands
 const STOP_COMMANDS = ['terminé', 'termine', 'fini', 'stop', 'arrête', 'envoyer', 'envoie', 'c\'est tout'];
@@ -61,7 +55,8 @@ const UnifiedCapture = () => {
   const [aiResponse, setAiResponse] = useState(null);
   
   // Porcupine state
-  const [porcupineStatus, setPorcupineStatus] = useState('initializing'); // initializing, listening, error, disabled
+  const [porcupineStatus, setPorcupineStatus] = useState('initializing');
+  const [detectedKeyword, setDetectedKeyword] = useState(null);
   const porcupineRef = useRef(null);
   const webVpRef = useRef(null);
   
@@ -70,58 +65,84 @@ const UnifiedCapture = () => {
   const recognitionRef = useRef(null);
   const silenceTimeoutRef = useRef(null);
 
-  // Initialize Porcupine for wake word detection
+  // Get access key from backend
+  const getAccessKey = async () => {
+    try {
+      const response = await fetch('/api/porcupine/access-key');
+      if (!response.ok) return null;
+      const data = await response.json();
+      return data.accessKey;
+    } catch (e) {
+      return null;
+    }
+  };
+
+  // Initialize Porcupine with built-in keyword "Hey Google" (works in any language)
   const initPorcupine = useCallback(async () => {
     try {
       setPorcupineStatus('initializing');
-      console.log('Initializing Porcupine...');
+      console.log('🎤 Initializing Porcupine...');
       
-      // Get access key from backend
-      const keyResponse = await fetch('/api/porcupine/access-key');
-      if (!keyResponse.ok) {
-        console.log('Porcupine access key not available');
-        setPorcupineStatus('disabled');
+      const accessKey = await getAccessKey();
+      if (!accessKey) {
+        console.log('No Porcupine access key');
+        setPorcupineStatus('error');
         return false;
       }
-      const { accessKey } = await keyResponse.json();
       
-      // Dynamically import Porcupine
-      const { Porcupine } = await import('@picovoice/porcupine-web');
+      // Import Porcupine
+      const porcupineModule = await import('@picovoice/porcupine-web');
       const { WebVoiceProcessor } = await import('@picovoice/web-voice-processor');
       
-      console.log('Creating Porcupine instance...');
+      const Porcupine = porcupineModule.Porcupine;
+      const BuiltInKeyword = porcupineModule.BuiltInKeyword;
       
-      // Create Porcupine with custom French wake word
+      console.log('🎤 Creating Porcupine with built-in keyword...');
+      
+      // Use built-in keyword "HEY_GOOGLE" - this doesn't require a model file
       const porcupine = await Porcupine.create(
         accessKey,
-        {
-          publicPath: '/api/porcupine/models/hey-assistant_fr.ppn',
-          label: 'hey assistant'
-        },
-        {
-          publicPath: '/api/porcupine/models/porcupine_params_fr.pv'
+        [BuiltInKeyword.HeyGoogle],
+        { 
+          processErrorCallback: (error) => {
+            console.error('Porcupine process error:', error);
+          }
         }
       );
       
-      porcupineRef.current = porcupine;
-      console.log('Porcupine created, starting WebVoiceProcessor...');
+      console.log('🎤 Porcupine instance created, frame length:', porcupine.frameLength);
       
-      // Subscribe to audio with callback
-      await WebVoiceProcessor.subscribe(porcupine);
-      webVpRef.current = WebVoiceProcessor;
+      // Set up keyword detection callback BEFORE subscribing
+      const keywordLabels = ['Hey Google'];
       
-      // Set up detection callback
-      porcupine.onKeywordDetection = (detection) => {
-        console.log('🎤 WAKE WORD DETECTED!', detection);
-        onWakeWordDetected();
+      // Create a custom engine wrapper for WebVoiceProcessor
+      const porcupineEngine = {
+        frameLength: porcupine.frameLength,
+        sampleRate: porcupine.sampleRate,
+        process: (inputFrame) => {
+          const result = porcupine.process(inputFrame);
+          if (result >= 0) {
+            console.log('🎉 KEYWORD DETECTED:', keywordLabels[result]);
+            setDetectedKeyword(keywordLabels[result]);
+            onWakeWordDetected();
+          }
+        },
+        release: () => porcupine.release()
       };
       
+      porcupineRef.current = porcupineEngine;
+      
+      // Subscribe to WebVoiceProcessor
+      console.log('🎤 Subscribing to WebVoiceProcessor...');
+      await WebVoiceProcessor.subscribe(porcupineEngine);
+      webVpRef.current = WebVoiceProcessor;
+      
       setPorcupineStatus('listening');
-      console.log('✅ Porcupine listening for "Hey Assistant"');
+      console.log('✅ Porcupine listening for "Hey Google"');
       return true;
       
     } catch (err) {
-      console.error('Porcupine initialization error:', err);
+      console.error('❌ Porcupine initialization error:', err);
       setPorcupineStatus('error');
       return false;
     }
@@ -129,11 +150,10 @@ const UnifiedCapture = () => {
 
   // Handle wake word detection
   const onWakeWordDetected = useCallback(() => {
-    console.log('Wake word handler triggered');
+    console.log('🎤 Wake word handler triggered!');
     setWakeWordActive(true);
     speak("Je t'écoute !");
     
-    // Switch to voice mode
     setTimeout(() => {
       setMode('voice');
       startVoiceCapture();
@@ -182,10 +202,7 @@ const UnifiedCapture = () => {
           const result = await navigator.permissions.query({ name: 'microphone' });
           if (result.state === 'granted') {
             setMicPermissionStatus('granted');
-            // Start Porcupine
-            if (mounted) {
-              await initPorcupine();
-            }
+            if (mounted) await initPorcupine();
           } else {
             setShowMicPermission(true);
           }
@@ -198,11 +215,8 @@ const UnifiedCapture = () => {
     };
     
     init();
-    
-    // Focus text input
     setTimeout(() => inputRef.current?.focus(), 100);
     
-    // Keyboard handler
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') handleClose();
     };
@@ -212,9 +226,7 @@ const UnifiedCapture = () => {
       mounted = false;
       document.removeEventListener('keydown', handleKeyDown);
       cleanupPorcupine();
-      if (recognitionRef.current) {
-        try { recognitionRef.current.abort(); } catch(e) {}
-      }
+      if (recognitionRef.current) try { recognitionRef.current.abort(); } catch(e) {}
       if (silenceTimeoutRef.current) clearTimeout(silenceTimeoutRef.current);
       window.speechSynthesis?.cancel();
     };
@@ -223,9 +235,7 @@ const UnifiedCapture = () => {
   // Start Porcupine after permission granted
   const onPermissionGranted = useCallback(async () => {
     const granted = await checkAndRequestMicPermission();
-    if (granted) {
-      await initPorcupine();
-    }
+    if (granted) await initPorcupine();
   }, [checkAndRequestMicPermission, initPorcupine]);
 
   // Text-to-speech
@@ -267,11 +277,7 @@ const UnifiedCapture = () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({
-          message: cleanText,
-          user_id: user?.user_id,
-          action: 'task'
-        })
+        body: JSON.stringify({ message: cleanText, user_id: user?.user_id, action: 'task' })
       });
       
       if (!response.ok) throw new Error('AI error');
@@ -306,7 +312,7 @@ const UnifiedCapture = () => {
     setError(null);
     setAiResponse(null);
     
-    // Pause Porcupine while capturing voice
+    // Pause Porcupine
     if (webVpRef.current && porcupineRef.current) {
       try {
         await webVpRef.current.unsubscribe(porcupineRef.current);
@@ -315,7 +321,7 @@ const UnifiedCapture = () => {
     }
     
     if (!SpeechRecognition) {
-      setError("La reconnaissance vocale n'est pas supportée. Utilisez Chrome.");
+      setError("Utilisez Chrome pour la reconnaissance vocale");
       setStatus('error');
       return;
     }
@@ -326,7 +332,6 @@ const UnifiedCapture = () => {
     recognition.lang = 'fr-FR';
     
     recognition.onstart = () => {
-      console.log('Voice capture started');
       setIsListening(true);
       setStatus('idle');
     };
@@ -337,29 +342,23 @@ const UnifiedCapture = () => {
       
       for (let i = event.resultIndex; i < event.results.length; i++) {
         const text = event.results[i][0].transcript;
-        if (event.results[i].isFinal) {
-          final += text;
-        } else {
-          interim += text;
-        }
+        if (event.results[i].isFinal) final += text;
+        else interim += text;
       }
       
       if (final) {
         setTranscript(prev => {
           const newTranscript = (prev + ' ' + final).trim();
-          
           if (checkStopCommand(final)) {
             setTimeout(() => {
               recognition.stop();
               processVoiceInput(newTranscript);
             }, 300);
           }
-          
           return newTranscript;
         });
         
         if (silenceTimeoutRef.current) clearTimeout(silenceTimeoutRef.current);
-        
         silenceTimeoutRef.current = setTimeout(() => {
           if (recognitionRef.current) {
             recognitionRef.current.stop();
@@ -375,7 +374,6 @@ const UnifiedCapture = () => {
     };
     
     recognition.onerror = (event) => {
-      console.error('Speech recognition error:', event.error);
       if (event.error === 'not-allowed') {
         setMicPermissionStatus('denied');
         setError("Microphone refusé");
@@ -384,27 +382,20 @@ const UnifiedCapture = () => {
       setIsListening(false);
     };
     
-    recognition.onend = () => {
-      console.log('Voice capture ended');
-      setIsListening(false);
-    };
-    
+    recognition.onend = () => setIsListening(false);
     recognitionRef.current = recognition;
     
     try {
       recognition.start();
     } catch (e) {
-      console.error('Error starting recognition:', e);
-      setError("Impossible de démarrer la reconnaissance vocale");
+      setError("Impossible de démarrer la reconnaissance");
     }
   }, [checkStopCommand, processVoiceInput]);
 
   // Close handler
   const handleClose = useCallback(() => {
     cleanupPorcupine();
-    if (recognitionRef.current) {
-      try { recognitionRef.current.abort(); } catch(e) {}
-    }
+    if (recognitionRef.current) try { recognitionRef.current.abort(); } catch(e) {}
     navigate(-1);
   }, [cleanupPorcupine, navigate]);
 
@@ -432,15 +423,12 @@ const UnifiedCapture = () => {
       
       setStatus('success');
       setTimeout(() => navigate('/'), 1500);
-      
     } catch (err) {
-      console.error('Capture error:', err);
       setStatus('error');
       setTimeout(() => setStatus('idle'), 2000);
     }
   };
 
-  // Handle text key press
   const handleKeyPress = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -448,11 +436,8 @@ const UnifiedCapture = () => {
     }
   };
 
-  // Switch to voice mode manually
+  // Switch to voice mode
   const switchToVoice = useCallback(async () => {
-    console.log('Switching to voice mode');
-    
-    // Check mic permission first
     if (micPermissionStatus !== 'granted') {
       const granted = await checkAndRequestMicPermission();
       if (!granted) {
@@ -461,7 +446,6 @@ const UnifiedCapture = () => {
       }
     }
     
-    // Pause Porcupine
     if (webVpRef.current && porcupineRef.current) {
       try {
         await webVpRef.current.unsubscribe(porcupineRef.current);
@@ -476,10 +460,7 @@ const UnifiedCapture = () => {
 
   // Switch to text mode
   const switchToText = useCallback(async () => {
-    console.log('Switching to text mode');
-    if (recognitionRef.current) {
-      try { recognitionRef.current.abort(); } catch(e) {}
-    }
+    if (recognitionRef.current) try { recognitionRef.current.abort(); } catch(e) {}
     setMode('text');
     setTranscript('');
     setInterimTranscript('');
@@ -491,34 +472,27 @@ const UnifiedCapture = () => {
     setTimeout(async () => {
       inputRef.current?.focus();
       // Restart Porcupine
-      if (micPermissionStatus === 'granted' && porcupineRef.current) {
-        try {
-          const { WebVoiceProcessor } = await import('@picovoice/web-voice-processor');
-          await WebVoiceProcessor.subscribe(porcupineRef.current);
-          webVpRef.current = WebVoiceProcessor;
-          setPorcupineStatus('listening');
-        } catch(e) {
-          console.log('Could not restart Porcupine:', e);
-        }
+      if (micPermissionStatus === 'granted') {
+        await initPorcupine();
       }
     }, 100);
-  }, [micPermissionStatus]);
+  }, [micPermissionStatus, initPorcupine]);
 
   // Get status text
   const getStatusText = () => {
     if (micPermissionStatus !== 'granted') {
-      return { text: 'Autorisez le micro pour "Hey Assistant"', color: 'amber' };
+      return { text: 'Autorisez le micro pour "Hey Google"', color: 'amber' };
     }
     if (porcupineStatus === 'listening') {
-      return { text: '🎤 Écoute active - Dis "Hey Assistant"', color: 'green' };
+      return { text: '🎤 Dites "Hey Google" pour activer', color: 'green' };
     }
     if (porcupineStatus === 'initializing') {
-      return { text: 'Initialisation...', color: 'blue' };
+      return { text: 'Initialisation Porcupine...', color: 'blue' };
     }
     if (porcupineStatus === 'error') {
-      return { text: 'Erreur Porcupine - Cliquez sur Voix', color: 'red' };
+      return { text: 'Erreur - Cliquez sur Voix', color: 'red' };
     }
-    return { text: 'Cliquez sur Voix pour activer', color: 'gray' };
+    return { text: 'Cliquez sur Voix', color: 'gray' };
   };
 
   const statusInfo = getStatusText();
@@ -530,7 +504,6 @@ const UnifiedCapture = () => {
       exit={{ opacity: 0 }}
       className="fixed inset-0 z-50 flex items-center justify-center"
     >
-      {/* Backdrop */}
       <div 
         className={`absolute inset-0 backdrop-blur-xl transition-colors duration-500 ${
           mode === 'voice' ? 'bg-neutral-950/95' : 'bg-neutral-900/90'
@@ -538,7 +511,7 @@ const UnifiedCapture = () => {
         onClick={status === 'idle' && mode === 'text' && !showMicPermission ? handleClose : undefined}
       />
 
-      {/* Microphone Permission Popup */}
+      {/* Mic Permission Popup */}
       <AnimatePresence>
         {showMicPermission && (
           <motion.div
@@ -551,48 +524,29 @@ const UnifiedCapture = () => {
               <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary-500/20 flex items-center justify-center">
                 <Mic className="w-8 h-8 text-primary-400" />
               </div>
-              
-              <h2 className="text-xl font-bold text-white mb-2">
-                Autoriser le microphone
-              </h2>
-              
+              <h2 className="text-xl font-bold text-white mb-2">Autoriser le microphone</h2>
               <p className="text-neutral-400 mb-6">
-                Pour utiliser l'assistant vocal et dire "Hey Assistant", nous avons besoin d'accéder à votre microphone.
+                Dites "Hey Google" pour activer l'assistant vocal.
               </p>
-              
               <div className="bg-neutral-700/50 rounded-xl p-4 mb-6 text-left">
                 <div className="flex items-start gap-3">
                   <Shield className="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" />
-                  <div>
-                    <p className="text-sm text-white font-medium">Votre vie privée est protégée</p>
-                    <p className="text-xs text-neutral-400 mt-1">
-                      L'audio est traité localement avec Porcupine. Rien n'est envoyé à un serveur.
-                    </p>
-                  </div>
-                </div>
-              </div>
-              
-              {micPermissionStatus === 'denied' && (
-                <div className="bg-red-500/20 border border-red-500/50 rounded-xl p-3 mb-4">
-                  <p className="text-red-300 text-sm">
-                    Accès refusé. Cliquez sur l'icône 🔒 dans la barre d'adresse.
+                  <p className="text-sm text-neutral-300">
+                    L'audio est traité localement. Rien n'est envoyé au serveur.
                   </p>
                 </div>
+              </div>
+              {micPermissionStatus === 'denied' && (
+                <div className="bg-red-500/20 border border-red-500/50 rounded-xl p-3 mb-4">
+                  <p className="text-red-300 text-sm">Cliquez sur 🔒 dans la barre d'adresse.</p>
+                </div>
               )}
-              
               <div className="flex gap-3">
-                <button
-                  onClick={() => setShowMicPermission(false)}
-                  className="flex-1 px-4 py-3 bg-neutral-700 hover:bg-neutral-600 text-white rounded-xl font-medium transition-colors"
-                >
+                <button onClick={() => setShowMicPermission(false)} className="flex-1 px-4 py-3 bg-neutral-700 hover:bg-neutral-600 text-white rounded-xl font-medium">
                   Plus tard
                 </button>
-                <button
-                  onClick={onPermissionGranted}
-                  className="flex-1 px-4 py-3 bg-primary-500 hover:bg-primary-600 text-white rounded-xl font-medium transition-colors flex items-center justify-center gap-2"
-                >
-                  <Mic className="w-5 h-5" />
-                  Autoriser
+                <button onClick={onPermissionGranted} className="flex-1 px-4 py-3 bg-primary-500 hover:bg-primary-600 text-white rounded-xl font-medium flex items-center justify-center gap-2">
+                  <Mic className="w-5 h-5" /> Autoriser
                 </button>
               </div>
             </div>
@@ -600,18 +554,13 @@ const UnifiedCapture = () => {
         )}
       </AnimatePresence>
       
-      {/* Wake Word Status Indicator */}
+      {/* Status Indicator */}
       <AnimatePresence>
         {mode === 'text' && !wakeWordActive && !showMicPermission && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="absolute top-6 left-1/2 -translate-x-1/2 z-20"
-          >
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="absolute top-6 left-1/2 -translate-x-1/2 z-20">
             <button
               onClick={() => micPermissionStatus !== 'granted' ? setShowMicPermission(true) : null}
-              className={`flex items-center gap-2 px-4 py-2 rounded-full border transition-colors cursor-pointer ${
+              className={`flex items-center gap-2 px-4 py-2 rounded-full border transition-colors ${
                 statusInfo.color === 'green' ? 'bg-green-500/20 border-green-500/30' :
                 statusInfo.color === 'amber' ? 'bg-amber-500/20 border-amber-500/30' :
                 statusInfo.color === 'red' ? 'bg-red-500/20 border-red-500/30' :
@@ -639,220 +588,95 @@ const UnifiedCapture = () => {
       </AnimatePresence>
 
       {/* Content */}
-      <motion.div
-        initial={{ scale: 0.95, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        className={`relative z-10 w-full max-w-2xl px-6 ${showMicPermission ? 'opacity-30 pointer-events-none' : ''}`}
-      >
-        {/* Close button */}
-        <button
-          onClick={handleClose}
-          className="absolute -top-12 right-0 p-2 rounded-full bg-neutral-800 hover:bg-neutral-700 transition-colors"
-          data-testid="close-capture-btn"
-        >
+      <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className={`relative z-10 w-full max-w-2xl px-6 ${showMicPermission ? 'opacity-30 pointer-events-none' : ''}`}>
+        <button onClick={handleClose} className="absolute -top-12 right-0 p-2 rounded-full bg-neutral-800 hover:bg-neutral-700" data-testid="close-capture-btn">
           <X className="w-5 h-5 text-neutral-400" />
         </button>
 
-        {/* Mode Toggle */}
         <div className="flex justify-center gap-2 mb-6">
-          <button
-            onClick={switchToText}
-            data-testid="text-mode-btn"
-            className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all ${
-              mode === 'text' 
-                ? 'bg-primary-500 text-white' 
-                : 'bg-neutral-800 text-neutral-400 hover:bg-neutral-700'
-            }`}
-          >
-            <Keyboard className="w-4 h-4" />
-            <span className="text-sm font-medium">Texte</span>
+          <button onClick={switchToText} data-testid="text-mode-btn" className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all ${mode === 'text' ? 'bg-primary-500 text-white' : 'bg-neutral-800 text-neutral-400 hover:bg-neutral-700'}`}>
+            <Keyboard className="w-4 h-4" /><span className="text-sm font-medium">Texte</span>
           </button>
-          <button
-            onClick={switchToVoice}
-            data-testid="voice-mode-btn"
-            className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all ${
-              mode === 'voice' 
-                ? 'bg-primary-500 text-white' 
-                : 'bg-neutral-800 text-neutral-400 hover:bg-neutral-700'
-            }`}
-          >
-            <Mic className="w-4 h-4" />
-            <span className="text-sm font-medium">Voix</span>
+          <button onClick={switchToVoice} data-testid="voice-mode-btn" className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all ${mode === 'voice' ? 'bg-primary-500 text-white' : 'bg-neutral-800 text-neutral-400 hover:bg-neutral-700'}`}>
+            <Mic className="w-4 h-4" /><span className="text-sm font-medium">Voix</span>
           </button>
         </div>
 
-        {/* TEXT MODE */}
         <AnimatePresence mode="wait">
           {mode === 'text' && (
-            <motion.div
-              key="text-mode"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-            >
+            <motion.div key="text-mode" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}>
               {status === 'processing' && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="text-center py-12"
-                >
-                  <motion.div
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
-                    className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-primary-500/20 flex items-center justify-center"
-                  >
+                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center py-12">
+                  <motion.div animate={{ rotate: 360 }} transition={{ duration: 2, repeat: Infinity, ease: 'linear' }} className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-primary-500/20 flex items-center justify-center">
                     <Brain className="w-8 h-8 text-primary-400" />
                   </motion.div>
-                  <h3 className="text-xl font-semibold text-white mb-2">Analyse en cours...</h3>
+                  <h3 className="text-xl font-semibold text-white">Analyse en cours...</h3>
                 </motion.div>
               )}
-
               {status === 'success' && result && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="text-center py-12"
-                >
-                  <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ type: 'spring', damping: 10 }}
-                    className="w-16 h-16 mx-auto mb-6 rounded-full bg-accent-500 flex items-center justify-center"
-                  >
+                <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="text-center py-12">
+                  <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', damping: 10 }} className="w-16 h-16 mx-auto mb-6 rounded-full bg-accent-500 flex items-center justify-center">
                     <CheckCircle className="w-8 h-8 text-white" />
                   </motion.div>
                   <h3 className="text-2xl font-bold text-white mb-4">Capturé !</h3>
-                  
                   <div className="bg-neutral-800 rounded-xl p-4 max-w-md mx-auto text-left">
                     <p className="text-white font-medium mb-3">{result.text}</p>
-                    <div className="flex flex-wrap gap-2">
-                      <span className="px-2 py-1 rounded-full text-xs bg-neutral-700 text-neutral-300">
-                        Q{result.quadrant}
-                      </span>
-                      <span className={`px-2 py-1 rounded-full text-xs ${
-                        result.energy_required === 'high' ? 'bg-red-900/50 text-red-300' :
-                        result.energy_required === 'low' ? 'bg-green-900/50 text-green-300' :
-                        'bg-amber-900/50 text-amber-300'
-                      }`}>
-                        {result.energy_required === 'high' ? 'Deep Work' :
-                         result.energy_required === 'low' ? 'Repos' : 'Focus'}
-                      </span>
-                    </div>
                   </div>
                 </motion.div>
               )}
-
               {status === 'error' && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="text-center py-12"
-                >
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-12">
                   <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-red-500/20 flex items-center justify-center">
                     <AlertCircle className="w-8 h-8 text-red-400" />
                   </div>
-                  <h3 className="text-xl font-semibold text-white mb-2">Erreur</h3>
-                  <p className="text-neutral-400">Réessaie dans un instant</p>
+                  <h3 className="text-xl font-semibold text-white">Erreur</h3>
                 </motion.div>
               )}
-
               {status === 'idle' && (
                 <>
-                  <textarea
-                    ref={inputRef}
-                    value={inputText}
-                    onChange={(e) => setInputText(e.target.value)}
-                    onKeyPress={handleKeyPress}
-                    placeholder={placeholder}
-                    className="w-full bg-transparent text-white text-3xl md:text-4xl font-light text-center placeholder-neutral-600 resize-none focus:outline-none leading-relaxed"
-                    rows={3}
-                    autoFocus
-                    maxLength={500}
-                    data-testid="capture-input"
-                  />
-                  
+                  <textarea ref={inputRef} value={inputText} onChange={(e) => setInputText(e.target.value)} onKeyPress={handleKeyPress} placeholder={placeholder} className="w-full bg-transparent text-white text-3xl md:text-4xl font-light text-center placeholder-neutral-600 resize-none focus:outline-none leading-relaxed" rows={3} autoFocus maxLength={500} data-testid="capture-input" />
                   <div className="mt-8 text-center space-y-2">
-                    <p className="text-neutral-500 text-sm">
-                      Entrée pour capturer • Échap pour annuler
-                    </p>
+                    <p className="text-neutral-500 text-sm">Entrée pour capturer • Échap pour annuler</p>
                     {inputText.length > 10 && (
-                      <motion.p
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="text-primary-400 text-sm flex items-center justify-center gap-2"
-                      >
-                        <Sparkles className="w-4 h-4" />
-                        L'IA va analyser : priorité, énergie, durée
+                      <motion.p initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="text-primary-400 text-sm flex items-center justify-center gap-2">
+                        <Sparkles className="w-4 h-4" /> L'IA va analyser
                       </motion.p>
                     )}
-                    <p className="text-neutral-600 text-xs">{inputText.length}/500</p>
                   </div>
                 </>
               )}
             </motion.div>
           )}
 
-          {/* VOICE MODE */}
           {mode === 'voice' && (
-            <motion.div
-              key="voice-mode"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              className="text-center"
-            >
+            <motion.div key="voice-mode" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="text-center">
               <h1 className="text-2xl md:text-3xl font-bold text-white mb-2">
                 {isListening && "Je t'écoute..."}
                 {status === 'processing' && "L'IA réfléchit..."}
-                {status === 'success' && (aiResponse?.task_created ? "Tâche créée !" : "Compris !")}
+                {status === 'success' && "Compris !"}
                 {status === 'error' && "Oups..."}
                 {!isListening && status === 'idle' && "Prêt à écouter"}
               </h1>
               
               {isSpeaking && (
                 <div className="flex items-center justify-center gap-2 text-primary-400 mb-4">
-                  <Volume2 className="w-4 h-4 animate-pulse" />
-                  <span className="text-sm">L'assistant parle...</span>
+                  <Volume2 className="w-4 h-4 animate-pulse" /><span className="text-sm">L'assistant parle...</span>
                 </div>
               )}
 
-              {/* Mic Animation */}
               <div className="relative my-8 mx-auto w-fit">
-                <motion.div
-                  animate={isListening ? { scale: [1, 1.1, 1] } : { scale: 1 }}
-                  transition={{ repeat: isListening ? Infinity : 0, duration: 1.5 }}
-                  className={`w-28 h-28 rounded-full flex items-center justify-center transition-colors duration-500 ${
-                    status === 'success' ? 'bg-accent-500' :
-                    status === 'error' ? 'bg-red-500' :
-                    status === 'processing' ? 'bg-purple-500' :
-                    isListening ? 'bg-primary-500' : 'bg-neutral-700'
-                  }`}
-                >
-                  {status === 'success' ? (
-                    <CheckCircle className="w-12 h-12 text-white" />
-                  ) : status === 'error' ? (
-                    <AlertCircle className="w-12 h-12 text-white" />
-                  ) : status === 'processing' ? (
-                    <Loader2 className="w-12 h-12 text-white animate-spin" />
-                  ) : isListening ? (
-                    <Mic className="w-12 h-12 text-white" />
-                  ) : (
-                    <MicOff className="w-12 h-12 text-white" />
-                  )}
+                <motion.div animate={isListening ? { scale: [1, 1.1, 1] } : { scale: 1 }} transition={{ repeat: isListening ? Infinity : 0, duration: 1.5 }} className={`w-28 h-28 rounded-full flex items-center justify-center transition-colors duration-500 ${
+                  status === 'success' ? 'bg-accent-500' : status === 'error' ? 'bg-red-500' : status === 'processing' ? 'bg-purple-500' : isListening ? 'bg-primary-500' : 'bg-neutral-700'
+                }`}>
+                  {status === 'success' ? <CheckCircle className="w-12 h-12 text-white" /> :
+                   status === 'error' ? <AlertCircle className="w-12 h-12 text-white" /> :
+                   status === 'processing' ? <Loader2 className="w-12 h-12 text-white animate-spin" /> :
+                   isListening ? <Mic className="w-12 h-12 text-white" /> : <MicOff className="w-12 h-12 text-white" />}
                 </motion.div>
-
                 {isListening && (
                   <>
-                    <motion.div
-                      animate={{ scale: [1, 1.8], opacity: [0.6, 0] }}
-                      transition={{ repeat: Infinity, duration: 1.5 }}
-                      className="absolute inset-0 rounded-full border-2 border-primary-500"
-                    />
-                    <motion.div
-                      animate={{ scale: [1, 2.2], opacity: [0.4, 0] }}
-                      transition={{ repeat: Infinity, duration: 1.5, delay: 0.3 }}
-                      className="absolute inset-0 rounded-full border-2 border-primary-500"
-                    />
+                    <motion.div animate={{ scale: [1, 1.8], opacity: [0.6, 0] }} transition={{ repeat: Infinity, duration: 1.5 }} className="absolute inset-0 rounded-full border-2 border-primary-500" />
+                    <motion.div animate={{ scale: [1, 2.2], opacity: [0.4, 0] }} transition={{ repeat: Infinity, duration: 1.5, delay: 0.3 }} className="absolute inset-0 rounded-full border-2 border-primary-500" />
                   </>
                 )}
               </div>
@@ -860,12 +684,7 @@ const UnifiedCapture = () => {
               {isListening && (
                 <div className="flex items-end justify-center gap-1 h-12 mb-6">
                   {[...Array(20)].map((_, i) => (
-                    <motion.div
-                      key={i}
-                      animate={{ height: [8, Math.random() * 40 + 8, 8] }}
-                      transition={{ repeat: Infinity, duration: 0.4 + Math.random() * 0.4, delay: i * 0.03 }}
-                      className="w-1 bg-gradient-to-t from-primary-500 to-primary-300 rounded-full"
-                    />
+                    <motion.div key={i} animate={{ height: [8, Math.random() * 40 + 8, 8] }} transition={{ repeat: Infinity, duration: 0.4 + Math.random() * 0.4, delay: i * 0.03 }} className="w-1 bg-gradient-to-t from-primary-500 to-primary-300 rounded-full" />
                   ))}
                 </div>
               )}
@@ -873,86 +692,39 @@ const UnifiedCapture = () => {
               <div className="min-h-[80px] mb-4">
                 {(transcript || interimTranscript) && status !== 'success' && (
                   <div className="bg-white/5 rounded-2xl p-4 backdrop-blur-sm border border-white/10">
-                    <p className="text-lg text-white">
-                      {transcript}
-                      <span className="text-neutral-400">{interimTranscript}</span>
-                    </p>
+                    <p className="text-lg text-white">{transcript}<span className="text-neutral-400">{interimTranscript}</span></p>
                   </div>
                 )}
-                
                 {aiResponse && status === 'success' && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                  >
+                  <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
                     <div className="bg-white/10 rounded-2xl p-4 border border-white/20">
-                      <p className="text-sm text-accent-300 mb-1 flex items-center gap-2">
-                        <Sparkles className="w-4 h-4" />
-                        Assistant :
-                      </p>
                       <p className="text-white">{aiResponse.message}</p>
                     </div>
                   </motion.div>
                 )}
-                
-                {!transcript && !interimTranscript && isListening && (
-                  <p className="text-neutral-500">Parle librement ou dis "Terminé"</p>
-                )}
+                {!transcript && !interimTranscript && isListening && <p className="text-neutral-500">Parle librement ou dis "Terminé"</p>}
               </div>
 
-              {error && (
-                <div className="bg-red-500/20 border border-red-500/50 rounded-xl p-3 mb-4">
-                  <p className="text-red-300 text-sm">{error}</p>
-                </div>
-              )}
+              {error && <div className="bg-red-500/20 border border-red-500/50 rounded-xl p-3 mb-4"><p className="text-red-300 text-sm">{error}</p></div>}
 
               <div className="flex gap-3 justify-center">
                 {isListening && (
-                  <button
-                    onClick={() => {
-                      if (recognitionRef.current) recognitionRef.current.stop();
-                      processVoiceInput(transcript);
-                    }}
-                    className="px-6 py-3 bg-gradient-to-r from-primary-500 to-purple-500 text-white rounded-xl font-medium flex items-center gap-2"
-                    data-testid="send-voice-btn"
-                  >
-                    <Sparkles className="w-5 h-5" />
-                    Envoyer
+                  <button onClick={() => { if (recognitionRef.current) recognitionRef.current.stop(); processVoiceInput(transcript); }} className="px-6 py-3 bg-gradient-to-r from-primary-500 to-purple-500 text-white rounded-xl font-medium flex items-center gap-2" data-testid="send-voice-btn">
+                    <Sparkles className="w-5 h-5" /> Envoyer
                   </button>
                 )}
-                
                 {!isListening && status === 'idle' && (
-                  <button
-                    onClick={startVoiceCapture}
-                    className="px-6 py-3 bg-primary-500 hover:bg-primary-600 text-white rounded-xl font-medium flex items-center gap-2"
-                    data-testid="start-voice-btn"
-                  >
-                    <Mic className="w-5 h-5" />
-                    Commencer
+                  <button onClick={startVoiceCapture} className="px-6 py-3 bg-primary-500 hover:bg-primary-600 text-white rounded-xl font-medium flex items-center gap-2" data-testid="start-voice-btn">
+                    <Mic className="w-5 h-5" /> Commencer
                   </button>
                 )}
-                
                 {status === 'success' && (
-                  <button
-                    onClick={() => {
-                      setStatus('idle');
-                      setTranscript('');
-                      setAiResponse(null);
-                      startVoiceCapture();
-                    }}
-                    className="px-6 py-3 bg-primary-500 hover:bg-primary-600 text-white rounded-xl font-medium flex items-center gap-2"
-                    data-testid="new-capture-btn"
-                  >
-                    <Mic className="w-5 h-5" />
-                    Nouvelle capture
+                  <button onClick={() => { setStatus('idle'); setTranscript(''); setAiResponse(null); startVoiceCapture(); }} className="px-6 py-3 bg-primary-500 hover:bg-primary-600 text-white rounded-xl font-medium flex items-center gap-2" data-testid="new-capture-btn">
+                    <Mic className="w-5 h-5" /> Nouvelle capture
                   </button>
                 )}
               </div>
-
-              <p className="text-neutral-600 text-sm mt-6">
-                {isListening && 'Dis "Terminé" ou attends 3 secondes'}
-                {status === 'processing' && 'Analyse en cours...'}
-              </p>
+              <p className="text-neutral-600 text-sm mt-6">{isListening && 'Dis "Terminé" ou attends 3 secondes'}</p>
             </motion.div>
           )}
         </AnimatePresence>
