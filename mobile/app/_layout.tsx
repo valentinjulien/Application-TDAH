@@ -16,6 +16,9 @@ export default function RootLayout() {
   
   // Initialize notifications
   const { expoPushToken } = useNotifications();
+  
+  // Initialize quick actions (home screen shortcuts)
+  useQuickActions();
 
   useEffect(() => {
     // Check for existing session
