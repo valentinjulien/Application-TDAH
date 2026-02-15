@@ -180,4 +180,4 @@ daily_logs, pomodoro_sessions, moods
 - [ ] Statistiques graphiques avancées
 
 ---
-*Dernière mise à jour: 15 Février 2026 - Time-Blocking Intelligent*
+*Dernière mise à jour: 15 Février 2026 - Ghost UI Capture + Time-Blocking*
