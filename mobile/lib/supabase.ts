@@ -32,6 +32,12 @@ export interface Task {
   due_date?: string;
   source?: string;
   steps?: TaskStep[]; // JSONB column for micro-planning
+  // Time-Blocking fields
+  estimated_total_minutes?: number;
+  energy_required?: 'low' | 'medium' | 'high';
+  scheduled_at?: string;
+  calendar_event_id?: string;
+  hidden_subtasks?: string[];
 }
 
 export interface Mood {
