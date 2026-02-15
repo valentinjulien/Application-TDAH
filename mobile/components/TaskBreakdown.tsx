@@ -49,6 +49,9 @@ export default function TaskBreakdown({ task, steps, onStepsUpdate, onComplete }
   }, [progress, totalCount]);
 
   const triggerCelebration = async () => {
+    // Show confetti
+    setShowConfetti(true);
+    
     // Haptic feedback pattern
     if (Platform.OS === 'ios') {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -59,10 +62,10 @@ export default function TaskBreakdown({ task, steps, onStepsUpdate, onComplete }
       Vibration.vibrate([0, 50, 30, 50, 30, 100]);
     }
 
-    // Mark task as complete
+    // Mark task as complete after celebration
     setTimeout(() => {
       onComplete();
-    }, 1500);
+    }, 2000);
   };
 
   const handleToggleStep = useCallback(async (stepId: number) => {
