@@ -72,3 +72,49 @@ CREATE POLICY "Users can insert their own sessions" ON pomodoro_sessions
 
 -- Activer les mises à jour en temps réel pour la table tasks
 ALTER PUBLICATION supabase_realtime ADD TABLE tasks;
+
+-- ============================================
+-- Table des journaux quotidiens (Gazette + Revue)
+-- ============================================
+CREATE TABLE IF NOT EXISTS daily_logs (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  date DATE NOT NULL DEFAULT CURRENT_DATE,
+  type TEXT NOT NULL CHECK (type IN ('morning_gazette', 'evening_review')),
+  content JSONB NOT NULL DEFAULT '{}',
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  
+  -- Un seul log par type par jour par utilisateur
+  UNIQUE(user_id, date, type)
+);
+
+-- Index pour les recherches
+CREATE INDEX IF NOT EXISTS idx_daily_logs_user_date ON daily_logs(user_id, date);
+CREATE INDEX IF NOT EXISTS idx_daily_logs_type ON daily_logs(user_id, type);
+
+-- Row Level Security
+ALTER TABLE daily_logs ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view their own logs" ON daily_logs
+  FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert their own logs" ON daily_logs
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update their own logs" ON daily_logs
+  FOR UPDATE USING (auth.uid() = user_id);
+
+-- ============================================
+-- Vue pour les statistiques de la semaine
+-- ============================================
+CREATE OR REPLACE VIEW weekly_progress AS
+SELECT 
+  user_id,
+  date,
+  type,
+  content->>'celebration' as celebration,
+  content->'victoire_du_jour'->>'titre' as victoire_du_jour,
+  (content->>'tasks_created')::int as tasks_created
+FROM daily_logs
+WHERE date >= CURRENT_DATE - INTERVAL '7 days';
+
