@@ -56,9 +56,9 @@ const Navigation = () => {
             </div>
             <div>
               <h1 className="font-display font-bold text-neutral-900 dark:text-white">
-                TDAH
+                Assistant
               </h1>
-              <p className="text-xs text-neutral-500">Companion</p>
+              <p className="text-xs text-neutral-500">TDAH</p>
             </div>
           </Link>
         </div>

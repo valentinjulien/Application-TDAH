@@ -166,7 +166,7 @@ const Dashboard = () => {
               </div>
               <div>
                 <h2 className="font-display font-semibold text-neutral-900 dark:text-white">
-                  Quick Capture
+                  Capture Rapide
                 </h2>
                 <p className="text-sm text-neutral-500">
                   Tape ce qui te passe par la tête, l'IA organise pour toi
