@@ -57,7 +57,7 @@ export interface DailyLog {
   id: string;
   user_id: string;
   date: string;
-  type: 'morning_gazette' | 'evening_review';
+  type: 'morning_gazette' | 'evening_review' | 'focus_session';
   content: {
     // Morning Gazette
     victoire_du_jour?: {
@@ -73,6 +73,9 @@ export interface DailyLog {
     notes_journal?: string;
     celebration?: string;
     tasks_created?: number;
+    // Focus Session
+    focus_completed?: boolean;
+    duration_minutes?: number;
   };
   created_at: string;
 }
