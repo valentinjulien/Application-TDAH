@@ -15,7 +15,7 @@ import { supabase, Task, getTasks, updateTask } from '../../lib/supabase';
 import { Colors, Spacing, BorderRadius, FontSizes, TouchTargets } from '../../constants/theme';
 import TaskCard from '../../components/TaskCard';
 import QuickCaptureButton from '../../components/QuickCaptureButton';
-import PomodoroTimer from '../../components/PomodoroTimer';
+import DeepFocus from '../../components/DeepFocus';
 
 const QUADRANTS = [
   { id: 1, title: 'Urgent & Important', subtitle: 'À faire maintenant', color: Colors.quadrant.urgent, emoji: '🔥' },
