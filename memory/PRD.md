@@ -12,6 +12,36 @@ Un sanctuaire numérique bienveillant qui protège l'attention des personnes TDA
 
 ### ✅ Fonctionnalités Implémentées
 
+#### 🎨 Améliorations UX/UI TDAH-Friendly (15 Février 2026)
+
+**1. FocusStatsBanner (Nouveau composant)**
+- Bannière expandable sur l'écran d'accueil
+- Affichage du streak (🔥 jours consécutifs)
+- Messages d'encouragement personnalisés
+- Statistiques : sessions, minutes, distractions
+- Bouton rapide "Démarrer une session"
+
+**2. EnergyIndicator (Nouveau composant)**
+- Visualisation dynamique du niveau d'énergie
+- 3 barres animées (style signal WiFi)
+- Version badge compacte pour les cartes
+- Animation pulse pour les tâches "high energy"
+
+**3. TaskCard améliorée**
+- En-tête avec badge quadrant + indicateur énergie
+- Labels quadrant explicites (🔥 Urgent, ⭐ Important, etc.)
+- Barre de progression animée pour les sous-étapes
+- Animation de highlight pulsante pour la tâche courante
+- Animation de satisfaction au clic "Terminé"
+
+**4. Ghost UI Capture améliorée**
+- Indicateur IA pendant le traitement
+- Preview des fonctionnalités d'analyse
+- Message "L'IA va analyser : priorité, énergie, durée"
+- Animation de traitement avec détails
+
+---
+
 #### 🆕 Ghost UI - Capture Ultra-Rapide (15 Février 2026)
 
 **Route `/capture` - Interface minimaliste zéro-friction**
