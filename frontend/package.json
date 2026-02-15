@@ -6,6 +6,7 @@
   "dependencies": {
     "@heroicons/react": "^2.2.0",
     "@picovoice/porcupine-react": "^4.0.0",
+    "@picovoice/porcupine-web": "^4.0.0",
     "@picovoice/web-voice-processor": "^4.0.9",
     "@reduxjs/toolkit": "^1.9.5",
     "@supabase/supabase-js": "^2.93.1",
