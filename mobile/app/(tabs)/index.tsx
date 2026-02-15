@@ -122,6 +122,7 @@ export default function NowScreen() {
               <TaskCard
                 task={currentTask}
                 onComplete={handleCompleteTask}
+                onUpdate={fetchTasks}
                 isHighlighted
               />
               {incompleteTasks.length > 1 && (
