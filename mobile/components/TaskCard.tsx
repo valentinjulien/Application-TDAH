@@ -367,13 +367,51 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.neutral[800],
     gap: Spacing.md,
+    overflow: 'hidden',
   },
   highlightedContainer: {
     borderColor: Colors.primary[500],
     borderWidth: 2,
+    shadowColor: Colors.primary[500],
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  highlightBorder: {
+    position: 'absolute',
+    top: -2,
+    left: -2,
+    right: -2,
+    bottom: -2,
+    borderRadius: BorderRadius.lg + 2,
+    borderWidth: 2,
+    zIndex: -1,
   },
   completedContainer: {
     opacity: 0.6,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  quadrantBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.xs,
+    borderRadius: BorderRadius.full,
+    gap: Spacing.xs,
+  },
+  quadrantDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  quadrantLabel: {
+    fontSize: FontSizes.xs,
+    fontWeight: '600',
   },
   quadrantBar: {
     height: 4,
@@ -397,6 +435,35 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: Spacing.sm,
     flexWrap: 'wrap',
+  },
+  metaBadge: {
+    backgroundColor: Colors.neutral[800],
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.xs,
+    borderRadius: BorderRadius.full,
+  },
+  metaBadgeText: {
+    fontSize: FontSizes.xs,
+    color: Colors.neutral[300],
+    fontWeight: '500',
+  },
+  progressSection: {
+    marginTop: Spacing.xs,
+    gap: Spacing.xs,
+  },
+  progressBar: {
+    height: 6,
+    backgroundColor: Colors.neutral[800],
+    borderRadius: 3,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    borderRadius: 3,
+  },
+  progressText: {
+    fontSize: FontSizes.xs,
+    color: Colors.neutral[400],
   },
   priorityBadge: {
     paddingHorizontal: Spacing.sm,
