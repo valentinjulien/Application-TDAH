@@ -23,6 +23,7 @@ const EisenhowerMatrix = () => {
   const [decomposeModal, setDecomposeModal] = useState(null);
   const [microSteps, setMicroSteps] = useState([]);
   const [loadingSteps, setLoadingSteps] = useState(false);
+  const [timeBlockingTask, setTimeBlockingTask] = useState(null);
 
   const quadrants = [
     {
