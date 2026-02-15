@@ -31,9 +31,11 @@ export default function ProfileScreen() {
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [dailyReminderEnabled, setDailyReminderEnabled] = useState(false);
   const [scheduledCount, setScheduledCount] = useState(0);
+  const [weeklyLogs, setWeeklyLogs] = useState<DailyLog[]>([]);
   
   const router = useRouter();
   const { expoPushToken, error: notificationError } = useNotifications();
+  const { resetGazette, resetReview, morningWindow, eveningWindow } = useDailyTriggers();
 
   useEffect(() => {
     fetchUserData();
