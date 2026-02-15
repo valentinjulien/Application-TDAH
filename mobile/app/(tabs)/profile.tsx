@@ -65,6 +65,15 @@ export default function ProfileScreen() {
         completed,
         streak,
       });
+
+      // Fetch weekly logs
+      try {
+        const logs = await getDailyLogs(user.id, 7);
+        setWeeklyLogs(logs);
+      } catch (e) {
+        // Table might not exist yet
+        console.log('Daily logs not available');
+      }
     } catch (error) {
       console.error('Error fetching user data:', error);
     }
