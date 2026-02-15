@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Assistant TDAH</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="logo">
+        <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+          <circle cx="24" cy="24" r="22" fill="url(#gradient)" />
+          <path d="M24 14C18.48 14 14 18.48 14 24C14 29.52 18.48 34 24 34C29.52 34 34 29.52 34 24C34 18.48 29.52 14 24 14ZM24 20C25.66 20 27 21.34 27 23C27 24.66 25.66 26 24 26C22.34 26 21 24.66 21 23C21 21.34 22.34 20 24 20Z" fill="white"/>
+          <defs>
+            <linearGradient id="gradient" x1="0" y1="0" x2="48" y2="48">
+              <stop offset="0%" stop-color="#6366f1"/>
+              <stop offset="100%" stop-color="#8b5cf6"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+      <h1>Assistant TDAH</h1>
+      <p class="subtitle">Détection vocale en arrière-plan</p>
+    </div>
+
+    <div class="status-card" id="statusCard">
+      <div class="status-indicator" id="statusIndicator"></div>
+      <div class="status-text">
+        <span id="statusLabel">Initialisation...</span>
+        <span id="statusDescription">Veuillez patienter</span>
+      </div>
+    </div>
+
+    <div class="wake-word-info">
+      <div class="wake-word-icon">🎤</div>
+      <div class="wake-word-text">
+        <strong>Dites "Hey Assistant"</strong>
+        <span>L'application web s'ouvrira automatiquement</span>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button id="toggleBtn" class="btn btn-primary">
+        <span class="btn-icon">▶️</span>
+        <span class="btn-text">Démarrer l'écoute</span>
+      </button>
+      
+      <button id="openAppBtn" class="btn btn-secondary">
+        <span class="btn-icon">🌐</span>
+        <span class="btn-text">Ouvrir l'application</span>
+      </button>
+    </div>
+
+    <div class="info-section">
+      <h3>Comment ça marche ?</h3>
+      <ul>
+        <li>✅ L'application tourne en arrière-plan</li>
+        <li>✅ Écoute en permanence "Hey Assistant"</li>
+        <li>✅ Ouvre automatiquement l'assistant vocal</li>
+        <li>✅ Minimisez dans la barre système</li>
+      </ul>
+    </div>
+
+    <div class="footer">
+      <p>Fermez cette fenêtre - l'application reste active dans la barre système</p>
+    </div>
+  </div>
+
+  <script>
+    let isListening = false;
+
+    async function updateStatus() {
+      try {
+        const status = await window.electronAPI.getStatus();
+        isListening = status.isListening;
+        
+        const indicator = document.getElementById('statusIndicator');
+        const label = document.getElementById('statusLabel');
+        const description = document.getElementById('statusDescription');
+        const card = document.getElementById('statusCard');
+        const toggleBtn = document.getElementById('toggleBtn');
+        
+        if (isListening) {
+          indicator.className = 'status-indicator active';
+          label.textContent = 'Écoute active';
+          description.textContent = 'En attente de "Hey Assistant"';
+          card.className = 'status-card active';
+          toggleBtn.innerHTML = '<span class="btn-icon">⏸️</span><span class="btn-text">Arrêter l\'écoute</span>';
+        } else {
+          indicator.className = 'status-indicator inactive';
+          label.textContent = 'Écoute inactive';
+          description.textContent = 'Cliquez pour démarrer';
+          card.className = 'status-card inactive';
+          toggleBtn.innerHTML = '<span class="btn-icon">▶️</span><span class="btn-text">Démarrer l\'écoute</span>';
+        }
+      } catch (error) {
+        console.error('Failed to get status:', error);
+      }
+    }
+
+    document.getElementById('toggleBtn').addEventListener('click', async () => {
+      if (isListening) {
+        await window.electronAPI.stopListening();
+      } else {
+        await window.electronAPI.startListening();
+      }
+      updateStatus();
+    });
+
+    document.getElementById('openAppBtn').addEventListener('click', () => {
+      window.electronAPI.openWebApp();
+    });
+
+    // Update status every second
+    setInterval(updateStatus, 1000);
+    updateStatus();
+  </script>
+</body>
+</html>
