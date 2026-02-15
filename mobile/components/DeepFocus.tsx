@@ -267,7 +267,10 @@ export default function DeepFocus({ visible, onClose, userId, currentTaskText }:
             sound: true,
             priority: Notifications.AndroidNotificationPriority.HIGH,
           },
-          trigger: { seconds: 3 }, // Small delay for natural feel
+          trigger: { 
+            type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+            seconds: 3,
+          },
         });
         
         // Log interruption to Supabase
