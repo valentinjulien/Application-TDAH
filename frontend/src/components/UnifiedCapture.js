@@ -547,12 +547,12 @@ const UnifiedCapture = () => {
       return 'Autorisez le micro pour "Hey Assistant"';
     }
     if (wakeWordStatus === 'listening') {
-      return 'Dis "Hey Assistant" pour activer la voix';
+      return '🎤 Écoute active - Dis "Hey Assistant"';
     }
     if (wakeWordStatus === 'error') {
       return 'Cliquez sur Voix pour activer';
     }
-    return 'Initialisation...';
+    return 'Initialisation du micro...';
   };
 
   return (
