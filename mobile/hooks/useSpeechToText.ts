@@ -75,13 +75,6 @@ export function useSpeechToText(): UseSpeechToTextReturn {
       const transcribedText = await transcribeAudio(uri);
       setTranscript(transcribedText);
       setIsProcessing(false);
-      
-      // Clean up the file
-      try {
-        await FileSystem.deleteAsync(uri, { idempotent: true });
-      } catch (e) {
-        // Ignore cleanup errors
-      }
 
       return transcribedText;
     } catch (err) {
