@@ -289,6 +289,52 @@ export default function ProfileScreen() {
           </TouchableOpacity>
         </View>
 
+        {/* Daily Rituals Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>✨ Rituels Quotidiens</Text>
+          
+          <View style={styles.ritualsInfo}>
+            <Text style={styles.ritualsInfoText}>
+              {morningWindow ? '☀️ Fenêtre du matin active (7h-10h)' : 
+               eveningWindow ? '🌙 Fenêtre du soir active (21h-23h)' :
+               '💤 Hors des fenêtres de rituels'}
+            </Text>
+          </View>
+
+          <TouchableOpacity
+            style={styles.ritualButton}
+            activeOpacity={0.7}
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              resetGazette();
+              Alert.alert('✅ Réinitialisé', 'La Gazette du Matin sera affichée au prochain lancement (entre 7h et 10h).');
+            }}
+          >
+            <Text style={styles.ritualButtonText}>☀️  Revoir la Gazette du Matin</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.ritualButton}
+            activeOpacity={0.7}
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              resetReview();
+              Alert.alert('✅ Réinitialisé', 'La Revue du Soir sera affichée au prochain lancement (entre 21h et 23h).');
+            }}
+          >
+            <Text style={styles.ritualButtonText}>🌙  Revoir la Revue du Soir</Text>
+          </TouchableOpacity>
+
+          {weeklyLogs.length > 0 && (
+            <View style={styles.weeklyStats}>
+              <Text style={styles.weeklyStatsTitle}>📊 Cette semaine</Text>
+              <Text style={styles.weeklyStatsText}>
+                {weeklyLogs.filter(l => l.type === 'morning_gazette').length} Gazettes • {weeklyLogs.filter(l => l.type === 'evening_review').length} Revues
+              </Text>
+            </View>
+          )}
+        </View>
+
         {/* Logout Button */}
         <TouchableOpacity
           style={styles.logoutButton}
