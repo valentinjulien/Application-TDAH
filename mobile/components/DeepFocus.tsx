@@ -150,6 +150,13 @@ export default function DeepFocus({ visible, onClose, userId, currentTaskText }:
   const [soundVolume, setSoundVolume] = useState(0.5);
   const [showConfetti, setShowConfetti] = useState(false);
   const [exitWarningShown, setExitWarningShown] = useState(false);
+  
+  // Focus Protection State
+  const [interruptionCount, setInterruptionCount] = useState(0);
+  const [showWelcomeBack, setShowWelcomeBack] = useState(false);
+  const [welcomeBackMessage, setWelcomeBackMessage] = useState('');
+  const appStateRef = useRef<AppStateStatus>(AppState.currentState);
+  const lastBackgroundTimeRef = useRef<number | null>(null);
 
   // Audio
   const soundRef = useRef<Audio.Sound | null>(null);
@@ -159,6 +166,7 @@ export default function DeepFocus({ visible, onClose, userId, currentTaskText }:
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const glowAnim = useRef(new Animated.Value(0)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
+  const welcomeBackAnim = useRef(new Animated.Value(0)).current;
 
   // Timer
   const handleTimerComplete = useCallback(async () => {
