@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,10 +11,14 @@ import {
   Alert,
   Pressable,
   Switch,
+  ActivityIndicator,
+  Animated,
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { createTask } from '../lib/supabase';
 import { scheduleTaskReminder } from '../hooks/useNotifications';
+import useSpeechToText from '../hooks/useSpeechToText';
+import { breakdownTask } from '../services/aiService';
 import { Colors, Spacing, BorderRadius, FontSizes, TouchTargets } from '../constants/theme';
 
 interface QuickCaptureButtonProps {
@@ -36,6 +40,56 @@ export default function QuickCaptureButton({ userId, onTaskCreated }: QuickCaptu
   const [loading, setLoading] = useState(false);
   const [wantsReminder, setWantsReminder] = useState(false);
   const [reminderMinutes, setReminderMinutes] = useState('30');
+  const [wantsAIBreakdown, setWantsAIBreakdown] = useState(false);
+  const [pulseAnim] = useState(new Animated.Value(1));
+
+  const {
+    isListening,
+    isProcessing,
+    transcript,
+    error: speechError,
+    startListening,
+    stopListening,
+    cancelListening,
+  } = useSpeechToText();
+
+  // Update task text when transcript changes
+  useEffect(() => {
+    if (transcript) {
+      setTaskText(prev => prev ? `${prev} ${transcript}` : transcript);
+    }
+  }, [transcript]);
+
+  // Show speech error
+  useEffect(() => {
+    if (speechError) {
+      Alert.alert('Erreur Micro', speechError);
+    }
+  }, [speechError]);
+
+  // Pulse animation when listening
+  useEffect(() => {
+    if (isListening) {
+      const pulse = Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulseAnim, {
+            toValue: 1.3,
+            duration: 500,
+            useNativeDriver: true,
+          }),
+          Animated.timing(pulseAnim, {
+            toValue: 1,
+            duration: 500,
+            useNativeDriver: true,
+          }),
+        ])
+      );
+      pulse.start();
+      return () => pulse.stop();
+    } else {
+      pulseAnim.setValue(1);
+    }
+  }, [isListening]);
 
   const openModal = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -43,11 +97,23 @@ export default function QuickCaptureButton({ userId, onTaskCreated }: QuickCaptu
   };
 
   const closeModal = () => {
+    cancelListening();
     setModalVisible(false);
     setTaskText('');
     setSelectedQuadrant(2);
     setWantsReminder(false);
     setReminderMinutes('30');
+    setWantsAIBreakdown(false);
+  };
+
+  const handleVoicePress = async () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    
+    if (isListening) {
+      await stopListening();
+    } else {
+      await startListening();
+    }
   };
 
   const handleCreateTask = async () => {
@@ -67,6 +133,17 @@ export default function QuickCaptureButton({ userId, onTaskCreated }: QuickCaptu
     try {
       const priority = selectedQuadrant <= 2 ? 'high' : selectedQuadrant === 3 ? 'medium' : 'low';
       
+      // Optionally get AI breakdown
+      let steps = undefined;
+      if (wantsAIBreakdown) {
+        try {
+          const breakdown = await breakdownTask(taskText.trim());
+          steps = breakdown.steps;
+        } catch (e) {
+          console.log('AI breakdown failed, continuing without steps');
+        }
+      }
+
       const newTask = await createTask({
         user_id: userId,
         text: taskText.trim(),
@@ -74,6 +151,7 @@ export default function QuickCaptureButton({ userId, onTaskCreated }: QuickCaptu
         quadrant: selectedQuadrant,
         completed: false,
         source: 'mobile_quick_capture',
+        steps,
       });
 
       // Schedule reminder if requested
@@ -131,6 +209,32 @@ export default function QuickCaptureButton({ userId, onTaskCreated }: QuickCaptu
                 </TouchableOpacity>
               </View>
 
+              {/* Voice Input Button */}
+              <View style={styles.voiceSection}>
+                <TouchableOpacity
+                  style={[
+                    styles.voiceButton,
+                    isListening && styles.voiceButtonActive,
+                  ]}
+                  onPress={handleVoicePress}
+                  activeOpacity={0.7}
+                >
+                  <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
+                    {isProcessing ? (
+                      <ActivityIndicator size="small" color="#FFFFFF" />
+                    ) : (
+                      <Text style={styles.voiceIcon}>{isListening ? '⏹️' : '🎤'}</Text>
+                    )}
+                  </Animated.View>
+                  <Text style={styles.voiceText}>
+                    {isListening ? 'Arrêter' : isProcessing ? 'Transcription...' : 'Dicter'}
+                  </Text>
+                </TouchableOpacity>
+                {isListening && (
+                  <Text style={styles.listeningHint}>Parlez maintenant...</Text>
+                )}
+              </View>
+
               {/* Task Input */}
               <TextInput
                 style={styles.input}
@@ -139,7 +243,6 @@ export default function QuickCaptureButton({ userId, onTaskCreated }: QuickCaptu
                 value={taskText}
                 onChangeText={setTaskText}
                 multiline
-                autoFocus
                 maxLength={200}
               />
 
@@ -169,6 +272,19 @@ export default function QuickCaptureButton({ userId, onTaskCreated }: QuickCaptu
                       </Text>
                     </TouchableOpacity>
                   ))}
+                </View>
+              </View>
+
+              {/* AI Breakdown Toggle */}
+              <View style={styles.toggleSection}>
+                <View style={styles.toggleRow}>
+                  <Text style={styles.toggleLabel}>✨ Décomposer avec IA</Text>
+                  <Switch
+                    value={wantsAIBreakdown}
+                    onValueChange={setWantsAIBreakdown}
+                    trackColor={{ false: Colors.neutral[700], true: Colors.primary[500] }}
+                    thumbColor={wantsAIBreakdown ? Colors.primary[300] : Colors.neutral[400]}
+                  />
                 </View>
               </View>
 
@@ -205,9 +321,13 @@ export default function QuickCaptureButton({ userId, onTaskCreated }: QuickCaptu
                 disabled={loading}
                 activeOpacity={0.8}
               >
-                <Text style={styles.submitButtonText}>
-                  {loading ? 'Création...' : 'Ajouter la tâche'}
-                </Text>
+                {loading ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                ) : (
+                  <Text style={styles.submitButtonText}>
+                    {wantsAIBreakdown ? '✨ Créer et décomposer' : 'Ajouter la tâche'}
+                  </Text>
+                )}
               </TouchableOpacity>
             </Pressable>
           </KeyboardAvoidingView>
@@ -254,6 +374,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: BorderRadius.xl,
     padding: Spacing.lg,
     paddingBottom: Spacing.xxl,
+    maxHeight: '90%',
   },
   modalHeader: {
     flexDirection: 'row',
@@ -271,18 +392,51 @@ const styles = StyleSheet.create({
     color: Colors.neutral[400],
     padding: Spacing.sm,
   },
+  voiceSection: {
+    alignItems: 'center',
+    marginBottom: Spacing.lg,
+  },
+  voiceButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.neutral[800],
+    paddingHorizontal: Spacing.xl,
+    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.full,
+    gap: Spacing.sm,
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+  voiceButtonActive: {
+    backgroundColor: Colors.danger[600],
+    borderColor: Colors.danger[400],
+  },
+  voiceIcon: {
+    fontSize: 24,
+  },
+  voiceText: {
+    fontSize: FontSizes.md,
+    fontWeight: '600',
+    color: Colors.text.dark,
+  },
+  listeningHint: {
+    fontSize: FontSizes.sm,
+    color: Colors.danger[400],
+    marginTop: Spacing.sm,
+    fontStyle: 'italic',
+  },
   input: {
     backgroundColor: Colors.neutral[800],
     borderRadius: BorderRadius.md,
     padding: Spacing.md,
     fontSize: FontSizes.lg,
     color: Colors.text.dark,
-    minHeight: 100,
+    minHeight: 80,
     textAlignVertical: 'top',
     marginBottom: Spacing.lg,
   },
   quadrantSection: {
-    marginBottom: Spacing.lg,
+    marginBottom: Spacing.md,
   },
   sectionLabel: {
     fontSize: FontSizes.sm,
@@ -306,6 +460,22 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.neutral[700],
   },
   quadrantLabel: {
+    fontSize: FontSizes.md,
+    color: Colors.text.dark,
+    fontWeight: '500',
+  },
+  toggleSection: {
+    marginBottom: Spacing.md,
+  },
+  toggleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: Colors.neutral[800],
+    borderRadius: BorderRadius.md,
+    padding: Spacing.md,
+  },
+  toggleLabel: {
     fontSize: FontSizes.md,
     color: Colors.text.dark,
     fontWeight: '500',
