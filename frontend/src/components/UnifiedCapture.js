@@ -50,7 +50,7 @@ const UnifiedCapture = () => {
     }, 500);
   }, []);
 
-  // Initialize Porcupine v3 with custom French wake word
+  // Initialize Porcupine v3 with built-in keyword "Hey Google"
   const initPorcupine = useCallback(async () => {
     try {
       setPorcupineStatus('initializing');
@@ -67,9 +67,9 @@ const UnifiedCapture = () => {
       console.log('🔑 Got access key');
       
       // Import Porcupine v3
-      const { Porcupine } = await import('@picovoice/porcupine-web');
+      const { Porcupine, BuiltInKeyword } = await import('@picovoice/porcupine-web');
       const { WebVoiceProcessor } = await import('@picovoice/web-voice-processor');
-      console.log('📦 Porcupine v3 imported');
+      console.log('📦 Porcupine v3 imported, BuiltInKeyword:', BuiltInKeyword);
       
       // Detection callback
       const detectionCallback = (detection) => {
@@ -77,22 +77,14 @@ const UnifiedCapture = () => {
         onWakeWordDetected(detection);
       };
       
-      console.log('🔧 Creating Porcupine with custom French wake word...');
+      console.log('🔧 Creating Porcupine with built-in "Hey Google"...');
       
-      // Create Porcupine with custom keyword "Hey Assistant" in French
-      // API v3: create(accessKey, keywords, detectionCallback, model, options)
+      // Create Porcupine with built-in keyword "Hey Google"
+      // For built-in keywords, no model file is needed
       const porcupine = await Porcupine.create(
         accessKey,
-        [{
-          publicPath: '/api/porcupine/models/hey-assistant_fr.ppn',
-          label: 'hey assistant',
-          sensitivity: 0.7
-        }],
-        detectionCallback,
-        {
-          publicPath: '/api/porcupine/models/porcupine_params_fr.pv',
-          forceWrite: true
-        }
+        [BuiltInKeyword.HeyGoogle],
+        detectionCallback
       );
       
       console.log('✅ Porcupine created!', {
@@ -108,7 +100,7 @@ const UnifiedCapture = () => {
       await WebVoiceProcessor.subscribe(porcupine);
       
       setPorcupineStatus('listening');
-      console.log('✅ Porcupine listening for "Hey Assistant" (French)');
+      console.log('✅ Porcupine listening for "Hey Google"');
       return true;
       
     } catch (err) {
