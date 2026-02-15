@@ -19,8 +19,8 @@ import {
   Calendar,
   AlertTriangle,
   Plus,
-  Ghost,
-  Brain
+  Brain,
+  Keyboard
 } from 'lucide-react';
 
 const Dashboard = () => {
