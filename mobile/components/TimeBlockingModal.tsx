@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   ScrollView,
+  Switch,
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { Colors, Spacing, BorderRadius, FontSizes, TouchTargets } from '../constants/theme';
@@ -19,6 +20,7 @@ import {
   TaskWeight,
   TimeSlot,
 } from '../services/timeBlockingService';
+import { useGoogleCalendar } from '../hooks/useGoogleCalendar';
 
 interface TimeBlockingModalProps {
   visible: boolean;
