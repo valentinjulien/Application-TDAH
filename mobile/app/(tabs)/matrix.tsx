@@ -195,17 +195,20 @@ export default function MatrixScreen() {
               </Text>
             </View>
             
-            {/* Pomodoro Button */}
+            {/* Deep Focus Button */}
             <TouchableOpacity
               style={styles.pomodoroButton}
               onPress={() => {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                setShowPomodoro(true);
+                // Get first urgent task for focus
+                const urgentTask = tasks.filter(t => !t.completed).sort((a, b) => a.quadrant - b.quadrant)[0];
+                setFocusTask(urgentTask || null);
+                setShowDeepFocus(true);
               }}
               activeOpacity={0.7}
             >
-              <Text style={styles.pomodoroEmoji}>🍅</Text>
-              <Text style={styles.pomodoroText}>Focus</Text>
+              <Text style={styles.pomodoroEmoji}>🧘</Text>
+              <Text style={styles.pomodoroText}>Deep Focus</Text>
             </TouchableOpacity>
           </View>
         </View>
