@@ -728,6 +728,18 @@ Réponds UNIQUEMENT en JSON valide:
         }
 
 
+# === PICOVOICE PORCUPINE ===
+PICOVOICE_ACCESS_KEY = os.environ.get("PICOVOICE_ACCESS_KEY", "")
+
+
+@app.get("/api/porcupine/access-key")
+async def get_porcupine_access_key():
+    """Retourne la clé d'accès Picovoice de manière sécurisée"""
+    if not PICOVOICE_ACCESS_KEY:
+        raise HTTPException(status_code=500, detail="Picovoice not configured")
+    return {"accessKey": PICOVOICE_ACCESS_KEY}
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8001)
