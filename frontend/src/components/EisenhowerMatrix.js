@@ -364,6 +364,27 @@ const EisenhowerMatrix = () => {
             </>
           )}
         </AnimatePresence>
+
+        {/* Time Blocking Modal */}
+        <AnimatePresence>
+          {timeBlockingTask && (
+            <TimeBlockingModal
+              task={timeBlockingTask}
+              onClose={() => setTimeBlockingTask(null)}
+              onScheduled={async (taskWithSchedule) => {
+                try {
+                  await updateTask(taskWithSchedule.id, {
+                    scheduled_at: taskWithSchedule.scheduled_at,
+                    estimated_total_minutes: taskWithSchedule.estimated_total_minutes,
+                    energy_required: taskWithSchedule.energy_required,
+                  });
+                } catch (error) {
+                  console.error('Error scheduling task:', error);
+                }
+              }}
+            />
+          )}
+        </AnimatePresence>
       </div>
     </motion.div>
   );
