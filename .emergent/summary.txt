@@ -5,13 +5,13 @@ The user's initial goal was to enhance a GitHub project for ADHD management. Thi
 -   **Objective:** Build and maintain two parallel applications (Expo Native & React Web) that serve as an ADHD companion, with a focus on cognitive offloading, focus assistance, and structured planning.
 -   **Tech Stack:**
     -   **Mobile:** Expo (React Native), TypeScript,  for navigation, Supabase for backend.
-    -   **Web:** React, Supabase for backend.
+    -   **Web:** React, FastAPI, Supabase for backend.
 -   **Design System (ADHD-friendly UX):**
     -   Low-Stimulation color palette, haptic feedback, large tap areas, gratifying animations.
 -   **Key Features Requested (for both platforms):**
     -   **Home Screen (Now):** Displays the single active task.
     -   **AI Coaching:** Morning Gazette (daily goal setting) & Evening Review (brain dump).
-    -   **Quick Capture:** Ghost UI for instant, frictionless task entry.
+    -   **Quick Capture:** Ghost UI for instant, frictionless task entry with voice activation (hey assistant).
     -   **AI Task Breakdown (Micro-planification):** AI service to break tasks into small sub-steps.
     -   **Deep Work Focus Mode:** Full-screen timer with multiple durations, ambient sounds, and an Anti-Distraction module.
     -   **Eisenhower Matrix:** Interactive task categorization.
@@ -24,44 +24,55 @@ The user's initial goal was to enhance a GitHub project for ADHD management. Thi
 **User's preferred language**: Français
 
 **what currently exists?**
-A comprehensive Expo (React Native) mobile app exists in  with most features implemented at the code level. A parallel React web application exists in . Following user feedback, the agent has begun porting all the advanced features from the mobile app to the web app to ensure feature parity. The user has confirmed the Supabase database schema is now set up, resolving a critical blocker.
+A comprehensive Expo (React Native) mobile app exists in . A parallel React web application exists in  with a FastAPI backend at .
+
+The agent has successfully ported several key features from mobile to web, including the Eisenhower Matrix, Time Blocking, and Daily Rituals. Crucially, the AI features (task breakdown/classification) have been refactored from insecure client-side calls into a secure FastAPI backend service that uses the Emergent LLM Key.
+
+Following a user request, the Ghost Capture (text) and Voice Assistant features were merged into a single component: .
 
 **Last working item**:
--   Last item agent was working: Porting features from the mobile app to the web app. The agent's last action was creating placeholder files for the new web components: , , and . It was about to create the  component for the web.
+-   Last item agent was working: The user requested to merge the Quick Capture and Voice Assistant features and add a wake word activation: And I want that when I say hey assistant, the voice assistant activates. The agent merged the components but did not implement the wake word functionality.
 -   Status: IN PROGRESS
--   Agent Testing Done: N
--   Which testing method agent to use? Frontend testing agent
+-   Agent Testing Done: N (The agent ran tests on the merged component, but the wake word feature itself is not implemented. Automated tests cannot verify microphone access anyway.)
+-   Which testing method agent to use? Manual testing by user (after implementation). The agent must inform the user that automated testing of the microphone is not possible and request they verify it.
 -   User Testing Done: N
 
 **All Pending/In progress Issue list**:
-There are no known bugs or issues. All pending work is feature development.
+-   **Issue 1: Implement hey assistant wake word detection** (P0 - HIGHEST)
+    -   **Description**: The user explicitly requested that saying hey assistant should activate the voice capture. The current  component uses  but lacks a wake word engine.
+    -   **Attempted fixes**: None. The agent created the unified component but omitted the wake word logic that was present in the old  component (which used Picovoice Porcupine).
+    -   **Next debug checklist**:
+        1.  Examine  to understand its current state.
+        2.  Re-integrate a wake word library (e.g., Picovoice Porcupine, which was used previously) into the  component.
+        3.  Implement a hook that listens for the hey assistant wake word.
+        4.  On detection, trigger the  function from the  hook.
+    -   **Why fix this issue and what will be achieved with the fix?**: This will fulfill the user's direct and most recent request for a hands-free experience.
+    -   **Status**: NOT STARTED
+    -   **Is recurring issue?**: N
+    -   **Should Test frontend/backend/both after fix?**: Frontend (Manual user testing required).
+    -   **Blocked on other issue**: None.
 
 **In progress Task List**:
 -   **Task 1: Port All Mobile Features to Web App** (P0 - HIGHEST)
-    -   **Where to resume**: The agent just created , , and . The immediate next step is to create the  component. After creating the necessary files, integrate them into the main web application structure (e.g., , ), add routing for , and connect them to the Supabase backend via .
-    -   **What will be achieved with this?**: The web application will have complete feature parity with the mobile app, including the Ghost UI, Daily Rituals, and Time Blocking with Google Calendar Sync.
+    -   **Description**: The overarching goal is to achieve feature parity between the mobile and web applications.
+    -   **Where to resume**: After implementing the wake word (Issue 1), the agent should proceed with the remaining tasks from the backlog, starting with implementing the full authentication flow for the mobile app.
+    -   **What will be achieved with this?**: A consistent user experience across both web and mobile platforms.
     -   **Status**: IN PROGRESS
-    -   **Should Test frontend/backend/both after fix?**: Frontend
-    -   **Blocked on something**: Nothing.
+    -   **Should Test frontend/backend/both after fix?**: Both
+    -   **Blocked on something**: hey assistant wake word implementation.
 
 **Upcoming and Future Tasks**
--   **P1: Implement Full Authentication Flow (Mobile)**: The mobile app's login/register screens in  are still placeholders and need to be fully integrated with Supabase Auth and session persistence.
--   **P2: Implement Functional Voice Capture (Mobile)**: The  hook is created but needs to be fully wired into the  component to enable voice-to-task functionality.
--   **P3: AI-driven Focus Suggestions (Web & Mobile)**: Enhance the AI coaching to analyze the  of focus session interruptions and proactively suggest shorter, more manageable session lengths to the user.
--   **P4: Final UI/UX Polish (Web & Mobile)**: Conduct a full-app review across both platforms to ensure consistency with the Low-Stimulation design system and ADHD-friendly principles.
+-   **P1: Implement Full Authentication Flow (Mobile)**: The mobile app's login/register screens in  are placeholders and need to be fully integrated with Supabase Auth and session persistence.
+-   **P2: Implement Functional Voice Capture (Mobile)**: The  hook needs to be fully wired into the  component to enable voice-to-task functionality on mobile.
+-   **P3: AI-driven Focus Suggestions (Web & Mobile)**: Enhance the AI coaching to analyze  of focus session interruptions and proactively suggest shorter, more manageable session lengths.
+-   **P4: Final UI/UX Polish (Web & Mobile)**: Conduct a full-app review across both platforms to ensure consistency with the Low-Stimulation design system.
 
 **Completed work in this session**
--   **Database Setup**: Guided the user to execute the  script, making the backend database fully operational.
--   **Mobile App Feature Completion**:
-    -   **Time-Blocking & Google Calendar Sync**: Implemented the full flow from AI task analysis to scheduling events on Google Calendar using  and user-provided OAuth credentials.
-    -   **Ghost UI Quick Capture**: Created a dedicated, minimal capture screen at .
-    -   **App Quick Actions**: Implemented home screen shortcuts (long-press on app icon) for iOS and Android.
-    -   **Focus Protection Module**: Integrated an anti-distraction system into  that sends notifications when the user leaves the app during a session and tracks interruptions.
-    -   **Major UX/UI Overhaul**: Revamped the Home screen, , and  screen with ADHD-friendly design principles, including  and  components.
-    -   **Bug Fixes**: Corrected multiple TypeScript errors and improved UI visibility issues.
--   **Web App Feature Porting**:
-    -   Successfully ported the Deep Work / Focus Protection Module from mobile to the web app's  component.
-    -   Began scaffolding the other major features (, ) for the web platform.
+-   **AI Feature Refactor**: Fixed a broken AI integration by moving logic from the frontend to a new secure FastAPI backend () using the Emergent LLM Key. Created  and  endpoints.
+-   **Web App Feature Porting**: Integrated , , and  into the web app, including routing and UI elements in , , and .
+-   **Unified Capture Component**: Merged Ghost Capture and Voice Assistant into  as per user request.
+-   **Configuration**: Updated  with the correct Supabase credentials.
+-   **Testing**: Successfully used the testing agent to identify and then verify the fix for the AI feature. A second test run confirmed the Unified Capture merge was successful (with known voice limitations).
 
 **Earlier issues found/mentioned but not fixed**
 -   None.
@@ -70,16 +81,17 @@ There are no known bugs or issues. All pending work is feature development.
 -   None.
 
 **Code Architecture**
--   **/app/mobile/**: Expo (React Native) mobile application project root.
--   **/app/frontend/**: React web application project root.
--   Backend is a user-managed Supabase project.
+-   **/app/frontend/**: React web application.
+-   **/app/backend/**: FastAPI backend for custom business logic (e.g., AI services).
+-   **/app/mobile/**: Expo (React Native) mobile application.
+-   **Backend Service**: Supabase (Database, Auth, Realtime), managed by the user.
 
 **Key Technical Concepts**
 -   **Dual Platform**: React Native (Expo) for mobile, React for web.
--   **Backend**: Supabase (Database, Auth, Realtime).
--   **Navigation**:  (mobile),  (web).
--   **Authentication**:  for mobile Google OAuth.
--   **AI Integration**: Using Emergent LLM Key for services like task breakdown and cognitive load calculation.
+-   **Backend Architecture**: Hybrid model using a user-managed Supabase project for BaaS and a custom FastAPI server for secure AI endpoint logic.
+-   **AI Integration**: Backend-driven AI using  and the Emergent LLM Key.
+-   **Speech Recognition**:  for transcription.
+-   **Wake Word Detection (Pending)**: Requires a library like .
 
 **key DB schema**
 -   **tasks**: uid=0(root) gid=0(root) groups=0(root), , , , ,  (jsonb), , , , 
@@ -87,57 +99,59 @@ There are no known bugs or issues. All pending work is feature development.
 -   **pomodoro_sessions**: uid=0(root) gid=0(root) groups=0(root), , , 
 
 **changes in tech stack**
--   The project has a dual focus on both a mobile (Expo) and web (React) application, both using Supabase.
+-   The AI implementation was significantly refactored from insecure, client-side API calls to a secure, dedicated FastAPI backend service.
 
 **All files of reference**
--   : The single source of truth for the database schema.
--   : The main entry point for the web application.
--   : The newly refactored web component for the focus timer.
--   : The feature-rich focus component on mobile.
--   : The logic for Google Calendar authentication on mobile.
--   Files to be created/integrated in web app: , , .
+-   : The new merged component for text/voice input, pending wake word implementation.
+-   : The FastAPI backend containing the new AI endpoints.
+-   : Frontend hook updated to call the new backend AI service.
+-   : Main entry point and router for the web app.
+-   : The main dashboard component.
+-   : Reference file for the pending mobile authentication task.
+
+**Areas that need refactoring**:
+-   The wake word functionality, which was present in the now-deleted  component, needs to be re-implemented within the new  component.
+
+**key api endpoints**
+-   : Backend endpoint to break a task into smaller steps.
+-   : Backend endpoint to analyze a task's properties (priority, energy, etc.).
 
 **Critical Info for New Agent**
 -   **Language:** You MUST communicate with the user in **Français**.
--   **Dual Platform Mandate:** The user's primary request is to achieve feature parity between the mobile () and web () applications. Your immediate task is to continue porting the features from mobile to the web.
--   **Database Is Live:** The database blocker from the previous handoff is **resolved**. The user confirmed they executed the SQL schema.
--   **Web App is the Focus:** The user's last interaction was about updating the web app after seeing it was outdated. Prioritize completing the feature porting to the web application.
+-   **Top Priority:** The user's most recent request was to implement hey assistant wake word detection. This is the immediate next step.
+-   **Testing Limitation:** Be aware that automated testing agents cannot access the microphone. Any voice-related feature, especially the wake word, will require you to ask the user to test it manually after you've implemented the code.
+-   **Architecture:** The project now has a FastAPI backend at  for AI logic. All AI calls from the frontend must go through this backend, not directly to a third-party service.
 
 **documents and test reports created in this job**
--    (updated frequently throughout the session).
+-   
+-   
+-   
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  **User:** yes, I want you to put all the improvements from the mobile app onto the web app. - **Status: In Progress**
-2.  **User:** can we do both? [referring to mobile and web apps] - **Status: Acknowledged, work started.**
-3.  **User:** (Sends screenshot of old web UI) is this the right interface? - **Status: Resolved**, agent clarified the pivot to mobile and is now updating the web UI.
-4.  **User:** but I cant see the 15, 25, and 50 minute focus modes" - **Status: Resolved**, agent improved UI on mobile before pivoting to update the web app.
-5.  **User:** "you are an expert in UX... Could you improve the interface?" - **Status: Completed**, agent performed a major UX overhaul on the mobile app.
-6.  **User:** (Shared original prompt for Focus Protection Module) - **Status: Completed**, agent implemented it on mobile.
-7.  **User:** "in the focus mode page, I dont see the changes. - **Status: Resolved**.
-8.  **User:** you can continue - **Status: Acknowledged**.
-9.  **User:** (Provided all Google OAuth Client IDs) - **Status: Completed**, credentials used for mobile integration.
-10. **User:** could you generate the SHA-1 for me - **Status: Resolved**, agent provided the necessary SHA-1 hashes.
+1.  **User (summary):** Merge quick capture and voice assistant. And I want to say hey assistant to activate it. - **Status: IN PROGRESS** (Merge is done, wake word is pending).
+2.  **User (summary):** Do the immediate actions and the upcoming tasks. - **Status: Acknowledged.**
 
 **Project Health Check:**
--   **Broken**: No part of the application is broken.
--   **Mocked**: No mocked data is being used.
--   **In Progress**: Porting a large set of features from the mobile application to the web application.
+-   **Broken**: None.
+-   **Mocked**: None.
+-   **In Progress**: Wake word detection for the Unified Capture feature. Porting of remaining features from mobile to web.
 
 **3rd Party Integrations**
--   **OpenAI GPT-4o**: Uses Emergent LLM Key (for AI services).
--   **Supabase (Auth, DB, Realtime)**: Requires User API Key (provided).
--   **Google Calendar**: Requires User OAuth credentials (provided, and integrated on mobile).
+-   **OpenAI GPT-4o**: Uses Emergent LLM Key (via custom FastAPI backend).
+-   **Supabase (Auth, DB, Realtime)**: Requires User API Key (configured).
+-   **Google Calendar**: Requires User OAuth credentials (integrated on mobile, web implementation pending).
+-   **Picovoice Porcupine**: Required for wake word detection, needs to be re-integrated into the web app.
 
 **Testing status**
--   **Testing agent used after significant changes**: NO
+-   **Testing agent used after significant changes**: YES (Two iterations were run).
 -   **Troubleshoot agent used after agent stuck in loop**: NO
--   **Test files created**: []
--   **Known regressions**: None
+-   **Test files created**: None.
+-   **Known regressions**: None.
 
 **Credentials to test flow:**
 -   **Supabase URL**: 
 -   **Supabase Anon Key**: 
--   **Google OAuth Client IDs**: Provided by the user during the session.
+-   **Google OAuth Client IDs**: Have been provided by the user previously.
 
 **What agent forgot to execute**
-The agent initially caused confusion by focusing solely on the mobile app, which the user couldn't view in their web browser. This has since been corrected, and the agent is now actively working on the web application per the user's explicit request.</analysis>
+-   The agent did not implement the hey assistant wake word functionality, which was a specific part of the user's last request. It merged the two components but missed this critical part of the requirement.</analysis>
