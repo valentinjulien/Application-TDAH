@@ -40,6 +40,8 @@ export const Colors = {
     500: '#F59E0B',
     600: '#D97706',
     700: '#B45309',
+    800: '#92400E',
+    900: '#78350F',
   },
   // Danger - Soft Rose (not aggressive)
   danger: {
@@ -50,6 +52,9 @@ export const Colors = {
     400: '#FB7185',
     500: '#F43F5E',
     600: '#E11D48',
+    700: '#BE123C',
+    800: '#9F1239',
+    900: '#881337',
   },
   // Neutrals - Slate (soft, not harsh)
   neutral: {
