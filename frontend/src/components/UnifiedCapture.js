@@ -31,8 +31,8 @@ const PLACEHOLDERS = [
   'Avant d\'oublier...',
 ];
 
-// Wake word configuration (fallback si Porcupine non disponible)
-const WAKE_WORDS = ['hey assistant', 'hé assistant', 'ok assistant', 'dis assistant'];
+// Wake word configuration
+const WAKE_WORDS = ['hey assistant', 'hé assistant', 'ok assistant', 'dis assistant', 'assistant'];
 
 // Stop commands
 const STOP_COMMANDS = ['terminé', 'termine', 'fini', 'stop', 'arrête', 'envoyer', 'envoie', 'c\'est tout'];
@@ -43,12 +43,12 @@ const UnifiedCapture = () => {
   const { addTask } = useTasks();
   
   // Mode: text or voice
-  const [mode, setMode] = useState('text'); // text, voice
+  const [mode, setMode] = useState('text');
   
   // Common state
   const [inputText, setInputText] = useState('');
   const [placeholder] = useState(PLACEHOLDERS[Math.floor(Math.random() * PLACEHOLDERS.length)]);
-  const [status, setStatus] = useState('idle'); // idle, processing, success, error
+  const [status, setStatus] = useState('idle');
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
   
@@ -59,159 +59,14 @@ const UnifiedCapture = () => {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [wakeWordActive, setWakeWordActive] = useState(false);
   const [aiResponse, setAiResponse] = useState(null);
-  
-  // Porcupine state
-  const [porcupineReady, setPorcupineReady] = useState(false);
-  const [porcupineListening, setPorcupineListening] = useState(false);
-  const [porcupineError, setPorcupineError] = useState(null);
-  const porcupineRef = useRef(null);
-  const webVoiceProcessorRef = useRef(null);
+  const [wakeWordStatus, setWakeWordStatus] = useState('initializing'); // initializing, listening, error
   
   // Refs
   const inputRef = useRef(null);
   const recognitionRef = useRef(null);
   const wakeWordRecognitionRef = useRef(null);
   const silenceTimeoutRef = useRef(null);
-
-  // Handle wake word detection
-  const handleWakeWordDetected = useCallback(() => {
-    console.log('Wake word detected! Activating voice mode...');
-    setWakeWordActive(true);
-    speak("Je t'écoute !");
-    setTimeout(() => {
-      setMode('voice');
-      startVoiceCapture();
-    }, 500);
-  }, []);
-
-  // Initialize Porcupine with usePorcupine hook pattern
-  const initPorcupine = useCallback(async () => {
-    try {
-      // Récupérer la clé d'accès
-      const response = await fetch('/api/porcupine/access-key');
-      if (!response.ok) {
-        console.log('Porcupine not configured, using Web Speech API fallback');
-        return false;
-      }
-      
-      const { accessKey } = await response.json();
-      console.log('Got Porcupine access key, initializing...');
-      
-      // Importer dynamiquement
-      const porcupineWeb = await import('@picovoice/porcupine-web');
-      const { WebVoiceProcessor } = await import('@picovoice/web-voice-processor');
-      
-      const Porcupine = porcupineWeb.Porcupine;
-      
-      // Configuration du keyword et du modèle
-      const keywordPath = '/api/porcupine/models/hey-assistant_fr.ppn';
-      const modelPath = '/api/porcupine/models/porcupine_params_fr.pv';
-      
-      console.log('Loading Porcupine model and keyword...');
-      
-      // Créer l'instance Porcupine avec create() method
-      const porcupine = await Porcupine.create(
-        accessKey,
-        {
-          publicPath: keywordPath,
-          label: 'hey assistant'
-        },
-        {
-          publicPath: modelPath
-        }
-      );
-      
-      porcupineRef.current = porcupine;
-      console.log('Porcupine instance created');
-      
-      // Fonction de callback pour la détection
-      const keywordCallback = (detection) => {
-        console.log('Porcupine keyword detected:', detection);
-        handleWakeWordDetected();
-      };
-      
-      // S'abonner au processeur audio
-      await WebVoiceProcessor.subscribe(porcupine);
-      webVoiceProcessorRef.current = WebVoiceProcessor;
-      
-      // Configurer le callback de détection
-      porcupine.onKeywordDetection = keywordCallback;
-      
-      setPorcupineReady(true);
-      setPorcupineListening(true);
-      console.log('Porcupine initialized successfully with "Hey assistant" wake word (French)');
-      return true;
-    } catch (err) {
-      console.error('Failed to initialize Porcupine:', err);
-      setPorcupineError(err.message);
-      return false;
-    }
-  }, [handleWakeWordDetected]);
-
-  // Cleanup Porcupine
-  const cleanupPorcupine = useCallback(async () => {
-    try {
-      if (webVoiceProcessorRef.current && porcupineRef.current) {
-        await webVoiceProcessorRef.current.unsubscribe(porcupineRef.current);
-      }
-      if (porcupineRef.current) {
-        porcupineRef.current.release();
-        porcupineRef.current = null;
-      }
-    } catch (e) {
-      console.log('Porcupine cleanup error:', e);
-    }
-    setPorcupineReady(false);
-    setPorcupineListening(false);
-  }, []);
-
-  // Initialize - auto focus text input
-  useEffect(() => {
-    if (mode === 'text') {
-      setTimeout(() => inputRef.current?.focus(), 100);
-    }
-    
-    // Essayer d'initialiser Porcupine, sinon utiliser Web Speech API
-    initPorcupine().then(success => {
-      if (!success) {
-        console.log('Porcupine failed, starting Web Speech API wake word detection');
-        startWakeWordListening();
-      }
-    });
-    
-    const handleKeyDown = (e) => {
-      if (e.key === 'Escape') {
-        handleClose();
-      }
-    };
-    
-    document.addEventListener('keydown', handleKeyDown);
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-      cleanup();
-    };
-  }, []);
-
-  // Cleanup function
-  const cleanup = useCallback(() => {
-    if (recognitionRef.current) {
-      recognitionRef.current.stop();
-    }
-    if (wakeWordRecognitionRef.current) {
-      wakeWordRecognitionRef.current.stop();
-    }
-    if (silenceTimeoutRef.current) {
-      clearTimeout(silenceTimeoutRef.current);
-    }
-    cleanupPorcupine();
-    window.speechSynthesis?.cancel();
-  }, [cleanupPorcupine]);
-
-  // Close handler
-  const handleClose = useCallback(() => {
-    cleanup();
-    navigate(-1);
-  }, [cleanup, navigate]);
+  const isInitializedRef = useRef(false);
 
   // Text-to-speech
   const speak = useCallback((text) => {
@@ -226,7 +81,7 @@ const UnifiedCapture = () => {
     }
   }, []);
 
-  // Check for wake word (fallback Web Speech API)
+  // Check for wake word
   const checkWakeWord = useCallback((text) => {
     const lowerText = text.toLowerCase().trim();
     return WAKE_WORDS.some(wake => lowerText.includes(wake));
@@ -238,88 +93,89 @@ const UnifiedCapture = () => {
     return STOP_COMMANDS.some(cmd => lowerText.includes(cmd) || lowerText.endsWith(cmd));
   }, []);
 
-  // Start wake word listening (fallback Web Speech API)
-  const startWakeWordListening = useCallback(() => {
-    if (!SpeechRecognition || porcupineReady) return;
+  // Process voice input
+  const processVoiceInput = useCallback(async (text) => {
+    let cleanText = text;
+    STOP_COMMANDS.forEach(cmd => {
+      cleanText = cleanText.replace(new RegExp(cmd, 'gi'), '').trim();
+    });
+    WAKE_WORDS.forEach(wake => {
+      cleanText = cleanText.replace(new RegExp(wake, 'gi'), '').trim();
+    });
     
-    console.log('Starting Web Speech API wake word listening...');
+    if (!cleanText) {
+      setMode('text');
+      setWakeWordActive(false);
+      return;
+    }
     
-    const recognition = new SpeechRecognition();
-    recognition.continuous = true;
-    recognition.interimResults = true;
-    recognition.lang = 'fr-FR';
-    
-    recognition.onresult = (event) => {
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        const text = event.results[i][0].transcript;
-        console.log('Web Speech heard:', text);
-        if (checkWakeWord(text)) {
-          console.log('Wake word detected via Web Speech API!');
-          recognition.stop();
-          handleWakeWordDetected();
-          return;
-        }
-      }
-    };
-    
-    recognition.onerror = (event) => {
-      if (event.error !== 'aborted' && event.error !== 'no-speech') {
-        console.log('Wake word recognition error:', event.error);
-      }
-    };
-    
-    recognition.onend = () => {
-      // Restart wake word listening if not in voice mode
-      if (mode === 'text' && !wakeWordActive && !porcupineReady) {
-        setTimeout(() => {
-          try {
-            recognition.start();
-          } catch (e) {
-            // Ignore
-          }
-        }, 100);
-      }
-    };
-    
-    wakeWordRecognitionRef.current = recognition;
+    setStatus('processing');
     
     try {
-      recognition.start();
-      console.log('Web Speech API wake word listening started');
-    } catch (e) {
-      console.log('Could not start wake word recognition:', e);
+      const response = await fetch('/api/ai/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          message: cleanText,
+          user_id: user?.user_id,
+          action: 'task'
+        })
+      });
+      
+      if (!response.ok) throw new Error('AI error');
+      
+      const data = await response.json();
+      setAiResponse(data);
+      setResult(data);
+      setStatus('success');
+      speak(data.message);
+      
+      setTimeout(() => {
+        setWakeWordActive(false);
+        setMode('text');
+        setStatus('idle');
+        setTranscript('');
+        setAiResponse(null);
+      }, 4000);
+      
+    } catch (err) {
+      console.error('Voice processing error:', err);
+      setError("Erreur de traitement");
+      setStatus('error');
+      speak("Désolé, une erreur s'est produite");
     }
-  }, [mode, wakeWordActive, checkWakeWord, porcupineReady, handleWakeWordDetected]);
+  }, [user, speak]);
 
-  // Start voice capture
+  // Start voice capture (for active recording)
   const startVoiceCapture = useCallback(async () => {
+    console.log('Starting voice capture...');
     setTranscript('');
     setInterimTranscript('');
     setError(null);
     setAiResponse(null);
     
-    // Pause Porcupine pendant la capture vocale
-    if (porcupineReady && webVoiceProcessorRef.current && porcupineRef.current) {
+    // Stop wake word listening first
+    if (wakeWordRecognitionRef.current) {
       try {
-        await webVoiceProcessorRef.current.unsubscribe(porcupineRef.current);
-        setPorcupineListening(false);
-      } catch (e) {
-        console.log('Could not pause Porcupine:', e);
-      }
+        wakeWordRecognitionRef.current.stop();
+      } catch (e) {}
     }
     
     // Check microphone permission
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       stream.getTracks().forEach(track => track.stop());
+      console.log('Microphone permission granted');
     } catch (err) {
-      setError("Accès au microphone requis");
+      console.error('Microphone error:', err);
+      setError("Accès au microphone requis. Autorisez le microphone dans votre navigateur.");
       setStatus('error');
       return;
     }
     
     if (!SpeechRecognition) {
-      setError("La reconnaissance vocale n'est pas supportée");
+      setError("La reconnaissance vocale n'est pas supportée par votre navigateur. Utilisez Chrome.");
       setStatus('error');
       return;
     }
@@ -330,6 +186,7 @@ const UnifiedCapture = () => {
     recognition.lang = 'fr-FR';
     
     recognition.onstart = () => {
+      console.log('Voice capture started');
       setIsListening(true);
       setStatus('idle');
     };
@@ -348,7 +205,6 @@ const UnifiedCapture = () => {
       }
       
       if (final) {
-        // Remove wake word from transcript
         let cleanFinal = final;
         WAKE_WORDS.forEach(wake => {
           cleanFinal = cleanFinal.replace(new RegExp(wake, 'gi'), '').trim();
@@ -357,7 +213,6 @@ const UnifiedCapture = () => {
         setTranscript(prev => {
           const newTranscript = (prev + ' ' + cleanFinal).trim();
           
-          // Check for stop command
           if (checkStopCommand(cleanFinal)) {
             setTimeout(() => {
               recognition.stop();
@@ -368,17 +223,17 @@ const UnifiedCapture = () => {
           return newTranscript;
         });
         
-        // Reset silence timeout
         if (silenceTimeoutRef.current) {
           clearTimeout(silenceTimeoutRef.current);
         }
         
-        // Auto-send after 3s silence
         silenceTimeoutRef.current = setTimeout(() => {
           if (recognitionRef.current) {
             recognitionRef.current.stop();
             setTranscript(prev => {
-              processVoiceInput(prev + ' ' + cleanFinal);
+              if (prev.trim()) {
+                processVoiceInput(prev);
+              }
               return prev;
             });
           }
@@ -389,14 +244,20 @@ const UnifiedCapture = () => {
     };
     
     recognition.onerror = (event) => {
+      console.error('Speech recognition error:', event.error);
       if (event.error === 'not-allowed') {
-        setError("Microphone refusé");
+        setError("Microphone refusé. Autorisez le microphone dans les paramètres du navigateur.");
         setStatus('error');
+      } else if (event.error === 'no-speech') {
+        // Ignore no-speech errors
+      } else {
+        setError(`Erreur: ${event.error}`);
       }
       setIsListening(false);
     };
     
     recognition.onend = () => {
+      console.log('Voice capture ended');
       setIsListening(false);
     };
     
@@ -406,81 +267,130 @@ const UnifiedCapture = () => {
       recognition.start();
     } catch (e) {
       console.error('Error starting recognition:', e);
+      setError("Impossible de démarrer la reconnaissance vocale");
     }
-  }, [checkStopCommand, porcupineReady]);
+  }, [checkStopCommand, processVoiceInput]);
 
-  // Process voice input
-  const processVoiceInput = useCallback(async (text) => {
-    // Clean stop commands from text
-    let cleanText = text;
-    STOP_COMMANDS.forEach(cmd => {
-      cleanText = cleanText.replace(new RegExp(cmd, 'gi'), '').trim();
-    });
-    
-    if (!cleanText) {
-      setMode('text');
-      // Redémarrer Porcupine ou le fallback
-      if (porcupineReady && porcupineRef.current && webVoiceProcessorRef.current) {
-        try {
-          await webVoiceProcessorRef.current.subscribe(porcupineRef.current);
-          setPorcupineListening(true);
-        } catch (e) {
-          startWakeWordListening();
-        }
-      } else {
-        startWakeWordListening();
-      }
+  // Start wake word listening (background)
+  const startWakeWordListening = useCallback(() => {
+    if (!SpeechRecognition) {
+      console.log('SpeechRecognition not supported');
+      setWakeWordStatus('error');
       return;
     }
     
-    setStatus('processing');
+    console.log('Starting wake word listening...');
+    
+    const recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = 'fr-FR';
+    
+    recognition.onstart = () => {
+      console.log('Wake word listening active');
+      setWakeWordStatus('listening');
+    };
+    
+    recognition.onresult = (event) => {
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const text = event.results[i][0].transcript;
+        console.log('Wake word heard:', text);
+        if (checkWakeWord(text)) {
+          console.log('WAKE WORD DETECTED!');
+          recognition.stop();
+          setWakeWordActive(true);
+          speak("Je t'écoute !");
+          setTimeout(() => {
+            setMode('voice');
+            startVoiceCapture();
+          }, 600);
+          return;
+        }
+      }
+    };
+    
+    recognition.onerror = (event) => {
+      if (event.error !== 'aborted' && event.error !== 'no-speech') {
+        console.log('Wake word error:', event.error);
+        setWakeWordStatus('error');
+      }
+    };
+    
+    recognition.onend = () => {
+      console.log('Wake word listening ended');
+      // Restart if still in text mode and not activated
+      if (mode === 'text' && !wakeWordActive) {
+        setTimeout(() => {
+          if (wakeWordRecognitionRef.current === recognition) {
+            try {
+              recognition.start();
+            } catch (e) {
+              console.log('Could not restart wake word:', e);
+            }
+          }
+        }, 500);
+      }
+    };
+    
+    wakeWordRecognitionRef.current = recognition;
     
     try {
-      // Send to AI chat for intelligent processing
-      const response = await fetch('/api/ai/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          message: cleanText,
-          user_id: user?.user_id,
-          action: 'task'
-        })
-      });
-      
-      if (!response.ok) throw new Error('AI error');
-      
-      const data = await response.json();
-      setAiResponse(data);
-      setResult(data);
-      setStatus('success');
-      
-      // Speak response
-      speak(data.message);
-      
-      // Auto-close after 3s
-      setTimeout(() => {
-        setWakeWordActive(false);
-        setMode('text');
-        // Redémarrer Porcupine ou le fallback
-        if (porcupineReady && porcupineRef.current && webVoiceProcessorRef.current) {
-          webVoiceProcessorRef.current.subscribe(porcupineRef.current).then(() => {
-            setPorcupineListening(true);
-          }).catch(() => {
-            startWakeWordListening();
-          });
-        } else {
-          startWakeWordListening();
-        }
-      }, 4000);
-      
-    } catch (err) {
-      console.error('Voice processing error:', err);
-      setError("Erreur de traitement");
-      setStatus('error');
-      speak("Désolé, une erreur s'est produite");
+      recognition.start();
+    } catch (e) {
+      console.log('Could not start wake word:', e);
+      setWakeWordStatus('error');
     }
-  }, [user, speak, startWakeWordListening, porcupineReady]);
+  }, [checkWakeWord, speak, startVoiceCapture, mode, wakeWordActive]);
+
+  // Initialize
+  useEffect(() => {
+    if (isInitializedRef.current) return;
+    isInitializedRef.current = true;
+    
+    console.log('UnifiedCapture initializing...');
+    
+    if (mode === 'text') {
+      setTimeout(() => inputRef.current?.focus(), 100);
+    }
+    
+    // Start wake word listening after a short delay
+    setTimeout(() => {
+      startWakeWordListening();
+    }, 1000);
+    
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        handleClose();
+      }
+    };
+    
+    document.addEventListener('keydown', handleKeyDown);
+    
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      if (recognitionRef.current) {
+        try { recognitionRef.current.stop(); } catch (e) {}
+      }
+      if (wakeWordRecognitionRef.current) {
+        try { wakeWordRecognitionRef.current.stop(); } catch (e) {}
+      }
+      if (silenceTimeoutRef.current) {
+        clearTimeout(silenceTimeoutRef.current);
+      }
+      window.speechSynthesis?.cancel();
+    };
+  }, []);
+
+  // Close handler
+  const handleClose = useCallback(() => {
+    if (recognitionRef.current) {
+      try { recognitionRef.current.stop(); } catch (e) {}
+    }
+    if (wakeWordRecognitionRef.current) {
+      try { wakeWordRecognitionRef.current.stop(); } catch (e) {}
+    }
+    navigate(-1);
+  }, [navigate]);
 
   // Handle text submit
   const handleTextSubmit = async (e) => {
@@ -506,7 +416,6 @@ const UnifiedCapture = () => {
       
       setStatus('success');
       
-      // Auto-close after success
       setTimeout(() => {
         navigate('/');
       }, 1500);
@@ -527,50 +436,43 @@ const UnifiedCapture = () => {
   };
 
   // Switch to voice mode manually
-  const switchToVoice = () => {
+  const switchToVoice = useCallback(() => {
+    console.log('Switching to voice mode manually');
     if (wakeWordRecognitionRef.current) {
-      wakeWordRecognitionRef.current.stop();
-    }
-    if (porcupineListening && porcupineRef.current && webVoiceProcessorRef.current) {
-      webVoiceProcessorRef.current.unsubscribe(porcupineRef.current).catch(() => {});
-      setPorcupineListening(false);
+      try { wakeWordRecognitionRef.current.stop(); } catch (e) {}
     }
     setMode('voice');
+    setWakeWordActive(true);
     startVoiceCapture();
-  };
+  }, [startVoiceCapture]);
 
   // Switch to text mode
-  const switchToText = () => {
-    cleanup();
+  const switchToText = useCallback(() => {
+    console.log('Switching to text mode');
+    if (recognitionRef.current) {
+      try { recognitionRef.current.stop(); } catch (e) {}
+    }
     setMode('text');
     setTranscript('');
     setInterimTranscript('');
     setAiResponse(null);
     setWakeWordActive(false);
+    setIsListening(false);
     setTimeout(() => {
       inputRef.current?.focus();
-      // Redémarrer le wake word
-      if (porcupineReady && porcupineRef.current && webVoiceProcessorRef.current) {
-        webVoiceProcessorRef.current.subscribe(porcupineRef.current).then(() => {
-          setPorcupineListening(true);
-        }).catch(() => {
-          startWakeWordListening();
-        });
-      } else {
-        startWakeWordListening();
-      }
+      startWakeWordListening();
     }, 100);
-  };
+  }, [startWakeWordListening]);
 
-  // Déterminer le texte du wake word indicator
+  // Get wake word status text
   const getWakeWordText = () => {
-    if (porcupineReady && porcupineListening) {
-      return 'Dis "Hey Assistant" pour activer la voix (Porcupine)';
+    if (wakeWordStatus === 'listening') {
+      return 'Dis "Hey Assistant" pour activer la voix';
     }
-    if (porcupineError) {
-      return 'Dis "Hey Assistant" pour la voix (Web Speech)';
+    if (wakeWordStatus === 'error') {
+      return 'Cliquez sur Voix pour activer';
     }
-    return 'Dis "Hey Assistant" pour la voix';
+    return 'Initialisation...';
   };
 
   return (
@@ -599,9 +501,9 @@ const UnifiedCapture = () => {
           >
             <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-primary-500/20 border border-primary-500/30">
               <div className={`w-2 h-2 rounded-full ${
-                porcupineListening ? 'bg-green-400 animate-pulse' : 
-                !porcupineReady ? 'bg-amber-400 animate-pulse' : 
-                'bg-neutral-500'
+                wakeWordStatus === 'listening' ? 'bg-green-400 animate-pulse' : 
+                wakeWordStatus === 'error' ? 'bg-amber-400' : 
+                'bg-neutral-500 animate-pulse'
               }`} />
               <span className="text-sm text-primary-300">{getWakeWordText()}</span>
             </div>
@@ -675,11 +577,6 @@ const UnifiedCapture = () => {
                     <Brain className="w-8 h-8 text-primary-400" />
                   </motion.div>
                   <h3 className="text-xl font-semibold text-white mb-2">Analyse en cours...</h3>
-                  <div className="space-y-1 text-sm text-neutral-400">
-                    <p>Classification Eisenhower</p>
-                    <p>Niveau d'énergie</p>
-                    <p>Estimation durée</p>
-                  </div>
                 </motion.div>
               )}
 
@@ -713,11 +610,6 @@ const UnifiedCapture = () => {
                         {result.energy_required === 'high' ? 'Deep Work' :
                          result.energy_required === 'low' ? 'Repos' : 'Focus'}
                       </span>
-                      {result.estimated_total_minutes && (
-                        <span className="px-2 py-1 rounded-full text-xs bg-neutral-700 text-neutral-300">
-                          {result.estimated_total_minutes} min
-                        </span>
-                      )}
                     </div>
                   </div>
                 </motion.div>
