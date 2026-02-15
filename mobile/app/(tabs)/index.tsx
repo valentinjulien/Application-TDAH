@@ -3,16 +3,18 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   RefreshControl,
   ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
-import { supabase, Task, getTasks, updateTask } from '../../lib/supabase';
-import { Colors, Spacing, BorderRadius, FontSizes, TouchTargets } from '../../constants/theme';
+import { supabase, Task, getTasks, updateTask, createDailyLog } from '../../lib/supabase';
+import { Colors, Spacing, BorderRadius, FontSizes } from '../../constants/theme';
 import TaskCard from '../../components/TaskCard';
 import QuickCaptureButton from '../../components/QuickCaptureButton';
+import MorningGazette from '../../components/MorningGazette';
+import EveningReview, { shouldShowEveningReview, hasSeenEveningReviewToday } from '../../components/EveningReview';
+import useDailyTriggers, { getTimeBasedGreeting } from '../../hooks/useDailyTriggers';
 
 export default function NowScreen() {
   const [currentTask, setCurrentTask] = useState<Task | null>(null);
@@ -20,6 +22,14 @@ export default function NowScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+  const [showEveningReview, setShowEveningReview] = useState(false);
+
+  const { 
+    shouldShowMorningGazette, 
+    shouldShowEveningReview: triggerEveningReview,
+    markGazetteSeen,
+    markReviewSeen 
+  } = useDailyTriggers();
 
   const fetchTasks = useCallback(async () => {
     try {
@@ -50,6 +60,19 @@ export default function NowScreen() {
     fetchTasks();
   }, [fetchTasks]);
 
+  // Check for evening review trigger
+  useEffect(() => {
+    const checkEveningReview = async () => {
+      if (triggerEveningReview) {
+        const seen = await hasSeenEveningReviewToday();
+        if (!seen) {
+          setShowEveningReview(true);
+        }
+      }
+    };
+    checkEveningReview();
+  }, [triggerEveningReview]);
+
   const handleCompleteTask = async () => {
     if (!currentTask) return;
 
@@ -57,7 +80,6 @@ export default function NowScreen() {
 
     try {
       await updateTask(currentTask.id, { completed: true });
-      // Refresh to get next task
       await fetchTasks();
     } catch (error) {
       console.error('Error completing task:', error);
@@ -69,6 +91,28 @@ export default function NowScreen() {
     setRefreshing(true);
     fetchTasks();
   }, [fetchTasks]);
+
+  const handleStartTask = (taskId: string) => {
+    // Find and focus on the task
+    const task = allTasks.find(t => t.id === taskId);
+    if (task) {
+      setCurrentTask(task);
+    }
+    markGazetteSeen();
+  };
+
+  const handleGazetteDismiss = () => {
+    markGazetteSeen();
+  };
+
+  const handleEveningReviewClose = () => {
+    setShowEveningReview(false);
+    markReviewSeen();
+  };
+
+  const handleEveningTasksCreated = () => {
+    fetchTasks();
+  };
 
   const getQuadrantLabel = (quadrant: number) => {
     switch (quadrant) {
@@ -90,6 +134,26 @@ export default function NowScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
+      {/* Morning Gazette Modal */}
+      {shouldShowMorningGazette && (
+        <MorningGazette
+          tasks={allTasks}
+          onStartTask={handleStartTask}
+          onDismiss={handleGazetteDismiss}
+        />
+      )}
+
+      {/* Evening Review Modal */}
+      {userId && (
+        <EveningReview
+          visible={showEveningReview}
+          tasks={allTasks}
+          userId={userId}
+          onClose={handleEveningReviewClose}
+          onTasksCreated={handleEveningTasksCreated}
+        />
+      )}
+
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         refreshControl={
@@ -102,7 +166,8 @@ export default function NowScreen() {
       >
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.greeting}>Focus sur l'essentiel</Text>
+          <Text style={styles.greeting}>{getTimeBasedGreeting()}</Text>
+          <Text style={styles.subtitle}>Focus sur l'essentiel</Text>
           <Text style={styles.stats}>
             {completedToday} terminée{completedToday > 1 ? 's' : ''} aujourd'hui
           </Text>
@@ -162,6 +227,12 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.xl,
   },
   greeting: {
+    fontSize: FontSizes.xxl,
+    fontWeight: '600',
+    color: Colors.primary[400],
+    marginBottom: Spacing.xs,
+  },
+  subtitle: {
     fontSize: FontSizes.xxxl,
     fontWeight: '700',
     color: Colors.text.dark,
