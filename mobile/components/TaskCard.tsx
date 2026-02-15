@@ -90,6 +90,20 @@ export default function TaskCard({ task, onComplete, onUpdate, isHighlighted = f
   };
 
   const handleComplete = () => {
+    // Satisfying press animation
+    Animated.sequence([
+      Animated.timing(scaleAnim, {
+        toValue: 0.95,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+      Animated.timing(scaleAnim, {
+        toValue: 1,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+    ]).start();
+    
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     onComplete();
   };
