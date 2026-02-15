@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useUser } from '../App';
@@ -18,9 +18,7 @@ import {
   Zap,
   Calendar,
   AlertTriangle,
-  Plus,
-  Brain,
-  Keyboard
+  Plus
 } from 'lucide-react';
 
 const Dashboard = () => {
