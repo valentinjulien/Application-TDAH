@@ -141,8 +141,9 @@ Un sanctuaire numérique bienveillant qui protège l'attention des personnes TDA
 │   └── TimeBlockingModal.tsx    # 🆕 Planification intelligente
 ├── hooks/
 │   ├── useDailyTriggers.ts      # Détection horaire
+│   ├── useGoogleCalendar.ts     # 🆕 Google Calendar hook
 │   ├── useNotifications.ts      # Push notifications
-│   ├── useQuickActions.ts       # 🆕 Raccourcis app icon
+│   ├── useQuickActions.ts       # Raccourcis app icon
 │   ├── useSpeechToText.ts       # Whisper transcription
 │   └── useTimer.ts              # Timer robuste
 ├── services/
