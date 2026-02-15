@@ -14,7 +14,8 @@ import {
   Volume2, 
   Loader2,
   Keyboard,
-  Brain
+  Brain,
+  Shield
 } from 'lucide-react';
 
 // Configuration Web Speech API
@@ -42,6 +43,10 @@ const UnifiedCapture = () => {
   const { user } = useUser();
   const { addTask } = useTasks();
   
+  // Microphone permission state
+  const [showMicPermission, setShowMicPermission] = useState(false);
+  const [micPermissionStatus, setMicPermissionStatus] = useState('unknown'); // unknown, granted, denied, requesting
+  
   // Mode: text or voice
   const [mode, setMode] = useState('text');
   
@@ -59,14 +64,60 @@ const UnifiedCapture = () => {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [wakeWordActive, setWakeWordActive] = useState(false);
   const [aiResponse, setAiResponse] = useState(null);
-  const [wakeWordStatus, setWakeWordStatus] = useState('initializing'); // initializing, listening, error
+  const [wakeWordStatus, setWakeWordStatus] = useState('waiting'); // waiting, listening, error
   
   // Refs
   const inputRef = useRef(null);
   const recognitionRef = useRef(null);
   const wakeWordRecognitionRef = useRef(null);
   const silenceTimeoutRef = useRef(null);
-  const isInitializedRef = useRef(false);
+
+  // Check microphone permission on mount
+  useEffect(() => {
+    checkMicrophonePermission();
+  }, []);
+
+  // Check microphone permission
+  const checkMicrophonePermission = async () => {
+    try {
+      // Check if permission API is available
+      if (navigator.permissions) {
+        const result = await navigator.permissions.query({ name: 'microphone' });
+        if (result.state === 'granted') {
+          setMicPermissionStatus('granted');
+          return true;
+        } else if (result.state === 'denied') {
+          setMicPermissionStatus('denied');
+          return false;
+        }
+      }
+      // Permission state unknown, show popup
+      setShowMicPermission(true);
+      return false;
+    } catch (e) {
+      // Permission API not supported, show popup
+      setShowMicPermission(true);
+      return false;
+    }
+  };
+
+  // Request microphone permission
+  const requestMicrophonePermission = async () => {
+    setMicPermissionStatus('requesting');
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      stream.getTracks().forEach(track => track.stop());
+      setMicPermissionStatus('granted');
+      setShowMicPermission(false);
+      // Start wake word listening after permission granted
+      setTimeout(() => startWakeWordListening(), 500);
+      return true;
+    } catch (err) {
+      console.error('Microphone permission denied:', err);
+      setMicPermissionStatus('denied');
+      return false;
+    }
+  };
 
   // Text-to-speech
   const speak = useCallback((text) => {
@@ -158,24 +209,23 @@ const UnifiedCapture = () => {
     // Stop wake word listening first
     if (wakeWordRecognitionRef.current) {
       try {
-        wakeWordRecognitionRef.current.stop();
+        wakeWordRecognitionRef.current.abort();
+        wakeWordRecognitionRef.current = null;
       } catch (e) {}
     }
     
     // Check microphone permission
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      stream.getTracks().forEach(track => track.stop());
-      console.log('Microphone permission granted');
-    } catch (err) {
-      console.error('Microphone error:', err);
-      setError("Accès au microphone requis. Autorisez le microphone dans votre navigateur.");
-      setStatus('error');
-      return;
+    if (micPermissionStatus !== 'granted') {
+      const granted = await requestMicrophonePermission();
+      if (!granted) {
+        setError("Accès au microphone requis");
+        setStatus('error');
+        return;
+      }
     }
     
     if (!SpeechRecognition) {
-      setError("La reconnaissance vocale n'est pas supportée par votre navigateur. Utilisez Chrome.");
+      setError("La reconnaissance vocale n'est pas supportée. Utilisez Chrome.");
       setStatus('error');
       return;
     }
@@ -246,11 +296,12 @@ const UnifiedCapture = () => {
     recognition.onerror = (event) => {
       console.error('Speech recognition error:', event.error);
       if (event.error === 'not-allowed') {
-        setError("Microphone refusé. Autorisez le microphone dans les paramètres du navigateur.");
+        setMicPermissionStatus('denied');
+        setError("Microphone refusé. Cliquez sur l'icône cadenas dans la barre d'adresse pour autoriser.");
         setStatus('error');
-      } else if (event.error === 'no-speech') {
-        // Ignore no-speech errors
-      } else {
+      } else if (event.error === 'aborted') {
+        // Ignore aborted errors (happens when we stop recognition)
+      } else if (event.error !== 'no-speech') {
         setError(`Erreur: ${event.error}`);
       }
       setIsListening(false);
@@ -269,13 +320,19 @@ const UnifiedCapture = () => {
       console.error('Error starting recognition:', e);
       setError("Impossible de démarrer la reconnaissance vocale");
     }
-  }, [checkStopCommand, processVoiceInput]);
+  }, [micPermissionStatus, checkStopCommand, processVoiceInput]);
 
   // Start wake word listening (background)
   const startWakeWordListening = useCallback(() => {
     if (!SpeechRecognition) {
       console.log('SpeechRecognition not supported');
       setWakeWordStatus('error');
+      return;
+    }
+    
+    if (micPermissionStatus !== 'granted') {
+      console.log('Microphone permission not granted yet');
+      setWakeWordStatus('waiting');
       return;
     }
     
@@ -297,7 +354,8 @@ const UnifiedCapture = () => {
         console.log('Wake word heard:', text);
         if (checkWakeWord(text)) {
           console.log('WAKE WORD DETECTED!');
-          recognition.stop();
+          recognition.abort();
+          wakeWordRecognitionRef.current = null;
           setWakeWordActive(true);
           speak("Je t'écoute !");
           setTimeout(() => {
@@ -310,7 +368,11 @@ const UnifiedCapture = () => {
     };
     
     recognition.onerror = (event) => {
-      if (event.error !== 'aborted' && event.error !== 'no-speech') {
+      if (event.error === 'aborted') {
+        // Ignore aborted errors
+        return;
+      }
+      if (event.error !== 'no-speech') {
         console.log('Wake word error:', event.error);
         setWakeWordStatus('error');
       }
@@ -319,16 +381,12 @@ const UnifiedCapture = () => {
     recognition.onend = () => {
       console.log('Wake word listening ended');
       // Restart if still in text mode and not activated
-      if (mode === 'text' && !wakeWordActive) {
+      if (mode === 'text' && !wakeWordActive && micPermissionStatus === 'granted') {
         setTimeout(() => {
-          if (wakeWordRecognitionRef.current === recognition) {
-            try {
-              recognition.start();
-            } catch (e) {
-              console.log('Could not restart wake word:', e);
-            }
+          if (!wakeWordRecognitionRef.current) {
+            startWakeWordListening();
           }
-        }, 500);
+        }, 1000);
       }
     };
     
@@ -340,23 +398,20 @@ const UnifiedCapture = () => {
       console.log('Could not start wake word:', e);
       setWakeWordStatus('error');
     }
-  }, [checkWakeWord, speak, startVoiceCapture, mode, wakeWordActive]);
+  }, [checkWakeWord, speak, startVoiceCapture, mode, wakeWordActive, micPermissionStatus]);
+
+  // Start wake word listening when permission is granted
+  useEffect(() => {
+    if (micPermissionStatus === 'granted' && mode === 'text' && !wakeWordActive) {
+      startWakeWordListening();
+    }
+  }, [micPermissionStatus]);
 
   // Initialize
   useEffect(() => {
-    if (isInitializedRef.current) return;
-    isInitializedRef.current = true;
-    
-    console.log('UnifiedCapture initializing...');
-    
     if (mode === 'text') {
       setTimeout(() => inputRef.current?.focus(), 100);
     }
-    
-    // Start wake word listening after a short delay
-    setTimeout(() => {
-      startWakeWordListening();
-    }, 1000);
     
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') {
@@ -369,10 +424,10 @@ const UnifiedCapture = () => {
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
       if (recognitionRef.current) {
-        try { recognitionRef.current.stop(); } catch (e) {}
+        try { recognitionRef.current.abort(); } catch (e) {}
       }
       if (wakeWordRecognitionRef.current) {
-        try { wakeWordRecognitionRef.current.stop(); } catch (e) {}
+        try { wakeWordRecognitionRef.current.abort(); } catch (e) {}
       }
       if (silenceTimeoutRef.current) {
         clearTimeout(silenceTimeoutRef.current);
@@ -384,10 +439,10 @@ const UnifiedCapture = () => {
   // Close handler
   const handleClose = useCallback(() => {
     if (recognitionRef.current) {
-      try { recognitionRef.current.stop(); } catch (e) {}
+      try { recognitionRef.current.abort(); } catch (e) {}
     }
     if (wakeWordRecognitionRef.current) {
-      try { wakeWordRecognitionRef.current.stop(); } catch (e) {}
+      try { wakeWordRecognitionRef.current.abort(); } catch (e) {}
     }
     navigate(-1);
   }, [navigate]);
@@ -439,7 +494,8 @@ const UnifiedCapture = () => {
   const switchToVoice = useCallback(() => {
     console.log('Switching to voice mode manually');
     if (wakeWordRecognitionRef.current) {
-      try { wakeWordRecognitionRef.current.stop(); } catch (e) {}
+      try { wakeWordRecognitionRef.current.abort(); } catch (e) {}
+      wakeWordRecognitionRef.current = null;
     }
     setMode('voice');
     setWakeWordActive(true);
@@ -450,7 +506,7 @@ const UnifiedCapture = () => {
   const switchToText = useCallback(() => {
     console.log('Switching to text mode');
     if (recognitionRef.current) {
-      try { recognitionRef.current.stop(); } catch (e) {}
+      try { recognitionRef.current.abort(); } catch (e) {}
     }
     setMode('text');
     setTranscript('');
@@ -458,14 +514,20 @@ const UnifiedCapture = () => {
     setAiResponse(null);
     setWakeWordActive(false);
     setIsListening(false);
+    setError(null);
     setTimeout(() => {
       inputRef.current?.focus();
-      startWakeWordListening();
+      if (micPermissionStatus === 'granted') {
+        startWakeWordListening();
+      }
     }, 100);
-  }, [startWakeWordListening]);
+  }, [startWakeWordListening, micPermissionStatus]);
 
   // Get wake word status text
   const getWakeWordText = () => {
+    if (micPermissionStatus !== 'granted') {
+      return 'Autorisez le micro pour "Hey Assistant"';
+    }
     if (wakeWordStatus === 'listening') {
       return 'Dis "Hey Assistant" pour activer la voix';
     }
@@ -487,26 +549,102 @@ const UnifiedCapture = () => {
         className={`absolute inset-0 backdrop-blur-xl transition-colors duration-500 ${
           mode === 'voice' ? 'bg-neutral-950/95' : 'bg-neutral-900/90'
         }`}
-        onClick={status === 'idle' && mode === 'text' ? handleClose : undefined}
+        onClick={status === 'idle' && mode === 'text' && !showMicPermission ? handleClose : undefined}
       />
+
+      {/* Microphone Permission Popup */}
+      <AnimatePresence>
+        {showMicPermission && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            className="absolute z-50 bg-neutral-800 rounded-2xl p-6 max-w-md mx-4 shadow-2xl border border-neutral-700"
+          >
+            <div className="text-center">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary-500/20 flex items-center justify-center">
+                <Mic className="w-8 h-8 text-primary-400" />
+              </div>
+              
+              <h2 className="text-xl font-bold text-white mb-2">
+                Autoriser le microphone
+              </h2>
+              
+              <p className="text-neutral-400 mb-6">
+                Pour utiliser l'assistant vocal et dire "Hey Assistant", nous avons besoin d'accéder à votre microphone.
+              </p>
+              
+              <div className="bg-neutral-700/50 rounded-xl p-4 mb-6 text-left">
+                <div className="flex items-start gap-3">
+                  <Shield className="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="text-sm text-white font-medium">Votre vie privée est protégée</p>
+                    <p className="text-xs text-neutral-400 mt-1">
+                      L'audio n'est jamais enregistré ni stocké. Il est traité uniquement en temps réel pour la reconnaissance vocale.
+                    </p>
+                  </div>
+                </div>
+              </div>
+              
+              {micPermissionStatus === 'denied' && (
+                <div className="bg-red-500/20 border border-red-500/50 rounded-xl p-3 mb-4">
+                  <p className="text-red-300 text-sm">
+                    Accès refusé. Cliquez sur l'icône 🔒 dans la barre d'adresse pour modifier les permissions.
+                  </p>
+                </div>
+              )}
+              
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowMicPermission(false)}
+                  className="flex-1 px-4 py-3 bg-neutral-700 hover:bg-neutral-600 text-white rounded-xl font-medium transition-colors"
+                >
+                  Plus tard
+                </button>
+                <button
+                  onClick={requestMicrophonePermission}
+                  disabled={micPermissionStatus === 'requesting'}
+                  className="flex-1 px-4 py-3 bg-primary-500 hover:bg-primary-600 text-white rounded-xl font-medium transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                >
+                  {micPermissionStatus === 'requesting' ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      Autorisation...
+                    </>
+                  ) : (
+                    <>
+                      <Mic className="w-5 h-5" />
+                      Autoriser
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       
       {/* Wake Word Indicator */}
       <AnimatePresence>
-        {mode === 'text' && !wakeWordActive && (
+        {mode === 'text' && !wakeWordActive && !showMicPermission && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             className="absolute top-6 left-1/2 -translate-x-1/2 z-20"
           >
-            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-primary-500/20 border border-primary-500/30">
+            <button
+              onClick={() => micPermissionStatus !== 'granted' ? setShowMicPermission(true) : null}
+              className="flex items-center gap-2 px-4 py-2 rounded-full bg-primary-500/20 border border-primary-500/30 hover:bg-primary-500/30 transition-colors cursor-pointer"
+            >
               <div className={`w-2 h-2 rounded-full ${
                 wakeWordStatus === 'listening' ? 'bg-green-400 animate-pulse' : 
-                wakeWordStatus === 'error' ? 'bg-amber-400' : 
+                micPermissionStatus !== 'granted' ? 'bg-amber-400' :
+                wakeWordStatus === 'error' ? 'bg-red-400' : 
                 'bg-neutral-500 animate-pulse'
               }`} />
               <span className="text-sm text-primary-300">{getWakeWordText()}</span>
-            </div>
+            </button>
           </motion.div>
         )}
       </AnimatePresence>
@@ -515,7 +653,7 @@ const UnifiedCapture = () => {
       <motion.div
         initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        className="relative z-10 w-full max-w-2xl px-6"
+        className={`relative z-10 w-full max-w-2xl px-6 ${showMicPermission ? 'opacity-30 pointer-events-none' : ''}`}
       >
         {/* Close button */}
         <button
