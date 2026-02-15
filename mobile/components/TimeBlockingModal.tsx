@@ -70,10 +70,19 @@ export default function TimeBlockingModal({
       setWeight(taskWeight);
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 
-      // Find optimal time slots
+      // Fetch busy slots from Google Calendar if connected
+      let busySlots: { start: Date; end: Date }[] = [];
+      if (isCalendarConnected) {
+        const now = new Date();
+        const nextWeek = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+        busySlots = await fetchBusySlots(now, nextWeek);
+      }
+
+      // Find optimal time slots (considering busy times)
       const optimalSlots = findOptimalSlot(
         taskWeight.energy_required,
-        taskWeight.estimated_total_minutes
+        taskWeight.estimated_total_minutes,
+        busySlots
       );
       setSlots(optimalSlots);
     } catch (error) {
