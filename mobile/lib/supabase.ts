@@ -52,6 +52,31 @@ export interface PomodoroSession {
   created_at: string;
 }
 
+// Daily Logs for Gazette and Review
+export interface DailyLog {
+  id: string;
+  user_id: string;
+  date: string;
+  type: 'morning_gazette' | 'evening_review';
+  content: {
+    // Morning Gazette
+    victoire_du_jour?: {
+      task_id: string;
+      titre: string;
+      raison: string;
+    };
+    etape_zero?: {
+      action: string;
+      emoji: string;
+    };
+    // Evening Review
+    notes_journal?: string;
+    celebration?: string;
+    tasks_created?: number;
+  };
+  created_at: string;
+}
+
 // Helper functions
 export const getTasks = async (userId: string): Promise<Task[]> => {
   const { data, error } = await supabase
