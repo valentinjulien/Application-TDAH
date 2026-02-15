@@ -1,5 +1,5 @@
 {
-  "name": "tdah-companion-app",
+  "name": "assistant-tdah-app",
   "version": "1.0.0",
   "private": true,
   "proxy": "http://localhost:8001",
