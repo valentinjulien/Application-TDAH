@@ -187,8 +187,8 @@ daily_logs, pomodoro_sessions, moods
 ## 📦 Backlog
 
 ### P1 - À faire
-- [ ] Intégration Google Calendar (credentials OAuth requis)
-- [ ] Flux d'authentification complet
+- [ ] Flux d'authentification complet (Supabase Auth)
+- [ ] Synchronisation bidirectionnelle Google Calendar (màj/suppression)
 
 ### P2 - Nice to have
 - [ ] Capture vocale fonctionnelle
