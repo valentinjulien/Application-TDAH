@@ -23,6 +23,7 @@ interface TaskBreakdownProps {
 
 export default function TaskBreakdown({ task, steps, onStepsUpdate, onComplete }: TaskBreakdownProps) {
   const [localSteps, setLocalSteps] = useState<TaskStep[]>(steps);
+  const [showConfetti, setShowConfetti] = useState(false);
   const progressAnim = useRef(new Animated.Value(0)).current;
   const confettiShown = useRef(false);
 
