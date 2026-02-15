@@ -83,9 +83,9 @@ const UnifiedCapture = () => {
       
       const porcupine = await Porcupine.create(
         accessKey,
-        [{ builtin: BuiltInKeyword.HeyGoogle, sensitivity: 0.5 }],
+        [{ builtin: BuiltInKeyword.HeyGoogle, sensitivity: 0.65 }],
         detectionCallback,
-        { publicPath: '/porcupine/', forceWrite: true }  // Model - using default bundled model
+        { base64: '' }  // Empty model = use default bundled English model for built-in keywords
       );
       
       console.log('✅ Porcupine created!', {
