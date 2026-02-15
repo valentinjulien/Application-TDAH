@@ -168,6 +168,13 @@ export default function TaskBreakdown({ task, steps, onStepsUpdate, onComplete }
           <Text style={styles.celebrationText}>Bravo ! Mission accomplie !</Text>
         </View>
       )}
+
+      {/* Confetti Animation */}
+      <ConfettiCannon 
+        active={showConfetti} 
+        count={60}
+        onComplete={() => setShowConfetti(false)}
+      />
     </View>
   );
 }
