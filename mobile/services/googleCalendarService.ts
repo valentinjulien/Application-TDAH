@@ -424,7 +424,7 @@ export function taskToCalendarEvent(
 
   return {
     summary: `🎯 ${taskText}`,
-    description: `Tâche TDAH Companion\nNiveau d'énergie: ${energyLevel || 'medium'}`,
+    description: `Tâche Assistant TDAH\nNiveau d'énergie: ${energyLevel || 'medium'}`,
     start: {
       dateTime: scheduledAt.toISOString(),
       timeZone: 'Europe/Paris',
