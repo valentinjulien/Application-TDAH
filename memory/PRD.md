@@ -6,16 +6,11 @@ Application pour structurer la vie quotidienne des personnes TDAH et créer une 
 ## 🎯 Vision
 Une application bienveillante et non-jugeante qui aide les personnes atteintes de TDAH à organiser leur quotidien grâce à l'IA et la voix, tout en créant une communauté de soutien.
 
-## 👥 User Personas
-1. **Marie, 28 ans** - Diagnostiquée TDAH adulte, travaille en marketing, cherche à mieux gérer ses tâches
-2. **Alex, 16 ans** - Étudiant avec TDAH, besoin de structure pour les devoirs et révisions
-3. **Léa, 35 ans** - Mère de famille TDAH, jongle entre travail et vie personnelle
-
 ---
 
 ## 📱 APPLICATION MOBILE NATIVE (Expo) - EN COURS
 
-### ✅ Actions Prioritaires Complétées (4 Février 2026)
+### ✅ Complété (4 Février 2026)
 
 #### 1. Configuration Supabase ✅
 - Client Supabase configuré avec credentials utilisateur
@@ -42,11 +37,20 @@ Une application bienveillante et non-jugeante qui aide les personnes atteintes d
 - Persistance de session automatique
 - Design TDAH-friendly (dark mode, couleurs douces)
 
+#### 5. Push Notifications ✅ (NOUVEAU)
+- **Hook useNotifications** - Gestion complète des permissions et tokens
+- **Canaux Android** - "default", "reminders", "pomodoro" 
+- **Rappels de tâches** - Programmation lors de la création (option "Me rappeler dans X minutes")
+- **Notifications Pomodoro** - Fin de session focus/pause
+- **Motivation quotidienne** - Message d'encouragement chaque matin (activable)
+- **Test de notification** - Bouton dans le profil pour vérifier le fonctionnement
+- **Interface utilisateur** - Toggle pour activer/désactiver dans le profil
+
 ### 📂 Structure des Fichiers Mobile
 ```
 /app/mobile/
 ├── app/
-│   ├── _layout.tsx              # Layout racine + auth
+│   ├── _layout.tsx              # Layout racine + auth + notifications init
 │   ├── (auth)/
 │   │   ├── _layout.tsx          # Layout auth
 │   │   ├── login.tsx            # Écran connexion
@@ -55,39 +59,45 @@ Une application bienveillante et non-jugeante qui aide les personnes atteintes d
 │       ├── _layout.tsx          # Tab navigator
 │       ├── index.tsx            # Écran "Maintenant"
 │       ├── matrix.tsx           # Matrice Eisenhower
-│       └── profile.tsx          # Profil utilisateur
+│       └── profile.tsx          # Profil + paramètres notifications
 ├── components/
 │   ├── TaskCard.tsx             # Carte de tâche avec haptics
-│   └── QuickCaptureButton.tsx   # FAB + modal création
+│   └── QuickCaptureButton.tsx   # FAB + modal création + rappel
 ├── constants/
 │   └── theme.ts                 # Design system TDAH-friendly
+├── hooks/
+│   └── useNotifications.ts      # Hook notifications push
 ├── lib/
 │   ├── supabase.ts              # Client + helpers
 │   └── database.types.ts        # Types Supabase
 └── supabase_schema.sql          # Script création tables
 ```
 
-### 🎨 Design System TDAH-Friendly
-- **Palette "Twilight Calm"**: Couleurs basse stimulation
-- **Dark mode par défaut**: Moins fatigant pour les yeux
-- **Touch targets**: Minimum 48px pour faciliter le tap
-- **Feedback haptique**: Vibrations sur actions importantes
-- **Grandes polices lisibles**: Hiérarchie claire
+### 🔔 Fonctionnalités Notifications
+| Fonctionnalité | Description |
+|----------------|-------------|
+| Rappel de tâche | Notification programmée X minutes après création |
+| Motivation quotidienne | Message d'encouragement à 9h (activable) |
+| Fin session Pomodoro | Notification "Pause méritée !" |
+| Fin pause Pomodoro | Notification "Prêt à reprendre ?" |
+| Test | Bouton pour vérifier que tout fonctionne |
+
+### ⚠️ ATTENTION - Tables Supabase
+L'utilisateur souhaite utiliser les tables existantes de son Supabase.
+**Tables attendues** : à confirmer par l'utilisateur.
+Si les tables n'existent pas, le script `/app/mobile/supabase_schema.sql` peut être utilisé.
 
 ### ⏳ Tâches Restantes Mobile
 
 #### P1 - Fonctionnalités Principales
 - [ ] **Quick Capture Vocale**: Intégrer `expo-speech` dans le FAB
-- [ ] **Push Notifications**: Configurer `expo-notifications`
 - [ ] **Synchronisation temps réel**: Activer Supabase realtime
+- [ ] **Adapter aux tables existantes**: Selon schéma Supabase de l'utilisateur
 
 #### P2 - Polish UX
 - [ ] Animations d'entrée sur les écrans
 - [ ] Transitions entre les tâches
 - [ ] Onboarding pour nouveaux utilisateurs
-
-### 🔑 IMPORTANT - Setup Supabase
-L'utilisateur doit exécuter le script `/app/mobile/supabase_schema.sql` dans son projet Supabase pour créer les tables nécessaires.
 
 ---
 
@@ -104,24 +114,17 @@ L'utilisateur doit exécuter le script `/app/mobile/supabase_schema.sql` dans so
 - Assistant Vocal IA (route /assist)
 - PWA avec notifications
 
-### 🔧 Stack Technique Web
-- **Frontend**: React 18, Tailwind CSS, Framer Motion
-- **Backend**: FastAPI, MongoDB
-- **Auth**: Emergent Google OAuth
-- **IA**: GPT-4o via Emergent LLM Key
-
 ---
 
 ## 🚀 Backlog Global
 
-### P0 - Mobile App Completion
-- [ ] Test complet de l'authentification Supabase
-- [ ] Test création/complétion de tâches
+### P0 - À confirmer
+- [ ] Schéma des tables Supabase existantes
 
 ### P1 - Fonctionnalités Additionnelles
+- [ ] Quick Capture vocale (expo-speech)
 - [ ] Intégration Google Calendar
 - [ ] Gamification (badges, streaks)
-- [ ] Chat communautaire
 
 ### P2 - Nice to have
 - [ ] Mode hors-ligne complet
@@ -129,4 +132,4 @@ L'utilisateur doit exécuter le script `/app/mobile/supabase_schema.sql` dans so
 - [ ] Widget iOS/Android
 
 ---
-*Dernière mise à jour: 4 Février 2026 - Application Mobile Expo en développement*
+*Dernière mise à jour: 4 Février 2026 - Push Notifications implémentées*
