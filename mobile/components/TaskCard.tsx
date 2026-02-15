@@ -166,7 +166,34 @@ export default function TaskCard({ task, onComplete, onUpdate, isHighlighted = f
             </Text>
           </View>
           
-          {task.due_date && (
+          {/* Energy Badge */}
+          {energyInfo && (
+            <View style={[styles.energyBadge, { backgroundColor: energyInfo.color + '20' }]}>
+              <Text style={[styles.energyBadgeText, { color: energyInfo.color }]}>
+                {energyInfo.emoji} {energyInfo.label}
+              </Text>
+            </View>
+          )}
+
+          {/* Duration Badge */}
+          {task.estimated_total_minutes && (
+            <View style={[styles.durationBadge, { backgroundColor: Colors.neutral[700] }]}>
+              <Text style={styles.durationBadgeText}>
+                ⏱️ {formatDuration(task.estimated_total_minutes)}
+              </Text>
+            </View>
+          )}
+
+          {/* Scheduled Badge */}
+          {isScheduled && scheduledDate && (
+            <View style={[styles.scheduledBadge, { backgroundColor: Colors.primary[600] + '30' }]}>
+              <Text style={[styles.scheduledText, { color: Colors.primary[400] }]}>
+                📅 {scheduledDate.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric' })} à {scheduledDate.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+              </Text>
+            </View>
+          )}
+          
+          {task.due_date && !isScheduled && (
             <Text style={styles.dueDate}>
               📅 {new Date(task.due_date).toLocaleDateString('fr-FR')}
             </Text>
