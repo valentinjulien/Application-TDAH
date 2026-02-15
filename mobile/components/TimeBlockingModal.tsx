@@ -40,6 +40,17 @@ export default function TimeBlockingModal({
   const [slots, setSlots] = useState<TimeSlot[]>([]);
   const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
   const [scheduling, setScheduling] = useState(false);
+  const [syncToCalendar, setSyncToCalendar] = useState(true);
+
+  // Google Calendar hook
+  const {
+    isConnected: isCalendarConnected,
+    isLoading: isCalendarLoading,
+    userEmail,
+    connect: connectCalendar,
+    syncTaskToCalendar,
+    fetchBusySlots,
+  } = useGoogleCalendar();
 
   useEffect(() => {
     if (visible && task) {
