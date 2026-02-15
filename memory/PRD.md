@@ -197,4 +197,4 @@ daily_logs, pomodoro_sessions, moods
 - [ ] Statistiques graphiques avancées
 
 ---
-*Dernière mise à jour: 15 Février 2026 - Ghost UI + Quick Actions + Time-Blocking*
+*Dernière mise à jour: 15 Février 2026 - Google Calendar + Ghost UI + Quick Actions + Time-Blocking*
