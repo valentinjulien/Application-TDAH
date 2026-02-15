@@ -264,6 +264,12 @@ export default function TimeBlockingModal({
                     : 'Tâche standard → Horaires flexibles'}
                 </Text>
 
+                {isCalendarConnected && (
+                  <Text style={styles.calendarConnectedHint}>
+                    ✓ Créneaux occupés Google Calendar exclus
+                  </Text>
+                )}
+
                 {slots.length > 0 ? (
                   <View style={styles.slotsList}>
                     {slots.map((slot, index) => (
@@ -304,6 +310,58 @@ export default function TimeBlockingModal({
                   <Text style={styles.noSlotsText}>
                     Aucun créneau disponible trouvé
                   </Text>
+                )}
+              </View>
+
+              {/* Google Calendar Section */}
+              <View style={styles.calendarSection}>
+                <Text style={styles.sectionTitle}>📅 Google Calendar</Text>
+                
+                {isCalendarConnected ? (
+                  <View style={styles.calendarConnected}>
+                    <View style={styles.calendarStatus}>
+                      <Text style={styles.calendarStatusIcon}>✓</Text>
+                      <View style={styles.calendarStatusInfo}>
+                        <Text style={styles.calendarStatusText}>Connecté</Text>
+                        {userEmail && (
+                          <Text style={styles.calendarEmail}>{userEmail}</Text>
+                        )}
+                      </View>
+                    </View>
+                    
+                    <View style={styles.syncToggle}>
+                      <Text style={styles.syncToggleLabel}>
+                        Ajouter au calendrier
+                      </Text>
+                      <Switch
+                        value={syncToCalendar}
+                        onValueChange={setSyncToCalendar}
+                        trackColor={{ 
+                          false: Colors.neutral[700], 
+                          true: Colors.primary[600] 
+                        }}
+                        thumbColor={syncToCalendar ? Colors.primary[300] : Colors.neutral[400]}
+                      />
+                    </View>
+                  </View>
+                ) : (
+                  <TouchableOpacity
+                    style={styles.connectCalendarButton}
+                    onPress={connectCalendar}
+                    disabled={isCalendarLoading}
+                    activeOpacity={0.7}
+                  >
+                    {isCalendarLoading ? (
+                      <ActivityIndicator size="small" color={Colors.primary[400]} />
+                    ) : (
+                      <>
+                        <Text style={styles.connectCalendarIcon}>🔗</Text>
+                        <Text style={styles.connectCalendarText}>
+                          Connecter Google Calendar
+                        </Text>
+                      </>
+                    )}
+                  </TouchableOpacity>
                 )}
               </View>
             </ScrollView>
