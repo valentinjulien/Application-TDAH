@@ -297,7 +297,19 @@ export default function CaptureScreen() {
             <Text style={styles.hintText}>
               Entrée pour capturer • Retour pour annuler
             </Text>
+            <Text style={styles.hintSubtext}>
+              L'IA organisera automatiquement ta pensée ✨
+            </Text>
           </Animated.View>
+        )}
+
+        {/* AI Preview hint when typing */}
+        {text.length > 10 && state === 'idle' && (
+          <View style={styles.aiPreview}>
+            <Text style={styles.aiPreviewText}>
+              🧠 L'IA va analyser : priorité, énergie, durée
+            </Text>
+          </View>
         )}
 
         {/* Character count */}
