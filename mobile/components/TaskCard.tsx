@@ -336,12 +336,55 @@ const styles = StyleSheet.create({
     fontSize: FontSizes.xs,
     fontWeight: '600',
   },
+  energyBadge: {
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.xs,
+    borderRadius: BorderRadius.full,
+  },
+  energyBadgeText: {
+    fontSize: FontSizes.xs,
+    fontWeight: '600',
+  },
+  durationBadge: {
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.xs,
+    borderRadius: BorderRadius.full,
+  },
+  durationBadgeText: {
+    fontSize: FontSizes.xs,
+    fontWeight: '500',
+    color: Colors.neutral[300],
+  },
+  scheduledBadge: {
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.xs,
+    borderRadius: BorderRadius.full,
+  },
+  scheduledText: {
+    fontSize: FontSizes.xs,
+    fontWeight: '600',
+  },
   dueDate: {
     fontSize: FontSizes.sm,
     color: Colors.neutral[400],
   },
   actions: {
     gap: Spacing.sm,
+  },
+  timeBlockButton: {
+    backgroundColor: Colors.primary[900] + '60',
+    borderRadius: BorderRadius.md,
+    padding: Spacing.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: TouchTargets.minimum,
+    borderWidth: 1,
+    borderColor: Colors.primary[700],
+  },
+  timeBlockButtonText: {
+    fontSize: FontSizes.md,
+    fontWeight: '500',
+    color: Colors.primary[300],
   },
   breakdownButton: {
     backgroundColor: Colors.neutral[800],
