@@ -237,6 +237,103 @@ export default function DeepFocus({ visible, onClose, userId, currentTaskText }:
     }
   }, [phase, visible]);
 
+  // ============================================
+  // FOCUS PROTECTION - Détection d'abandon
+  // ============================================
+  
+  useEffect(() => {
+    if (phase !== 'focus' || !isRunning) return;
+
+    const handleAppStateChange = async (nextAppState: AppStateStatus) => {
+      const previousState = appStateRef.current;
+      appStateRef.current = nextAppState;
+
+      // User is leaving the app (going to background)
+      if (previousState === 'active' && nextAppState.match(/inactive|background/)) {
+        lastBackgroundTimeRef.current = Date.now();
+        
+        // Increment interruption count
+        setInterruptionCount(prev => prev + 1);
+        
+        // Send notification with random ADHD-friendly message
+        const randomMessage = DISTRACTION_MESSAGES[
+          Math.floor(Math.random() * DISTRACTION_MESSAGES.length)
+        ];
+        
+        await Notifications.scheduleNotificationAsync({
+          content: {
+            title: randomMessage.title,
+            body: randomMessage.body,
+            sound: true,
+            priority: Notifications.AndroidNotificationPriority.HIGH,
+          },
+          trigger: { seconds: 3 }, // Small delay for natural feel
+        });
+        
+        // Log interruption to Supabase
+        if (userId) {
+          try {
+            await createDailyLog({
+              user_id: userId,
+              date: new Date().toISOString().split('T')[0],
+              type: 'focus_interruption',
+              content: {
+                interruption_count: interruptionCount + 1,
+                session_mode: selectedMode.id,
+                minutes_elapsed: Math.floor((selectedMode.minutes * 60 - progress * selectedMode.minutes * 60 / 100) / 60),
+              },
+            }).catch(() => {});
+          } catch (e) {
+            console.log('Could not log interruption:', e);
+          }
+        }
+      }
+      
+      // User is coming back to the app
+      if (previousState.match(/inactive|background/) && nextAppState === 'active') {
+        const timeAway = lastBackgroundTimeRef.current 
+          ? Date.now() - lastBackgroundTimeRef.current 
+          : 0;
+        
+        // Only show welcome back if away for more than 5 seconds
+        if (timeAway > 5000) {
+          const randomWelcome = WELCOME_BACK_MESSAGES[
+            Math.floor(Math.random() * WELCOME_BACK_MESSAGES.length)
+          ];
+          setWelcomeBackMessage(randomWelcome);
+          setShowWelcomeBack(true);
+          
+          // Animate welcome back message
+          Animated.sequence([
+            Animated.timing(welcomeBackAnim, {
+              toValue: 1,
+              duration: 300,
+              useNativeDriver: true,
+            }),
+            Animated.delay(3000),
+            Animated.timing(welcomeBackAnim, {
+              toValue: 0,
+              duration: 300,
+              useNativeDriver: true,
+            }),
+          ]).start(() => {
+            setShowWelcomeBack(false);
+          });
+          
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        }
+        
+        lastBackgroundTimeRef.current = null;
+      }
+    };
+
+    const subscription = AppState.addEventListener('change', handleAppStateChange);
+    
+    return () => {
+      subscription.remove();
+    };
+  }, [phase, isRunning, userId, interruptionCount, selectedMode, progress]);
+
   // Pulse animation for timer
   useEffect(() => {
     if (phase === 'focus' && isRunning) {
