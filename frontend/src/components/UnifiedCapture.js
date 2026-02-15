@@ -31,7 +31,7 @@ const PLACEHOLDERS = [
   'Avant d\'oublier...',
 ];
 
-// Wake word configuration
+// Wake word configuration (fallback si Porcupine non disponible)
 const WAKE_WORDS = ['hey assistant', 'hé assistant', 'ok assistant', 'dis assistant'];
 
 // Stop commands
@@ -43,7 +43,7 @@ const UnifiedCapture = () => {
   const { addTask } = useTasks();
   
   // Mode: text or voice
-  const [mode, setMode] = useState('text'); // text, voice, listening_wake
+  const [mode, setMode] = useState('text'); // text, voice
   
   // Common state
   const [inputText, setInputText] = useState('');
@@ -60,11 +60,90 @@ const UnifiedCapture = () => {
   const [wakeWordActive, setWakeWordActive] = useState(false);
   const [aiResponse, setAiResponse] = useState(null);
   
+  // Porcupine state
+  const [porcupineReady, setPorcupineReady] = useState(false);
+  const [porcupineListening, setPorcupineListening] = useState(false);
+  const porcupineRef = useRef(null);
+  const webVoiceProcessorRef = useRef(null);
+  
   // Refs
   const inputRef = useRef(null);
   const recognitionRef = useRef(null);
   const wakeWordRecognitionRef = useRef(null);
   const silenceTimeoutRef = useRef(null);
+
+  // Initialize Porcupine
+  const initPorcupine = useCallback(async () => {
+    try {
+      // Importer dynamiquement pour éviter les erreurs SSR
+      const { Porcupine } = await import('@picovoice/porcupine-web');
+      const { WebVoiceProcessor } = await import('@picovoice/web-voice-processor');
+      
+      // Récupérer la clé d'accès
+      const response = await fetch('/api/porcupine/access-key');
+      if (!response.ok) {
+        console.log('Porcupine not configured, using Web Speech API fallback');
+        return false;
+      }
+      
+      const { accessKey } = await response.json();
+      
+      // Créer l'instance Porcupine avec le wake word "hey google" intégré
+      // Note: Pour "hey assistant" personnalisé, il faudrait entraîner un modèle via console.picovoice.ai
+      const porcupine = await Porcupine.fromBuiltInKeywords(
+        accessKey,
+        ['hey google'] // Utilise "hey google" comme wake word disponible
+      );
+      
+      porcupineRef.current = porcupine;
+      
+      // Créer le processeur audio
+      const voiceProcessor = await WebVoiceProcessor.subscribe(porcupine);
+      webVoiceProcessorRef.current = voiceProcessor;
+      
+      // Écouter les détections
+      porcupine.onKeywordDetected = (keywordIndex) => {
+        console.log('Porcupine wake word detected!', keywordIndex);
+        handleWakeWordDetected();
+      };
+      
+      setPorcupineReady(true);
+      setPorcupineListening(true);
+      console.log('Porcupine initialized with "hey google" wake word');
+      return true;
+    } catch (err) {
+      console.error('Failed to initialize Porcupine:', err);
+      return false;
+    }
+  }, []);
+
+  // Cleanup Porcupine
+  const cleanupPorcupine = useCallback(async () => {
+    if (webVoiceProcessorRef.current && porcupineRef.current) {
+      try {
+        const { WebVoiceProcessor } = await import('@picovoice/web-voice-processor');
+        await WebVoiceProcessor.unsubscribe(porcupineRef.current);
+      } catch (e) {
+        // Ignore
+      }
+    }
+    if (porcupineRef.current) {
+      porcupineRef.current.release();
+      porcupineRef.current = null;
+    }
+    setPorcupineReady(false);
+    setPorcupineListening(false);
+  }, []);
+
+  // Handle wake word detection
+  const handleWakeWordDetected = useCallback(() => {
+    setWakeWordActive(true);
+    speak("Je t'écoute !");
+    setTimeout(() => {
+      setMode('voice');
+      startVoiceCapture();
+    }, 500);
+  }, []);
 
   // Initialize - auto focus text input
   useEffect(() => {
@@ -72,8 +151,13 @@ const UnifiedCapture = () => {
       setTimeout(() => inputRef.current?.focus(), 100);
     }
     
-    // Start wake word listening in background
-    startWakeWordListening();
+    // Essayer d'initialiser Porcupine, sinon utiliser Web Speech API
+    initPorcupine().then(success => {
+      if (!success) {
+        // Fallback vers Web Speech API pour wake word
+        startWakeWordListening();
+      }
+    });
     
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') {
@@ -99,8 +183,9 @@ const UnifiedCapture = () => {
     if (silenceTimeoutRef.current) {
       clearTimeout(silenceTimeoutRef.current);
     }
+    cleanupPorcupine();
     window.speechSynthesis?.cancel();
-  }, []);
+  }, [cleanupPorcupine]);
 
   // Close handler
   const handleClose = useCallback(() => {
@@ -121,7 +206,7 @@ const UnifiedCapture = () => {
     }
   }, []);
 
-  // Check for wake word
+  // Check for wake word (fallback Web Speech API)
   const checkWakeWord = useCallback((text) => {
     const lowerText = text.toLowerCase().trim();
     return WAKE_WORDS.some(wake => lowerText.includes(wake));
@@ -133,9 +218,9 @@ const UnifiedCapture = () => {
     return STOP_COMMANDS.some(cmd => lowerText.includes(cmd) || lowerText.endsWith(cmd));
   }, []);
 
-  // Start wake word listening (background)
+  // Start wake word listening (fallback Web Speech API)
   const startWakeWordListening = useCallback(() => {
-    if (!SpeechRecognition) return;
+    if (!SpeechRecognition || porcupineReady) return;
     
     const recognition = new SpeechRecognition();
     recognition.continuous = true;
@@ -147,13 +232,8 @@ const UnifiedCapture = () => {
         const text = event.results[i][0].transcript;
         if (checkWakeWord(text)) {
           // Wake word detected!
-          setWakeWordActive(true);
           recognition.stop();
-          speak("Je t'écoute !");
-          setTimeout(() => {
-            setMode('voice');
-            startVoiceCapture();
-          }, 500);
+          handleWakeWordDetected();
           return;
         }
       }
@@ -167,7 +247,7 @@ const UnifiedCapture = () => {
     
     recognition.onend = () => {
       // Restart wake word listening if not in voice mode
-      if (mode === 'text' && !wakeWordActive) {
+      if (mode === 'text' && !wakeWordActive && !porcupineReady) {
         setTimeout(() => {
           try {
             recognition.start();
@@ -185,7 +265,7 @@ const UnifiedCapture = () => {
     } catch (e) {
       console.log('Could not start wake word recognition');
     }
-  }, [mode, wakeWordActive, checkWakeWord, speak]);
+  }, [mode, wakeWordActive, checkWakeWord, porcupineReady, handleWakeWordDetected]);
 
   // Start voice capture
   const startVoiceCapture = useCallback(async () => {
@@ -193,6 +273,11 @@ const UnifiedCapture = () => {
     setInterimTranscript('');
     setError(null);
     setAiResponse(null);
+    
+    // Pause Porcupine pendant la capture vocale
+    if (porcupineReady && webVoiceProcessorRef.current) {
+      setPorcupineListening(false);
+    }
     
     // Check microphone permission
     try {
@@ -293,7 +378,7 @@ const UnifiedCapture = () => {
     } catch (e) {
       console.error('Error starting recognition:', e);
     }
-  }, [checkStopCommand]);
+  }, [checkStopCommand, porcupineReady]);
 
   // Process voice input
   const processVoiceInput = useCallback(async (text) => {
@@ -305,7 +390,12 @@ const UnifiedCapture = () => {
     
     if (!cleanText) {
       setMode('text');
-      startWakeWordListening();
+      // Redémarrer Porcupine ou le fallback
+      if (porcupineReady) {
+        setPorcupineListening(true);
+      } else {
+        startWakeWordListening();
+      }
       return;
     }
     
@@ -338,7 +428,12 @@ const UnifiedCapture = () => {
       setTimeout(() => {
         setWakeWordActive(false);
         setMode('text');
-        startWakeWordListening();
+        // Redémarrer Porcupine ou le fallback
+        if (porcupineReady) {
+          setPorcupineListening(true);
+        } else {
+          startWakeWordListening();
+        }
       }, 4000);
       
     } catch (err) {
@@ -347,7 +442,7 @@ const UnifiedCapture = () => {
       setStatus('error');
       speak("Désolé, une erreur s'est produite");
     }
-  }, [user, speak, startWakeWordListening]);
+  }, [user, speak, startWakeWordListening, porcupineReady]);
 
   // Handle text submit
   const handleTextSubmit = async (e) => {
@@ -398,6 +493,9 @@ const UnifiedCapture = () => {
     if (wakeWordRecognitionRef.current) {
       wakeWordRecognitionRef.current.stop();
     }
+    if (porcupineListening) {
+      setPorcupineListening(false);
+    }
     setMode('voice');
     startVoiceCapture();
   };
@@ -412,8 +510,21 @@ const UnifiedCapture = () => {
     setWakeWordActive(false);
     setTimeout(() => {
       inputRef.current?.focus();
-      startWakeWordListening();
+      // Redémarrer le wake word
+      if (porcupineReady) {
+        setPorcupineListening(true);
+      } else {
+        startWakeWordListening();
+      }
     }, 100);
+  };
+
+  // Déterminer le texte du wake word indicator
+  const getWakeWordText = () => {
+    if (porcupineReady && porcupineListening) {
+      return 'Dis "Hey Google" pour la voix';
+    }
+    return 'Dis "Hey Assistant" pour la voix';
   };
 
   return (
@@ -441,8 +552,11 @@ const UnifiedCapture = () => {
             className="absolute top-6 left-1/2 -translate-x-1/2 z-20"
           >
             <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-primary-500/20 border border-primary-500/30">
-              <div className="w-2 h-2 rounded-full bg-primary-400 animate-pulse" />
-              <span className="text-sm text-primary-300">Dis "Hey Assistant" pour la voix</span>
+              <div className={`w-2 h-2 rounded-full ${porcupineListening || !porcupineReady ? 'bg-primary-400 animate-pulse' : 'bg-neutral-500'}`} />
+              <span className="text-sm text-primary-300">{getWakeWordText()}</span>
+              {porcupineReady && (
+                <span className="text-xs text-primary-400/60 ml-1">(Porcupine)</span>
+              )}
             </div>
           </motion.div>
         )}
@@ -458,6 +572,7 @@ const UnifiedCapture = () => {
         <button
           onClick={handleClose}
           className="absolute -top-12 right-0 p-2 rounded-full bg-neutral-800 hover:bg-neutral-700 transition-colors"
+          data-testid="close-capture-btn"
         >
           <X className="w-5 h-5 text-neutral-400" />
         </button>
@@ -466,6 +581,7 @@ const UnifiedCapture = () => {
         <div className="flex justify-center gap-2 mb-6">
           <button
             onClick={switchToText}
+            data-testid="text-mode-btn"
             className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all ${
               mode === 'text' 
                 ? 'bg-primary-500 text-white' 
@@ -477,6 +593,7 @@ const UnifiedCapture = () => {
           </button>
           <button
             onClick={switchToVoice}
+            data-testid="voice-mode-btn"
             className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all ${
               mode === 'voice' 
                 ? 'bg-primary-500 text-white' 
@@ -585,6 +702,7 @@ const UnifiedCapture = () => {
                     rows={3}
                     autoFocus
                     maxLength={500}
+                    data-testid="capture-input"
                   />
                   
                   <div className="mt-8 text-center space-y-2">
@@ -748,6 +866,7 @@ const UnifiedCapture = () => {
                       processVoiceInput(transcript);
                     }}
                     className="px-6 py-3 bg-gradient-to-r from-primary-500 to-purple-500 text-white rounded-xl font-medium flex items-center gap-2"
+                    data-testid="send-voice-btn"
                   >
                     <Sparkles className="w-5 h-5" />
                     Envoyer
@@ -758,6 +877,7 @@ const UnifiedCapture = () => {
                   <button
                     onClick={startVoiceCapture}
                     className="px-6 py-3 bg-primary-500 hover:bg-primary-600 text-white rounded-xl font-medium flex items-center gap-2"
+                    data-testid="start-voice-btn"
                   >
                     <Mic className="w-5 h-5" />
                     Commencer
@@ -773,6 +893,7 @@ const UnifiedCapture = () => {
                       startVoiceCapture();
                     }}
                     className="px-6 py-3 bg-primary-500 hover:bg-primary-600 text-white rounded-xl font-medium flex items-center gap-2"
+                    data-testid="new-capture-btn"
                   >
                     <Mic className="w-5 h-5" />
                     Nouvelle capture
