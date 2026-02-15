@@ -80,6 +80,23 @@ const Dashboard = () => {
     }
   };
 
+  const handleTimeBlockScheduled = async (taskWithSchedule) => {
+    try {
+      await updateTask(taskWithSchedule.id, {
+        scheduled_at: taskWithSchedule.scheduled_at,
+        estimated_total_minutes: taskWithSchedule.estimated_total_minutes,
+        energy_required: taskWithSchedule.energy_required,
+      });
+      setLastAction({
+        type: 'success',
+        message: 'Tâche planifiée ! 📅'
+      });
+      setTimeout(() => setLastAction(null), 3000);
+    } catch (error) {
+      console.error('Error scheduling task:', error);
+    }
+  };
+
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
