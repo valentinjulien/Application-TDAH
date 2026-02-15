@@ -129,7 +129,7 @@ export default function DeepFocus({ visible, onClose, userId, currentTaskText }:
         await createDailyLog({
           user_id: userId,
           date: new Date().toISOString().split('T')[0],
-          type: 'morning_gazette' as const, // Reuse for focus tracking
+          type: 'focus_session',
           content: {
             focus_completed: true,
             duration_minutes: selectedMode.minutes,
