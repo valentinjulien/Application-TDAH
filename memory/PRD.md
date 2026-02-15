@@ -147,8 +147,9 @@ Un sanctuaire numérique bienveillant qui protège l'attention des personnes TDA
 │   └── useTimer.ts              # Timer robuste
 ├── services/
 │   ├── aiService.ts             # Task breakdown
-│   ├── captureService.ts        # 🆕 Ghost UI AI processing
+│   ├── captureService.ts        # Ghost UI AI processing
 │   ├── dailyAIService.ts        # Gazette + Review
+│   ├── googleCalendarService.ts # 🆕 Google Calendar OAuth + API
 │   └── timeBlockingService.ts   # Calcul charge cognitive
 └── lib/
     └── supabase.ts              # Client + helpers
